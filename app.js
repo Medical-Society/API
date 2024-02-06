@@ -18,6 +18,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Middlewares
+app.use(express.json());
 app.use(cors());
 
 // Setting up the bodyParser
@@ -25,8 +26,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Routes
-// app.use('/api/v1/doctors', doctorRouter);
-// app.use('/api/v1/patients', patientRouter);
+app.use('/api/v1/doctors', doctorRouter);
+app.use('/api/v1/patients', patientRouter);
 
 //connection
 const port = process.env.PORT || 3000;
