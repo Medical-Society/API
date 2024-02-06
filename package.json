@@ -1,33 +1,34 @@
 {
-  "name": "api",
-  "version": "1.0.0",
-  "description": "MSS's backend",
-  "main": "app.js",
-  "directories": {
-    "test": "tests"
-  },
-  "scripts": {
-    "start": "nodemon app.js",
-    "test": "jest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Medical-Society/API.git"
-  },
-  "author": "Mina Magdy, Eman Mohamed",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Medical-Society/API/issues"
-  },
-  "homepage": "https://github.com/Medical-Society/API#readme",
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.1",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.1.1",
-    "nodemon": "^3.0.3"
-  }
+    "name": "api",
+    "version": "1.0.0",
+    "description": "MSS's backend",
+    "main": "app.js",
+    "directories": {
+        "test": "tests"
+    },
+    "scripts": {
+        "dev": "nodemon app.js",
+        "start": "node app.js",
+        "test": "jest"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Medical-Society/API.git"
+    },
+    "author": "Mina Magdy, Eman Mohamed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Medical-Society/API/issues"
+    },
+    "homepage": "https://github.com/Medical-Society/API#readme",
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.20.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.1",
+        "express": "^4.18.2",
+        "jsonwebtoken": "^9.0.2",
+        "mongoose": "^8.1.1",
+        "nodemon": "^3.0.3"
+    }
 }

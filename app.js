@@ -12,6 +12,11 @@ const cors = require('cors');
 
 // Local Modules
 patientRouter = require('./routes/patient');
+const cors = require('cors');
+
+// Local Modules
+const Doctor = require('./routes/doctor');
+require('./db/db');
 
 // Express App
 
@@ -29,6 +34,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Routes
+app.use('/api/v1/doctors', Doctor);
 
 // app.use('/api/patient', patientRouter);
 
