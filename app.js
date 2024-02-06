@@ -1,23 +1,43 @@
 // Core Modules
 
 // Third Party Modules
-const express = require("express");
-const cors = require("cors")
+const express = require('express');
+const path = require('path');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+dotenv.config();
+const http = require('http');
+const cors = require('cors');
 
 // Local Modules
+patientRouter = require('./routes/patient');
 
 // Express App
+
 const app = express();
+const server = http.createServer(app);
 
 // Middlewares
-app.use(cors());
+
 app.use(express.json());
+app.use(cors());
+
+// Setting up the bodyParser
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Routes
 
-// Listening
-const port = process.env.PORT || 3000
+// app.use('/api/patient', patientRouter);
 
-app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
+//connection
+
+const port = process.env.PORT || 3000;
+
+mongoose
+    .connect(process.env.MONGODB_URL)
+    .then(() => server.listen(port))
+    .then(() => console.log(`connect to mongoDb and listen on port ${port}`))
+    .catch((err) => console.log(err));
