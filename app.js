@@ -5,41 +5,30 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
-dotenv.config();
+require('dotenv').config();
 const http = require('http');
 const cors = require('cors');
 
 // Local Modules
-patientRouter = require('./routes/patient');
-const cors = require('cors');
-
-// Local Modules
-const Doctor = require('./routes/doctor');
-require('./db/db');
+const patientRouter = require('./routes/patient');
+const doctorRouter = require('./routes/doctor');
 
 // Express App
-
 const app = express();
 const server = http.createServer(app);
 
 // Middlewares
-
-app.use(express.json());
 app.use(cors());
 
 // Setting up the bodyParser
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Routes
-app.use('/api/v1/doctors', Doctor);
-
-// app.use('/api/patient', patientRouter);
+// app.use('/api/v1/doctors', doctorRouter);
+// app.use('/api/v1/patients', patientRouter);
 
 //connection
-
 const port = process.env.PORT || 3000;
 
 mongoose
