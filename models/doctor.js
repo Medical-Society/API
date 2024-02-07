@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const doctorScheme = new mongoose.Schema(
+const doctorSchema = new mongoose.Schema(
     {
         englishFullName: {
             type: String,
@@ -15,6 +15,7 @@ const doctorScheme = new mongoose.Schema(
             required: [true, 'Email is mandatory'],
             match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
             trim: true,
+            unique: true,
         },
         password: {
             type: String,
@@ -29,26 +30,46 @@ const doctorScheme = new mongoose.Schema(
         },
         clinicAddress: {
             type: String,
+            default: 'Not provided',
         },
         nationalID: {
             type: String,
             required: [true, 'National ID is mandatory'],
+            minlength: 14,
+            maxlength: 14,
         },
         phoneNumber: {
             type: String,
             required: [true, 'Phone number is mandatory'],
+            match: /^(010|011|012|015)[0-9]{8}$/,
+            minlength: 11,
         },
-        Age: {
+        age: {
             type: Number,
             required: [true, 'Age is mandatory'],
+            validate: {
+                validator: function (v) {
+                    return v >= 18;
+                },
+                message: 'Age must be +18 🔞',
+            },
         },
-        Gender: {
+        gender: {
             type: String,
             enum: ['male', 'female'],
             required: [true, 'Gender is mandatory'],
+        },
+        status: {
+            type: String,
+            enum: ['pending', 'in progress', 'accepted', 'rejected'],
+            default: 'pending',
+        },
+        isVerified: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true }
 );
 
-module.exports = mongoose.model('Doctor', doctorScheme);
+module.exports = mongoose.model('Doctor', doctorSchema);
