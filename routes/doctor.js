@@ -14,5 +14,7 @@ router.get('/:id', checkAuth);
 router.post('/signup', doctorController.signup);
 router.post('/login', doctorController.login);
 router.get('/verify/:token', doctorController.verifyEmail);
+router.post('/forgot-password', doctorController.forgotPassword);
+router.post('/reset-password/:token', doctorController.resetPassword);
 
 module.exports = router;
