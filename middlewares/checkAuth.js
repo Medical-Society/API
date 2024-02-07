@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const key = process.env.JWT_SECRET || 'mina magdy';
+const key = process.env.JWT_SECRET;
 
 exports.checkAuth = (req, res, next) => {
     const token = req.headers.authorization.split(' ')[1];

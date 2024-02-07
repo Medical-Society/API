@@ -1,17 +1,38 @@
-const Patient = require('../models/patient');
-
-const validation = require('../validation/valid');
+// Third party modules
 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// local modules
+
+const Patient = require('../models/patient');
+const validation = require('../validation/valid');
 const { sendingMail } = require('../utils/mailing');
 
-const jwt = require('jsonwebtoken');
 // Varaibles
-const key = process.env.JWT_SECRET || 'H+MbQeThWmZq3t6w9z$C&F';
+
+const key = process.env.JWT_SECRET;
+
+// decryptPassword
+
+function decryptPassword(encryptedPassword, key) {
+    const decipher = crypto.createDecipher('aes-256-cbc', key);
+    let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
+    decryptedPassword += decipher.final('utf8');
+    return decryptedPassword;
+}
+
+// signup
 
 const patientSignUp = async (req, res) => {
     try {
-        const { patientName, email, password, confirmPassword, age, gender, address, mobile } = req.body;
+        const { email, password, confirmPassword } = req.body;
+        console.log(email, password);
+        //check if all fields are filled
+
+        if (!password || !confirmPassword || !email) {
+            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+        }
 
         // Check if the user already exists
 
@@ -45,14 +66,17 @@ const patientSignUp = async (req, res) => {
 
         // Generate a token
         const token = jwt.sign({ _id: newPatient._id }, key);
+
+        // sending email
+
         if (token) {
             sendingMail({
-                to: email,
+                to: newPatient.email,
                 // Subject of Email
                 subject: 'Email Verification',
 
                 // This would be the text of email body
-                text: `Hi ${patientName}! There, You have recently visited 
+                text: `Hi ${newPatient.patientName}! There, You have recently visited 
 		our website and entered your email. 
 		Please follow the given link to verify your email 
 		${process.env.BASE_URL}/api/v1/patients/verify/${token} 
@@ -63,12 +87,12 @@ const patientSignUp = async (req, res) => {
 
             return res.status(400).send('token not created');
         }
+
         // Return the response with token and user data
 
-        const result = { token: token, user: newPatient };
         return res.status(201).json({
             status: 'success',
-            data: result,
+            data: { token, newPatient },
         });
     } catch (err) {
         return res.status(404).json({
@@ -77,6 +101,53 @@ const patientSignUp = async (req, res) => {
         });
     }
 };
+
+// log in
+
+const patientLogin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.json(400).json({
+                status: 'fail',
+                message: 'All the fields are mandatory',
+            });
+        }
+        const patient = await Patient.findOne({ email: email });
+        if (!patient) {
+            return res.json(401).json({
+                status: 'fail',
+                message: 'The Email is not exist',
+            });
+        }
+        const passwordMatch = await bcrypt.compare(password, patient.password);
+        if (!passwordMatch) {
+            return res.status(401).json({
+                status: 'fail',
+                message: 'Password is wrong',
+            });
+        }
+        if (!patient.isVerified) {
+            return res.status(400).json({ status: 'fail', message: 'Please verify your email' });
+        }
+        const token = jwt.sign({ _id: patient._id }, key);
+        if (!token) {
+            return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            data: { token, patient },
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: 'error',
+            error: err.message,
+        });
+    }
+};
+
 // verify Email
 
 const verifyEmail = async (req, res) => {
@@ -95,16 +166,18 @@ const verifyEmail = async (req, res) => {
     });
 };
 
+// forgor password
+
 // For Admin
 
-const getAllUsers = async (req, res) => {
+const getAllPatient = async (req, res) => {
     try {
-        const user = await Patient.find();
+        const patient = await Patient.find();
         return res.status(200).json({
             status: 'success',
-            results: user.length,
+            results: patient.length,
             data: {
-                user,
+                patient,
             },
         });
     } catch (err) {
@@ -114,10 +187,10 @@ const getAllUsers = async (req, res) => {
         });
     }
 };
-const getUser = async (req, res) => {
+const getPatient = async (req, res) => {
     try {
-        const user = await Patient.findById(req.params.id);
-        if (!user) {
+        const patient = await Patient.findById(req.params.id);
+        if (!patient) {
             return res.status(404).json({
                 status: 'fail',
                 message: 'not found!!',
@@ -126,7 +199,7 @@ const getUser = async (req, res) => {
         return res.status(200).json({
             status: 'success',
             data: {
-                user,
+                patient,
             },
         });
     } catch (err) {
@@ -139,6 +212,8 @@ const getUser = async (req, res) => {
 
 module.exports = {
     patientSignUp,
-    getAllUsers,
-    verifyEmail
+    getAllPatient,
+    verifyEmail,
+    getPatient,
+    patientLogin,
 };

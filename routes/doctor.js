@@ -9,8 +9,8 @@ const { checkDoctor } = require('../middlewares/checkDoctor');
 
 const router = express.Router();
 
-router.get('/', checkAuth, doctorController.getAllDoctors);
-router.get('/:id', checkAuth, doctorController.getDoctor);
+router.get('/', checkAuth);
+router.get('/:id', checkAuth);
 router.post('/signup', doctorController.signup);
 router.post('/login', doctorController.login);
 router.get('/verify/:token', doctorController.verifyEmail);
