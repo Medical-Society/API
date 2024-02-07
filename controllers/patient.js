@@ -12,15 +12,6 @@ const { sendingMail } = require('../utils/mailing');
 
 const key = process.env.JWT_SECRET;
 
-// decryptPassword
-
-function decryptPassword(encryptedPassword, key) {
-    const decipher = crypto.createDecipher('aes-256-cbc', key);
-    let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
-    decryptedPassword += decipher.final('utf8');
-    return decryptedPassword;
-}
-
 // signup
 
 const patientSignUp = async (req, res) => {
@@ -167,6 +158,67 @@ const verifyEmail = async (req, res) => {
 
 // forgor password
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+        }
+        const patient = await Patient.findOne({ email });
+        if (!patient) {
+            return res.status(404).json({ status: 'fail', message: 'Patient not found' });
+        }
+        const token = jwt.sign({ _id: patient._id }, key);
+        if (!token) {
+            return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
+        }
+        const link = `${process.env.BASE_URL}/api/v1/patients/reset-password/${token}`;
+        await sendingMail({
+            to: patient.email,
+            subject: 'Reset Password',
+            text: `Hi! There, You have recently visited
+            our website and entered your email.
+            Please follow the given link to reset your password ${link}
+            Thanks`,
+        });
+        res.status(200).json({
+            status: 'success',
+            message: `Reset password link sent to ${patient.email}`,
+        });
+    } catch (err) {
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in forgot password' });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    const { token } = req.params;
+    jwt.verify(token, key, async (err, decoded) => {
+        if (err) {
+            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
+        }
+        const { password, confirmPassword } = req.body;
+        if (!password || !confirmPassword) {
+            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+        }
+        if (password != confirmPassword) {
+            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
+        }
+        const patient = await Patient.findById(decoded._id);
+        if (!patient) {
+            return res.status(404).json({ status: 'fail', message: 'Patient not found' });
+        }
+        patient.password = await bcrypt.hash(password, 10);
+        await patient.save();
+        res.status(200).json({
+            status: 'success',
+            message: `${patient.patientName} password reset successfully`,
+        });
+    });
+};
+
 // For Admin
 
 const getAllPatient = async (req, res) => {
@@ -215,4 +267,6 @@ module.exports = {
     verifyEmail,
     getPatient,
     patientLogin,
+    forgotPassword,
+    resetPassword,
 };
