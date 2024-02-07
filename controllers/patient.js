@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 // local modules
 
 const Patient = require('../models/patient');
-const validation = require('../validation/valid');
 const { sendingMail } = require('../utils/mailing');
 
 // Varaibles
