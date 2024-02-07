@@ -7,7 +7,7 @@ require('dotenv').config();
 const Doctor = require('../models/doctor');
 const { sendingMail } = require('../utils/mailing');
 
-const key = process.env.JWT_SECRET || 'mina magdy';
+const key = process.env.JWT_SECRET;
 
 exports.signup = async (req, res) => {
     try {
@@ -31,13 +31,13 @@ exports.signup = async (req, res) => {
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
+        const link = `${process.env.BASE_URL}/api/v1/doctors/verify/${token}`;
         await sendingMail({
             to: doctor.email,
             subject: 'Email Verification',
             text: `Hi! There, You have recently visited
             our website and entered your email.
-            Please follow the given link to verify your email
-            ${process.env.BASE_URL}/api/v1/doctors/verify/${token}
+            Please follow the given link to verify your email ${link}
             Thanks`,
         });
         res.status(201).json({
