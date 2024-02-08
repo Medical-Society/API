@@ -51,6 +51,10 @@ const patientSchema = new Schema(
         isVerified:{
             type: Boolean,
             default: false
+        },
+        image :{
+            data:Buffer,
+            contentType: String
         }
     },
     { timestamps: true }

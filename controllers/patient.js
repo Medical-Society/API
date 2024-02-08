@@ -82,7 +82,7 @@ const patientSignUp = async (req, res) => {
 
         return res.status(201).json({
             status: 'success',
-            data: { token, newPatient },
+            data: newPatient,
         });
     } catch (err) {
         return res.status(404).json({
@@ -219,16 +219,44 @@ const resetPassword = async (req, res) => {
     });
 };
 
+//upload image
+
+const uploadImage = async (req, res) => {
+    try {
+        const { originalName, buffer, mimeType } = req.file;
+        const image = new Patient({
+            data: buffer,
+            contentType: mimeType,
+        });
+
+        await image.save();
+
+        res.status(201).send('Image uploaded successfully');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 // For Admin
 
 const getAllPatient = async (req, res) => {
     try {
-        const patient = await Patient.find();
+        const count = await Patient.countDocuments();
+        const limit = 20;
+        const page = Math.min(Math.ceil(count / limit), req.query.page * 1 || 1);
+
+        const patient = await Patient.find()
+            .limit(limit)
+            .skip((page - 1) * limit)
+            .sort({ createdAt: -1 });
         return res.status(200).json({
             status: 'success',
             results: patient.length,
             data: {
                 patient,
+                totalPages: Math.ceil(count / limit),
+                currentPage: page,
             },
         });
     } catch (err) {
