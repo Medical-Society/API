@@ -42,7 +42,7 @@ exports.signup = async (req, res) => {
         });
         res.status(201).json({
             status: 'success',
-            data: { token, doctor },
+            data: { doctor },
         });
     } catch (err) {
         let statusCode = 500;
@@ -101,11 +101,20 @@ exports.verifyEmail = async (req, res) => {
 
 exports.getAllDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find();
+        const count = await Doctor.countDocuments();
+        const limit = 20;
+        const page = Math.min(Math.ceil(count / limit), req.query.page * 1 || 1);
+        const doctors = await Doctor.find()
+            .limit(limit)
+            .skip((page - 1) * limit)
+            .sort({ createdAt: 1 });
         if (doctors.length === 0) {
             return res.status(404).json({ status: 'fail', message: 'No doctors found' });
         }
-        res.status(200).json({ status: 'success', data: { doctors } });
+        res.status(200).json({
+            status: 'success',
+            data: { doctors, totalPages: Math.ceil(count / limit), currentPage: page },
+        });
     } catch (err) {
         res.status(500).json({ status: 'fail', error: err, message: 'Error in getting all doctors' });
     }
