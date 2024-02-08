@@ -192,3 +192,38 @@ exports.resetPassword = async (req, res) => {
         });
     });
 };
+
+exports.changeStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        if (!status) {
+            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+        }
+        const doctor = await Doctor.findById(id);
+        if (!doctor) {
+            return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
+        }
+        doctor.status = status;
+        await doctor.save();
+        res.status(200).json({
+            status: 'success',
+            message: `Dr. ${doctor.englishFullName} status changed to ${status}`,
+        });
+    } catch (err) {
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in changing status' });
+    }
+};
+
+exports.deleteDoctor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const doctor = await Doctor.findByIdAndDelete(id);
+        if (!doctor) {
+            return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
+        }
+        res.status(204).json({ status: 'success', message: 'Doctor deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in deleting doctor' });
+    }
+};

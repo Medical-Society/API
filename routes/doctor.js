@@ -6,6 +6,7 @@ const doctorController = require('../controllers/doctor');
 // middlewares
 const { checkAuth } = require('../middlewares/checkAuth');
 const { checkDoctor } = require('../middlewares/checkDoctor');
+const { checkAdmin } = require('../middlewares/checkAdmin');
 
 const router = express.Router();
 
@@ -16,5 +17,7 @@ router.post('/login', doctorController.login);
 router.get('/verify/:token', doctorController.verifyEmail);
 router.post('/forgot-password', doctorController.forgotPassword);
 router.post('/reset-password/:token', doctorController.resetPassword);
+router.post('/status/:id', checkAuth, checkAdmin, doctorController.changeStatus);
+router.delete('/:id', checkAuth, checkAdmin, doctorController.deleteDoctor);
 
 module.exports = router;

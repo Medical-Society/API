@@ -12,6 +12,7 @@ const cors = require('cors');
 // Local Modules
 const patientRouter = require('./routes/patient');
 const doctorRouter = require('./routes/doctor');
+const adminRouter = require('./routes/admin');
 
 // Express App
 const app = express();
@@ -28,6 +29,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // Routes
 app.use('/api/v1/doctors', doctorRouter);
 app.use('/api/v1/patients', patientRouter);
+app.use('/api/v1/admins', adminRouter);
 
 //connection
 const port = process.env.PORT || 3000;
