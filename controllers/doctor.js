@@ -79,6 +79,7 @@ exports.login = async (req, res) => {
             data: { token, doctor },
         });
     } catch (err) {
+        console.log(err);
         res.status(500).json({ status: 'fail', error: err, message: 'Error in doctor login' });
     }
 };
