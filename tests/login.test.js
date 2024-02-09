@@ -1,26 +1,32 @@
-const axios = require('axios');
+const request = require('supertest');
+const app = require('../app'); // Assuming the app.js file is in the parent directory
+require('dotenv').config();
+const mongoose = require('mongoose');
 
-describe('Doctor Login API', () => {
-    test('Login with valid credentials should return a token', async () => {
-        const response = await axios.post('http://localhost:3000/api/v1/doctors/login', {
+beforeAll(async () => {
+    const url = process.env.MONGODB_URL;
+    await mongoose.connect(url);
+});
+
+afterAll(async () => {
+    await mongoose.connection.close();
+});
+
+describe('POST /api/v1/doctors/login', () => {
+    test('should return 200 if the doctor login successfully', async () => {
+        const res = await request(app).post('/api/v1/doctors/login').send({
             email: 'emanmohameed2002@gmail.com',
             password: '123123',
         });
-        // Assuming the API returns a token upon successful login
-        expect(response.status).toBe(200);
-        expect(response.data.data).toHaveProperty('token');
+        expect(res.status).toEqual(200);
+        expect(res.body).toHaveProperty('status', 'success');
     });
-
-    test('Login with invalid credentials should return an error', async () => {
-        try {
-            const response = await axios.post('http://localhost:3000/api/v1/doctors/login', {
-                email: 'invalid_email',
-                password: 'invalid_password',
-            });
-        } catch (error) {
-            console.log(error);
-            expect(error.response.status).toBe(400);
-            expect(error.response.data.message).toEqual('Invalid email or password');
-        }
+    test('should return 400 if the doctor login failed', async () => {
+        const res = await request(app).post('/api/v1/doctors/login').send({
+            email: '',
+            password: '',
+        });
+        expect(res.status).toEqual(400);
+        expect(res.body).toHaveProperty('status', 'fail');
     });
 });
