@@ -18,6 +18,7 @@ describe('POST /api/v1/doctors/login', () => {
             email: 'emanmohameed2002@gmail.com',
             password: '123123',
         });
+        console.log(res);
         expect(res.status).toEqual(200);
         expect(res.body).toHaveProperty('status', 'success');
     });
