@@ -16,6 +16,9 @@ const key = process.env.JWT_SECRET;
 
 const patientSignUp = async (req, res) => {
     try {
+        // console.log(req.file);
+        // console.log(req.body);
+
         const { email, password, confirmPassword } = req.body;
         console.log(email, password);
         //check if all fields are filled
@@ -56,39 +59,36 @@ const patientSignUp = async (req, res) => {
 
         // Generate a token
         const token = jwt.sign({ _id: newPatient._id }, key);
-
+        if (!token) {
+            return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
+        }
         // sending email
 
-        if (token) {
-            sendingMail({
-                to: newPatient.email,
-                // Subject of Email
-                subject: 'Email Verification',
+        sendingMail({
+            to: newPatient.email,
+            // Subject of Email
+            subject: 'Email Verification',
 
-                // This would be the text of email body
-                text: `Hi ${newPatient.patientName}! There, You have recently visited 
+            // This would be the text of email body
+            text: `Hi ${newPatient.patientName}! There, You have recently visited 
 		our website and entered your email. 
 		Please follow the given link to verify your email 
 		${process.env.BASE_URL}/api/v1/patients/verify/${token} 
 		Thanks`,
-            });
-        } else {
-            //if token is not created, send a status of 400
-
-            return res.status(400).send('token not created');
-        }
+        });
 
         // Return the response with token and user data
 
-        return res.status(201).json({
+        return res.status(200).json({
             status: 'success',
             data: newPatient,
         });
     } catch (err) {
-        return res.status(404).json({
-            status: 'failed',
-            message: err.message,
-        });
+        let statusCode = 500;
+        if (err.name === 'ValidationError') {
+            statusCode = 400;
+        }
+        res.status(statusCode).json({ status: 'fail', error: err, message: 'Error in patient signup' });
     }
 };
 
@@ -99,21 +99,21 @@ const patientLogin = async (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.json(400).json({
+            return res.status(400).json({
                 status: 'fail',
                 message: 'All the fields are mandatory',
             });
         }
         const patient = await Patient.findOne({ email: email });
         if (!patient) {
-            return res.json(401).json({
+            return res.status(400).json({
                 status: 'fail',
                 message: 'The Email is not exist',
             });
         }
         const passwordMatch = await bcrypt.compare(password, patient.password);
         if (!passwordMatch) {
-            return res.status(401).json({
+            return res.status(400).json({
                 status: 'fail',
                 message: 'Password is wrong',
             });
@@ -288,6 +288,41 @@ const getPatient = async (req, res) => {
         });
     }
 };
+const filterObj = (obj, ...allowedFields) => {
+    const newObj = {};
+    Object.keys(obj).forEach((el) => {
+        if (allowedFields.includes(el)) newObj[el] = obj[el];
+    });
+    return newObj;
+};
+
+const update = async (req, res) => {
+    try {
+        // Filtered out unwanted fields names that are not allowed to be updated
+        //put fields that you want to update in filterObj function below
+
+        if (req.body.email || req.body.password || req.body.confirmPassword || req.body.gender) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'you are not allowed to update Email or Gender or password,if you want to change password go to change password please!!,',
+            });
+        }
+        const filteredBody = filterObj(req.body, 'patientName', 'age', 'address', 'mobile');
+
+        const patient = await Patient.findByIdAndUpdate(req.user._id, filteredBody, { new: true });
+        return res.status(200).json({
+            status: 'success',
+            data: {
+                patient,
+            },
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: 'fail',
+            message: 'Error in updating patient',
+        });
+    }
+};
 
 module.exports = {
     patientSignUp,
@@ -297,4 +332,5 @@ module.exports = {
     patientLogin,
     forgotPassword,
     resetPassword,
+    update,
 };

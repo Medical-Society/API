@@ -1,4 +1,5 @@
 const request = require('supertest');
+
 const app = require('../app'); // Assuming the app.js file is in the parent directory
 require('dotenv').config();
 const mongoose = require('mongoose');
@@ -12,18 +13,18 @@ afterAll(async () => {
     await mongoose.connection.close();
 });
 
-describe('POST /api/v1/doctors/login', () => {
-    test('should return 200 if the doctor login successfully', async () => {
-        const res = await request(app).post('/api/v1/doctors/login').send({
+describe('POST /api/v1/patients/login', () => {
+    test('should return 200 if the patient login successfully', async () => {
+        const res = await request(app).post('/api/v1/patients/login').send({
             email: 'emanmohameed2002@gmail.com',
-            password: '123123',
+            password: '1234567',
         });
         // console.log(res);
         expect(res.status).toEqual(200);
         expect(res.body).toHaveProperty('status', 'success');
     });
-    test('should return 400 if the doctor login failed', async () => {
-        const res = await request(app).post('/api/v1/doctors/login').send({
+    test('should return 400 if the patient login failed', async () => {
+        const res = await request(app).post('/api/v1/patients/login').send({
             email: '',
             password: '',
         });

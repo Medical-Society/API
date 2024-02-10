@@ -6,17 +6,17 @@ const multer = require('multer');
 const { checkAuth } = require('../middlewares/checkAuth');
 const { checkPatient } = require('../middlewares/checkPatient');
 
-// const upload = multer({ dest: '/uploads' }); // Destination folder for uploaded files
+const upload = multer({ dest: 'imgs' }); // Destination folder for uploaded files
 
-// router.post('/upload',upload.single('image'),patientController.uploadImgae);
-
-router.get('/', checkAuth, patientController.getAllPatient);
+router.get('/', checkAuth, patientController.getAllPatient); //test done
 router.get('/:id', checkAuth, patientController.getPatient);
-router.post('/signup', patientController.patientSignUp);
-router.get('/verify/:token', patientController.verifyEmail);
-router.post('/login', patientController.patientLogin);
-router.post('/reset-password/:token', patientController.resetPassword);
-router.post('/forgot-password', patientController.forgotPassword);
+router.post('/signup', patientController.patientSignUp); // test done
+router.get('/verify/:token', patientController.verifyEmail); //test done
+router.post('/login', patientController.patientLogin);  //test done
+router.patch('/updateMe',checkAuth,checkPatient,patientController.update); // test done
+router.post('/reset-password/:token', patientController.resetPassword); //test done
+router.post('/forgot-password', patientController.forgotPassword); // test done
+
 module.exports = router;
 
 // documentation
