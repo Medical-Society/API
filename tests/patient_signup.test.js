@@ -16,15 +16,17 @@ afterAll(async () => {
 describe('POST /api/v1/patients/signup', () => {
     test('should return 200 if the patient signup successfully', async () => {
         const res = await request(app).post('/api/v1/patients/signup').send({
-            patientName: 'nosa Mohamed',
-            email: 'emanMohamedAhmed@gmail.com',
+            patientName: 'Eman Mohamed',
+            email: 'eman@gmail.com',
             password: '12345677',
             confirmPassword: '12345677',
             age: '25',
             gender: 'male',
             address: 'elesmailia',
             mobile: '01273191052',
+            isVerified: true
         });
+        
         // console.log(res);
         expect(res.status).toEqual(200);
         expect(res.body).toHaveProperty('status', 'success');

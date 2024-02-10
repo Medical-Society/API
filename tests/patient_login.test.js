@@ -16,8 +16,8 @@ afterAll(async () => {
 describe('POST /api/v1/patients/login', () => {
     test('should return 200 if the patient login successfully', async () => {
         const res = await request(app).post('/api/v1/patients/login').send({
-            email: 'emanmohameed2002@gmail.com',
-            password: '1234567',
+            email: 'eman@gmail.com',
+            password: '12345677',
         });
         // console.log(res);
         expect(res.status).toEqual(200);

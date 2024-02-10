@@ -18,8 +18,8 @@ afterAll(async () => {
 describe('PATCH /api/v1/patients/updateMe', () => {
     test('should return 200 if the update patient successfully', async () => {
         const authRes = await request(app).post('/api/v1/patients/login').send({
-            email: 'emanmohameed2002@gmail.com',
-            password: '1234567',
+            email: 'eman@gmail.com',
+            password: '12345677',
         });
         const token = authRes.body.data.token;
 
