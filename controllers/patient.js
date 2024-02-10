@@ -84,11 +84,7 @@ const patientSignUp = async (req, res) => {
             data: newPatient,
         });
     } catch (err) {
-        let statusCode = 500;
-        if (err.name === 'ValidationError') {
-            statusCode = 400;
-        }
-        res.status(statusCode).json({ status: 'fail', error: err, message: 'Error in patient signup' });
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in patient signup' });
     }
 };
 
@@ -304,7 +300,8 @@ const update = async (req, res) => {
         if (req.body.email || req.body.password || req.body.confirmPassword || req.body.gender) {
             return res.status(404).json({
                 status: 'fail',
-                message: 'you are not allowed to update Email or Gender or password,if you want to change password go to change password please!!,',
+                message:
+                    'you are not allowed to update Email or Gender or password,if you want to change password go to change password please!!,',
             });
         }
         const filteredBody = filterObj(req.body, 'patientName', 'age', 'address', 'mobile');
