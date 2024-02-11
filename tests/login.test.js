@@ -1,6 +1,5 @@
+const app = require('../app');
 const request = require('supertest');
-const app = require('../app'); // Assuming the app.js file is in the parent directory
-require('dotenv').config();
 const mongoose = require('mongoose');
 
 beforeAll(async () => {

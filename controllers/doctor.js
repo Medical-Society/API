@@ -1,7 +1,6 @@
 // Third party modules
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 // local modules
 const Doctor = require('../models/doctor');
@@ -147,7 +146,7 @@ exports.forgotPassword = async (req, res) => {
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
-        const link = `${process.env.BASE_URL}/api/v1/doctors/reset-password/${token}`;
+        const link = `${process.env.FRONT_URL}/reset-password/${token}`;
         await sendingMail({
             to: doctor.email,
             subject: 'Reset Password',

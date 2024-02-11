@@ -1,6 +1,7 @@
 // Core Modules
 
 // Third Party Modules
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
