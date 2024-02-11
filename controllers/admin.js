@@ -22,7 +22,7 @@ exports.login = async (req, res) => {
         const token = jwt.sign({ _id: admin._id }, key);
         res.status(200).json({
             status: 'success',
-            data: { token },
+            data: { token, admin: { name: admin.name, email: admin.email } },
         });
     } catch (err) {
         console.log(err);
