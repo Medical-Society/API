@@ -24,6 +24,8 @@ exports.signup = async (req, res) => {
         if (password.length < 6) {
             return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
         }
+        req.body.isVerified = false;
+        req.body.status = 'pending';
         req.body.password = await bcrypt.hash(req.body.password, 10);
         const doctor = await new Doctor(req.body).save();
         const token = jwt.sign({ _id: doctor._id }, key);
@@ -140,13 +142,18 @@ exports.forgotPassword = async (req, res) => {
         }
         const doctor = await Doctor.findOne({ email });
         if (!doctor) {
-            return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
+            // send 200 for not exist email to prevent email enumeration
+            return res.status(200).json({
+                status: 'success',
+                message: `Reset password link sent to ${email}`,
+            });
         }
-        const token = jwt.sign({ _id: doctor._id }, key);
+        const secret = doctor.password + '-' + doctor.createdAt;
+        const token = jwt.sign({ _id: doctor._id }, secret, { expiresIn: '15m' });
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
-        const link = `${process.env.FRONT_URL}/reset-password/${token}`;
+        const link = `${process.env.FRONT_URL}/reset-password/${doctor._id}/${token}`;
         await sendingMail({
             to: doctor.email,
             subject: 'Reset Password',
@@ -165,24 +172,27 @@ exports.forgotPassword = async (req, res) => {
 };
 
 exports.resetPassword = async (req, res) => {
-    const { token } = req.params;
-    jwt.verify(token, key, async (err, decoded) => {
+    const { id, token, password, confirmPassword } = req.body;
+    if (!id || !token || !password || !confirmPassword) {
+        return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+    }
+    if (password != confirmPassword) {
+        return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
+    }
+    const doctor = await Doctor.findById(id);
+    if (!doctor) {
+        return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
+    }
+    if (!doctor.isVerified) {
+        return res.status(400).json({ status: 'fail', message: 'Please verify your email' });
+    }
+    const secret = doctor.password + '-' + doctor.createdAt;
+    jwt.verify(token, secret, async (err, payload) => {
         if (err) {
             return res.status(404).json({ status: 'fail', message: 'Invalid token' });
-        }
-        const { password, confirmPassword } = req.body;
-        if (!password || !confirmPassword) {
-            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-        }
-        if (password != confirmPassword) {
-            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
-        }
-        if (password.length < 6) {
-            return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
-        }
-        const doctor = await Doctor.findById(decoded._id);
-        if (!doctor) {
-            return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
         }
         doctor.password = await bcrypt.hash(password, 10);
         await doctor.save();

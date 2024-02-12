@@ -41,7 +41,7 @@ const doctorSchema = new mongoose.Schema(
         phoneNumber: {
             type: String,
             required: [true, 'Phone number is mandatory'],
-            match: /^(010|011|012|015)[0-9]{8}$/,
+            match: /^01(0|1|2|5)[0-9]{8}$/,
             minlength: 11,
         },
         age: {
@@ -51,7 +51,7 @@ const doctorSchema = new mongoose.Schema(
                 validator: function (v) {
                     return v >= 18;
                 },
-                message: 'Age must be +18 🔞',
+                message: 'Age must be +18',
             },
         },
         gender: {

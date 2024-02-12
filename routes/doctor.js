@@ -16,7 +16,7 @@ router.post('/signup', doctorController.signup);
 router.post('/login', doctorController.login);
 router.get('/verify/:token', doctorController.verifyEmail);
 router.post('/forgot-password', doctorController.forgotPassword);
-router.post('/reset-password/:token', doctorController.resetPassword);
+router.post('/reset-password', doctorController.resetPassword);
 router.post('/status/:id', checkAuth, checkAdmin, doctorController.changeStatus);
 router.delete('/:id', checkAuth, checkAdmin, doctorController.deleteDoctor);
 
