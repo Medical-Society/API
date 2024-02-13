@@ -85,7 +85,7 @@ const patientSignUp = async (req, res) => {
 
         return res.status(201).json({
             status: 'success',
-            data: { patient },
+            message: `${patient.patientName} Sign up successfully ,please verify your email`,
         });
     } catch (err) {
         res.status(500).json({ status: 'fail', error: err, message: 'Error in patient signup' });
@@ -125,7 +125,7 @@ const patientLogin = async (req, res) => {
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
-
+        patient.password = undefined;
         res.status(200).json({
             status: 'success',
             data: { token, patient },
@@ -172,7 +172,7 @@ const forgotPassword = async (req, res) => {
         }
         const secret = patient.password + '-' + patient.createdAt;
 
-        console.log(patient.createdAt);
+        // console.log(patient.createdAt);
 
         const token = jwt.sign({ _id: patient._id }, secret, { expiresIn: '15m' });
 
@@ -227,6 +227,9 @@ const resetPassword = async (req, res) => {
         if (err) {
             return res.status(404).json({ status: 'fail', message: 'Invalid token' });
         }
+        if (decoded._id !== id) {
+            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
+        }
         patient.password = await bcrypt.hash(password, 10);
         await patient.save();
         res.status(200).json({
@@ -279,6 +282,8 @@ const updateMe = async (req, res) => {
         const filteredBody = filterObj(req.body, 'patientName', 'age', 'address', 'mobile');
 
         const patient = await Patient.findByIdAndUpdate(req.user._id, filteredBody, { new: true });
+
+        patient.password = undefined;
         return res.status(200).json({
             status: 'success',
             data: {
@@ -305,6 +310,8 @@ const getAllPatient = async (req, res) => {
             .limit(limit)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
+
+        
         return res.status(200).json({
             status: 'success',
             results: patient.length,

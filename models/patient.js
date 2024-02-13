@@ -22,9 +22,9 @@ const patientSchema = new Schema(
             minlength: 6,
             trim: true,
         },
-        age: {
-            type: Number,
-            required: [true, 'Age is Mandatory'],
+        birthdate: {
+            type: Date,
+            required: [true, 'Birthdate is Mandatory'],
 
             validate: {
                 validator: function (value) {
