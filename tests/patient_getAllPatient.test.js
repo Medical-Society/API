@@ -15,13 +15,13 @@ afterAll(async () => {
 
 describe('GET /api/v1/patients', () => {
     test('should return 200 if the Get All patients  successfully', async () => {
-        const authRes = await request(app).post('/api/v1/patients/login').send({
-            email: 'eman@gmail.com',
-            password: '12345677',
+        const authRes = await request(app).post('/api/v1/admins/login').send({
+            email: 'emanmohamed@gp.team.mss',
+            password: 'EmanMohamed@mss',
         });
-        console.log('auth', authRes);
+        // console.log('auth', authRes);
         const token = authRes.body.data.token;
-        console.log('token', token);
+        // console.log('token', token);
         const res = await request(app).get('/api/v1/patients/').set('Authorization', `Bearer ${token}`);
 
         // console.log(res);
