@@ -14,14 +14,14 @@ describe('POST /api/v1/patients/login', () => {
             email: 'E23456@gmail.com',
             password: '12345677',
             confirmPassword: '12345677',
-            age: '25',
+            birthdate: '2002-04-20',
             gender: 'male',
             address: 'elesmailia',
             mobile: '01273191052',
             isVerified: true,
         });
         expect(res.status).toEqual(201);
-        expect(res.body).toHaveProperty('data', { patient: expect.any(Object) });
+        expect(res.body).toHaveProperty( 'message', 'Eman Mohamed Sign up successfully ,please verify your email');
     });
     test('should return 400 as patient is not verified', async () => {
         const res = await request(app).post('/api/v1/patients/login').send({
