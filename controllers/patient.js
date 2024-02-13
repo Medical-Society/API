@@ -108,7 +108,7 @@ const patientLogin = async (req, res) => {
         if (!patient) {
             return res.status(400).json({
                 status: 'fail',
-                message: 'The Email is not exist',
+                message: 'This Email is not exist',
             });
         }
         const passwordMatch = await bcrypt.compare(password, patient.password);
@@ -279,7 +279,7 @@ const updateMe = async (req, res) => {
                     'you are not allowed to update Email or Gender or password,if you want to change password go to change password please!!,',
             });
         }
-        const filteredBody = filterObj(req.body, 'patientName', 'age', 'address', 'mobile');
+        const filteredBody = filterObj(req.body, 'patientName', 'birthdate', 'address', 'mobile');
 
         const patient = await Patient.findByIdAndUpdate(req.user._id, filteredBody, { new: true });
 
@@ -298,6 +298,59 @@ const updateMe = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
+        }
+        if (newPassword != confirmPassword) {
+            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as newPassword' });
+        }
+        const patient = await Patient.findById(req.user._id);
+
+        const isMatch = await bcrypt.compare(oldPassword, patient.password);
+        if (!isMatch) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Invalid old password',
+            });
+        }
+
+        patient.password = await bcrypt.hash(newPassword, 10);
+        patient.save();
+        res.status(200).json({ status: 'success', message: 'Password changed successfully' });
+    } catch (err) {
+        return res.status(500).json({
+            status: 'fail',
+            message: 'Error in change  password of patient',
+        });
+    }
+};
+
+const deleteMyAccount = async (req, res) => {
+    try {
+        const patient = await Patient.findByIdAndDelete(req.user._id);
+        if (!patient) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Patient not found!!',
+            });
+        }
+        return res.status(204).json({ status: 'success', message: 'Patient deleted successfully' });
+    } catch (err) {
+        return res.status(500).json({
+            status: 'fail',
+            message: 'Error in delete my account',
+        });
+    }
+};
+
 // For Admin
 
 const getAllPatient = async (req, res) => {
@@ -311,7 +364,6 @@ const getAllPatient = async (req, res) => {
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
 
-        
         return res.status(200).json({
             status: 'success',
             results: patient.length,
@@ -378,6 +430,8 @@ module.exports = {
     resetPassword,
     updateMe,
     deletePatient,
+    changePassword,
+    deleteMyAccount,
 };
 
 // delete patient
