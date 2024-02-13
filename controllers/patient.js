@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 
 const Patient = require('../models/patient');
 const { sendingMail } = require('../utils/mailing');
+const doctor = require('../models/doctor');
 
 // Varaibles
 
@@ -31,17 +32,20 @@ const patientSignUp = async (req, res) => {
 
         let foundPatient = await Patient.findOne({ email: email });
         if (foundPatient) {
-            return res.status(409).json({
+            return res.status(400).json({
+                status: 'fail',
                 message: 'Email is already signed up,try login ',
             });
         }
         if (password.length < 6) {
-            return res.status(403).json({
+            return res.status(400).json({
+                status: 'fail',
                 message: 'password must be at least 6 characters',
             });
         }
         if (password != confirmPassword) {
-            return res.status(403).json({
+            return res.status(400).json({
+                status: 'fail',
                 message: 'Password is not equal to the confirm password try again please',
             });
         }
@@ -50,27 +54,27 @@ const patientSignUp = async (req, res) => {
         req.body.password = await bcrypt.hash(req.body.password, 10);
 
         // Create a new Patient
-
-        const newPatient = new Patient(req.body);
+        req.body.isVerified = false;
+        const patient = new Patient(req.body);
 
         // Save the Patient to the database
 
-        await newPatient.save();
+        await patient.save();
 
         // Generate a token
-        const token = jwt.sign({ _id: newPatient._id }, key);
+        const token = jwt.sign({ _id: patient._id }, key);
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
         // sending email
 
         sendingMail({
-            to: newPatient.email,
+            to: patient.email,
             // Subject of Email
             subject: 'Email Verification',
 
             // This would be the text of email body
-            text: `Hi ${newPatient.patientName}! There, You have recently visited 
+            text: `Hi ${patient.patientName}! There, You have recently visited 
 		our website and entered your email. 
 		Please follow the given link to verify your email 
 		${process.env.BASE_URL}/api/v1/patients/verify/${token} 
@@ -79,9 +83,9 @@ const patientSignUp = async (req, res) => {
 
         // Return the response with token and user data
 
-        return res.status(200).json({
+        return res.status(201).json({
             status: 'success',
-            data: newPatient,
+            data: { patient },
         });
     } catch (err) {
         res.status(500).json({ status: 'fail', error: err, message: 'Error in patient signup' });
@@ -153,7 +157,6 @@ const verifyEmail = async (req, res) => {
 };
 
 // forgor password
-
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -162,12 +165,21 @@ const forgotPassword = async (req, res) => {
         }
         const patient = await Patient.findOne({ email });
         if (!patient) {
-            return res.status(404).json({ status: 'fail', message: 'Patient not found' });
+            res.status(200).json({
+                status: 'success',
+                message: `Reset password link sent to ${patient.email}`,
+            });
         }
-        const token = jwt.sign({ _id: patient._id }, key);
+        const secret = patient.password + '-' + patient.createdAt;
+
+        console.log(patient.createdAt);
+
+        const token = jwt.sign({ _id: patient._id }, secret, { expiresIn: '15m' });
+
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
+
         const link = `${process.env.BASE_URL}/api/v1/patients/reset-password/${token}`;
         await sendingMail({
             to: patient.email,
@@ -185,26 +197,35 @@ const forgotPassword = async (req, res) => {
         res.status(500).json({ status: 'fail', error: err, message: 'Error in forgot password' });
     }
 };
-
 const resetPassword = async (req, res) => {
-    const { token } = req.params;
-    jwt.verify(token, key, async (err, decoded) => {
+    // console.log(token);
+    const { id, token, password, confirmPassword } = req.body;
+
+    if (!id || !token || !password || !confirmPassword) {
+        return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
+    }
+    if (password != confirmPassword) {
+        return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
+    }
+    const patient = await Patient.findById(id);
+    if (!patient) {
+        return res.status(404).json({ status: 'fail', message: 'Patient not found reset' });
+    }
+    if (!patient.isVerified) {
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Please verify your Email ',
+        });
+    }
+    // console.log(decoded._id);
+    const secret = patient.password + '-' + patient.createdAt;
+
+    jwt.verify(token, secret, async (err, decoded) => {
         if (err) {
             return res.status(404).json({ status: 'fail', message: 'Invalid token' });
-        }
-        const { password, confirmPassword } = req.body;
-        if (!password || !confirmPassword) {
-            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-        }
-        if (password != confirmPassword) {
-            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
-        }
-        if (password.length < 6) {
-            return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
-        }
-        const patient = await Patient.findById(decoded._id);
-        if (!patient) {
-            return res.status(404).json({ status: 'fail', message: 'Patient not found' });
         }
         patient.password = await bcrypt.hash(password, 10);
         await patient.save();
@@ -231,6 +252,44 @@ const uploadImage = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
+    }
+};
+
+const filterObj = (obj, ...allowedFields) => {
+    const newObj = {};
+    Object.keys(obj).forEach((el) => {
+        if (allowedFields.includes(el)) newObj[el] = obj[el];
+    });
+    return newObj;
+};
+
+const updateMe = async (req, res) => {
+    try {
+        // Filtered out unwanted fields names that are not allowed to be updated
+
+        //put fields that you want to update in filterObj function below
+
+        if (req.body.email || req.body.password || req.body.confirmPassword || req.body.gender) {
+            return res.status(404).json({
+                status: 'fail',
+                message:
+                    'you are not allowed to update Email or Gender or password,if you want to change password go to change password please!!,',
+            });
+        }
+        const filteredBody = filterObj(req.body, 'patientName', 'age', 'address', 'mobile');
+
+        const patient = await Patient.findByIdAndUpdate(req.user._id, filteredBody, { new: true });
+        return res.status(200).json({
+            status: 'success',
+            data: {
+                patient,
+            },
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: 'fail',
+            message: 'Error in updating patient',
+        });
     }
 };
 
@@ -268,7 +327,7 @@ const getPatient = async (req, res) => {
         if (!patient) {
             return res.status(404).json({
                 status: 'fail',
-                message: 'not found!!',
+                message: 'Patient not found!!',
             });
         }
         return res.status(200).json({
@@ -280,43 +339,24 @@ const getPatient = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             status: 'fail',
-            message: err.message,
+            message: 'error in getting patient',
         });
     }
 };
-const filterObj = (obj, ...allowedFields) => {
-    const newObj = {};
-    Object.keys(obj).forEach((el) => {
-        if (allowedFields.includes(el)) newObj[el] = obj[el];
-    });
-    return newObj;
-};
-
-const update = async (req, res) => {
+const deletePatient = async (req, res) => {
     try {
-        // Filtered out unwanted fields names that are not allowed to be updated
-        //put fields that you want to update in filterObj function below
-
-        if (req.body.email || req.body.password || req.body.confirmPassword || req.body.gender) {
+        const patient = await Patient.findByIdAndDelete(req.params.id);
+        if (!patient) {
             return res.status(404).json({
                 status: 'fail',
-                message:
-                    'you are not allowed to update Email or Gender or password,if you want to change password go to change password please!!,',
+                message: 'Patient not found!!',
             });
         }
-        const filteredBody = filterObj(req.body, 'patientName', 'age', 'address', 'mobile');
-
-        const patient = await Patient.findByIdAndUpdate(req.user._id, filteredBody, { new: true });
-        return res.status(200).json({
-            status: 'success',
-            data: {
-                patient,
-            },
-        });
+        return res.status(204).json({});
     } catch (err) {
         return res.status(500).json({
             status: 'fail',
-            message: 'Error in updating patient',
+            message: 'error in deleting patient',
         });
     }
 };
@@ -324,10 +364,14 @@ const update = async (req, res) => {
 module.exports = {
     patientSignUp,
     getAllPatient,
-    verifyEmail,
     getPatient,
+    verifyEmail,
     patientLogin,
     forgotPassword,
     resetPassword,
-    update,
+    updateMe,
+    deletePatient,
 };
+
+// delete patient
+// fix reset password

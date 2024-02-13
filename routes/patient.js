@@ -5,17 +5,22 @@ const multer = require('multer');
 // middlewares
 const { checkAuth } = require('../middlewares/checkAuth');
 const { checkPatient } = require('../middlewares/checkPatient');
+const {checkAdmin } = require('../middlewares/checkAdmin');
 
 const upload = multer({ dest: 'imgs' }); // Destination folder for uploaded files
 
-router.get('/', checkAuth, patientController.getAllPatient); //test done
-router.get('/:id', checkAuth, patientController.getPatient);
-router.post('/signup', patientController.patientSignUp); // test done
-router.get('/verify/:token', patientController.verifyEmail); //test done
-router.post('/login', patientController.patientLogin);  //test done
-router.patch('/updateMe',checkAuth,checkPatient,patientController.update); // test done
-router.post('/reset-password/:token', patientController.resetPassword); //test done
-router.post('/forgot-password', patientController.forgotPassword); // test done
+//route for Admin 
+router.get('/', checkAuth,checkAdmin, patientController.getAllPatient); 
+router.get('/:id', checkAuth,checkAdmin, patientController.getPatient); 
+router.delete('/delete/:id',checkAuth,checkAdmin, patientController.deletePatient);
+
+router.post('/signup', patientController.patientSignUp);  //test done
+router.get('/verify/:token', patientController.verifyEmail); //test done 
+router.post('/login', patientController.patientLogin);  //test done 
+router.patch('/updateMe',checkAuth,checkPatient,patientController.updateMe); 
+router.post('/reset-password', patientController.resetPassword); 
+router.post('/forgot-password', patientController.forgotPassword);
+
 
 module.exports = router;
 
