@@ -44,15 +44,9 @@ const doctorSchema = new mongoose.Schema(
             match: /^01(0|1|2|5)[0-9]{8}$/,
             minlength: 11,
         },
-        age: {
-            type: Number,
-            required: [true, 'Age is mandatory'],
-            validate: {
-                validator: function (v) {
-                    return v >= 18;
-                },
-                message: 'Age must be +18',
-            },
+        birthdate: {
+            type: Date,
+            required: [true, 'Birthdate is mandatory'],
         },
         gender: {
             type: String,

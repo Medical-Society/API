@@ -28,7 +28,7 @@ exports.signup = async (req, res) => {
         req.body.status = 'pending';
         req.body.password = await bcrypt.hash(req.body.password, 10);
         const doctor = await new Doctor(req.body).save();
-        const token = jwt.sign({ _id: doctor._id }, key);
+        const token = jwt.sign({ _id: doctor._id }, key, { expiresIn: '1d' });
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
@@ -39,18 +39,18 @@ exports.signup = async (req, res) => {
             text: `Hi! There, You have recently visited
             our website and entered your email.
             Please follow the given link to verify your email ${link}
-            Thanks`,
+            Thanks, if you didn't request this, please ignore this email.`,
         });
+        doctor.password = undefined;
         res.status(201).json({
             status: 'success',
-            data: { doctor },
+            message: `Dr. ${doctor.englishFullName} signed up successfully, Please verify your email`,
         });
     } catch (err) {
-        let statusCode = 500;
         if (err.name === 'ValidationError') {
-            statusCode = 400;
+            return res.status(400).json({ status: 'fail', message: err.message });
         }
-        res.status(statusCode).json({ status: 'fail', error: err, message: 'Error in doctor signup' });
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in doctor signup' });
     }
 };
 
@@ -71,10 +71,14 @@ exports.login = async (req, res) => {
         if (!doctor.isVerified) {
             return res.status(400).json({ status: 'fail', message: 'Please verify your email' });
         }
+        if (doctor.status !== 'accepted') {
+            return res.status(400).json({ status: 'fail', message: 'Your account is still pending' });
+        }
         const token = jwt.sign({ _id: doctor._id }, key);
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
+        doctor.password = undefined;
         res.status(200).json({
             status: 'success',
             data: { token, doctor },
@@ -86,19 +90,29 @@ exports.login = async (req, res) => {
 };
 
 exports.verifyEmail = async (req, res) => {
-    const { token } = req.params;
-    jwt.verify(token, key, async (err, decoded) => {
-        if (err) {
-            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
+    try {
+        const { token } = req.params;
+        jwt.verify(token, key, async (err, decoded) => {
+            if (err) {
+                return res.status(404).send('Invalid token');
+            }
+            const doctor = await Doctor.findById(decoded._id);
+            if (!doctor) {
+                return res.status(404).send('Doctor not found');
+            }
+            if (doctor.isVerified) {
+                return res.status(400).send('Email already verified');
+            }
+            doctor.isVerified = true;
+            await doctor.save();
+            res.status(200).send('Email verified successfully');
+        });
+    } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(404).send('Doctor not found');
         }
-        const doctor = await Doctor.findById(decoded._id);
-        if (!doctor) {
-            return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
-        }
-        doctor.isVerified = true;
-        await doctor.save();
-        res.status(200).json({ status: 'success', message: `Dr. ${doctor.englishFullName} verified successfully` });
-    });
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in verifying email' });
+    }
 };
 
 exports.getAllDoctors = async (req, res) => {
@@ -107,6 +121,7 @@ exports.getAllDoctors = async (req, res) => {
         const limit = 20;
         const page = Math.min(Math.ceil(count / limit), req.query.page * 1 || 1);
         const doctors = await Doctor.find()
+            .select('-password')
             .limit(limit)
             .skip((page - 1) * limit)
             .sort({ createdAt: 1 });
@@ -128,6 +143,7 @@ exports.getDoctor = async (req, res) => {
         if (!doctor) {
             return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
         }
+        doctor.password = undefined;
         res.status(200).json({ status: 'success', data: { doctor } });
     } catch (err) {
         res.status(500).json({ status: 'fail', error: err, message: 'Error in getting doctor' });
@@ -148,7 +164,7 @@ exports.forgotPassword = async (req, res) => {
                 message: `Reset password link sent to ${email}`,
             });
         }
-        const secret = doctor.password + '-' + doctor.createdAt;
+        const secret = doctor.password + '-' + key;
         const token = jwt.sign({ _id: doctor._id }, secret, { expiresIn: '15m' });
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
@@ -160,7 +176,7 @@ exports.forgotPassword = async (req, res) => {
             text: `Hi! There, You have recently visited
             our website and entered your email.
             Please follow the given link to reset your password ${link}
-            Thanks`,
+            Thanks, if you didn't request this, please ignore this email.`,
         });
         res.status(200).json({
             status: 'success',
@@ -189,9 +205,12 @@ exports.resetPassword = async (req, res) => {
     if (!doctor.isVerified) {
         return res.status(400).json({ status: 'fail', message: 'Please verify your email' });
     }
-    const secret = doctor.password + '-' + doctor.createdAt;
+    const secret = doctor.password + '-' + key;
     jwt.verify(token, secret, async (err, payload) => {
         if (err) {
+            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
+        }
+        if (payload._id != id) {
             return res.status(404).json({ status: 'fail', message: 'Invalid token' });
         }
         doctor.password = await bcrypt.hash(password, 10);
@@ -235,5 +254,63 @@ exports.deleteDoctor = async (req, res) => {
         res.status(204).json({ status: 'success', message: 'Doctor deleted successfully' });
     } catch (err) {
         res.status(500).json({ status: 'fail', error: err, message: 'Error in deleting doctor' });
+    }
+};
+
+exports.update = async (req, res) => {
+    try {
+        const doctor = await Doctor.findById(req.user._id);
+        const updates = Object.keys(req.body);
+        const allowedUpdates = ['specialization', 'clinicAddress', 'phoneNumber'];
+        const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
+        if (!isValidOperation) {
+            return res.status(400).json({ status: 'fail', message: 'Invalid updates' });
+        }
+        updates.forEach((update) => (doctor[update] = req.body[update]));
+        await doctor.save();
+        doctor.password = undefined;
+        res.status(200).json({ status: 'success', data: { doctor } });
+    } catch (err) {
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in updating doctor' });
+    }
+};
+
+exports.deleteMyAccount = async (req, res) => {
+    try {
+        const doctor = await Doctor.findByIdAndDelete(req.user._id);
+        if (!doctor) {
+            return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
+        }
+        res.status(204).json({ status: 'success', message: 'Doctor deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in deleting doctor my account' });
+    }
+};
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+        }
+        const doctor = await Doctor.findById(req.user._id);
+        if (!doctor) {
+            return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
+        }
+        const isMatch = await bcrypt.compare(oldPassword, doctor.password);
+        if (!isMatch) {
+            return res.status(400).json({ status: 'fail', message: 'Invalid old password' });
+        }
+        if (newPassword != confirmPassword) {
+            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
+        }
+        if (newPassword.length < 6) {
+            return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
+        }
+        doctor.password = await bcrypt.hash(newPassword, 10);
+        await doctor.save();
+        res.status(200).json({ status: 'success', message: 'Password changed successfully' });
+    } catch (err) {
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in changing password' });
     }
 };
