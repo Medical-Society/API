@@ -13,7 +13,7 @@ afterAll(async () => {
 });
 
 describe('POST /api/v1/patients/signup', () => {
-    test('should return 200 if the patient signup successfully', async () => {
+    test('should return 201 if the patient signup successfully', async () => {
         const res = await request(app).post('/api/v1/patients/signup').send({
             patientName: 'Eman Mohamed',
             email: 'E23456@gmail.com',
@@ -27,7 +27,7 @@ describe('POST /api/v1/patients/signup', () => {
         });
 
         // console.log(res);
-        expect(res.status).toEqual(200);
+        expect(res.status).toEqual(201);
         expect(res.body).toHaveProperty('status', 'success');
     });
     test('should return 400 if the patient signup failed', async () => {
