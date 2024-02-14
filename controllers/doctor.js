@@ -84,7 +84,6 @@ exports.login = async (req, res) => {
             data: { token, doctor },
         });
     } catch (err) {
-        console.log(err);
         res.status(500).json({ status: 'fail', error: err, message: 'Error in doctor login' });
     }
 };
@@ -169,8 +168,8 @@ exports.forgotPassword = async (req, res) => {
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
-        const link = `${process.env.FRONT_URL}/reset-password/${doctor._id}/${token}`;
-        await sendingMail({
+        const link = `${process.env.FRONT_URL}/doctors/reset-password/?token=${token}`;
+        sendingMail({
             to: doctor.email,
             subject: 'Reset Password',
             text: `Hi! There, You have recently visited
@@ -188,30 +187,25 @@ exports.forgotPassword = async (req, res) => {
 };
 
 exports.resetPassword = async (req, res) => {
-    const { id, token, password, confirmPassword } = req.body;
-    if (!id || !token || !password || !confirmPassword) {
+    const { token, password, confirmPassword } = req.body;
+    if (!token || !password || !confirmPassword) {
         return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-    }
-    if (password != confirmPassword) {
-        return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
     }
     if (password.length < 6) {
         return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
     }
-    const doctor = await Doctor.findById(id);
-    if (!doctor) {
-        return res.status(404).json({ status: 'fail', message: 'Doctor not found' });
+    const decoded = jwt.decode(token);
+    if (!decoded?._id) {
+        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
     }
-    if (!doctor.isVerified) {
-        return res.status(400).json({ status: 'fail', message: 'Please verify your email' });
+    const doctor = await Doctor.findById(decoded._id);
+    if (!doctor) {
+        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
     }
     const secret = doctor.password + '-' + key;
     jwt.verify(token, secret, async (err, payload) => {
         if (err) {
-            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
-        }
-        if (payload._id != id) {
-            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
+            return res.status(401).json({ status: 'fail', message: 'Invalid token' });
         }
         doctor.password = await bcrypt.hash(password, 10);
         await doctor.save();

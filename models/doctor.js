@@ -20,8 +20,6 @@ const doctorSchema = new mongoose.Schema(
         password: {
             type: String,
             required: [true, 'Password is mandatory'],
-            minlength: 6,
-            trim: true,
         },
         specialization: {
             type: String,
