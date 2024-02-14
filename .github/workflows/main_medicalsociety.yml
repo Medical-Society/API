@@ -18,6 +18,7 @@ jobs:
             EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
             PASSWORD: ${{ secrets.PASSWORD }}
             BASE_URL: ${{ secrets.BASE_URL }}
+            MONGODB_URL_EU: ${{ secrets.MONGODB_URL_EU}}
 
         steps:
             - uses: actions/checkout@v4
