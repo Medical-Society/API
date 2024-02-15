@@ -14,7 +14,7 @@ const patientSchema = new Schema(
             required: [true, 'Email is Mandatory'],
             unique: true,
             trim: true,
-            match: /^\w+([-+.]\w+)*@((yahoo|gmail)\.com)$/,
+            match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
         },
         password: {
             type: String,
@@ -45,7 +45,7 @@ const patientSchema = new Schema(
         mobile: {
             type: String,
             required: [true, 'Mobile is Mandatory'],
-            match: /^(010|011|012|015)[0-9]{8}$/,
+            match: /^01(0|1|2|5)[0-9]{8}$/,
             minlength: 11,
         },
         isVerified: {

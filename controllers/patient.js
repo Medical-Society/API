@@ -20,14 +20,11 @@ const patientSignUp = async (req, res) => {
         // console.log(req.file);
         // console.log(req.body);
 
-        const { password, confirmPassword } = req.body;
-
-        const email = req.body.email.toLowerCase();
-        console.log(email, password);
+        const { email, password } = req.body;
 
         //check if all fields are filled
 
-        if (!password || !confirmPassword || !email) {
+        if (!password || !email) {
             return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
         }
 
@@ -44,12 +41,6 @@ const patientSignUp = async (req, res) => {
             return res.status(400).json({
                 status: 'fail',
                 message: 'password must be at least 6 characters',
-            });
-        }
-        if (password != confirmPassword) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'Password is not equal to the confirm password try again please',
             });
         }
 
@@ -91,6 +82,10 @@ const patientSignUp = async (req, res) => {
             message: `${patient.patientName} Sign up successfully ,please verify your email`,
         });
     } catch (err) {
+        if (err.name === 'ValidationError') {
+            return res.status(400).json({ status: 'fail', message: err.message });
+        }
+
         res.status(500).json({ status: 'fail', error: err, message: 'Error in patient signup' });
     }
 };
@@ -99,9 +94,7 @@ const patientSignUp = async (req, res) => {
 
 const patientLogin = async (req, res) => {
     try {
-        const { password } = req.body;
-
-        const email = req.body.email.toLowerCase();
+        const { email, password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({
@@ -164,7 +157,7 @@ const verifyEmail = async (req, res) => {
 // forgor password
 const forgotPassword = async (req, res) => {
     try {
-        const email = req.body.email.toLowerCase();
+        const { email } = req.body;
         if (!email) {
             return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
         }
@@ -181,7 +174,7 @@ const forgotPassword = async (req, res) => {
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
-        const link = `${process.env.BASE_URL}/api/v1/patients/reset-password/${token}`;
+        const link = `${process.env.FRONT_URL}/reset-password/patients?token=${token}`;
         sendingMail({
             to: patient.email,
             subject: 'Reset Password',
@@ -203,36 +196,28 @@ const forgotPassword = async (req, res) => {
 //
 const resetPassword = async (req, res) => {
     // console.log(token);
-    const { id, token, password, confirmPassword } = req.body;
+    const { token, password } = req.body;
 
-    if (!id || !token || !password || !confirmPassword) {
+    if (!token || !password) {
         return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
     }
     if (password.length < 6) {
         return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
     }
-    if (password != confirmPassword) {
-        return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
-    }
-    const patient = await Patient.findById(id);
-    if (!patient) {
-        return res.status(404).json({ status: 'fail', message: 'Patient not found reset' });
-    }
-    if (!patient.isVerified) {
-        return res.status(400).json({
-            status: 'fail',
-            message: 'Please verify your Email ',
-        });
-    }
-    // console.log(decoded._id);
-    const secret = patient.password + '-' + patient.createdAt;
 
-    jwt.verify(token, secret, async (err, decoded) => {
+    const decoded = jwt.decode(token);
+
+    if (!decoded?._id) {
+        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+    }
+    const patient = await Patient.findById(decoded._id);
+    if (!patient) {
+        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+    }
+    const secret = patient.password + '-' + key;
+    jwt.verify(token, secret, async (err, payload) => {
         if (err) {
-            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
-        }
-        if (decoded._id !== id) {
-            return res.status(404).json({ status: 'fail', message: 'Invalid token' });
+            return res.status(401).json({ status: 'fail', message: 'Invalid token' });
         }
         patient.password = await bcrypt.hash(password, 10);
         await patient.save();
@@ -276,7 +261,7 @@ const updateMe = async (req, res) => {
 
         //put fields that you want to update in filterObj function below
 
-        if (req.body.email || req.body.password || req.body.confirmPassword || req.body.gender) {
+        if (req.body.email || req.body.password || req.body.gender) {
             return res.status(404).json({
                 status: 'fail',
                 message:
