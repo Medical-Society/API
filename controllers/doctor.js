@@ -18,9 +18,6 @@ exports.signup = async (req, res) => {
         if (founded) {
             return res.status(400).json({ status: 'fail', message: 'This email already exist' });
         }
-        if (password != confirmPassword) {
-            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
-        }
         if (password.length < 6) {
             return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
         }
@@ -168,7 +165,7 @@ exports.forgotPassword = async (req, res) => {
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
-        const link = `${process.env.FRONT_URL}/doctors/reset-password/?token=${token}`;
+        const link = `${process.env.FRONT_URL}/reset-password/doctors?token=${token}`;
         sendingMail({
             to: doctor.email,
             subject: 'Reset Password',
@@ -187,8 +184,8 @@ exports.forgotPassword = async (req, res) => {
 };
 
 exports.resetPassword = async (req, res) => {
-    const { token, password, confirmPassword } = req.body;
-    if (!token || !password || !confirmPassword) {
+    const { token, password } = req.body;
+    if (!token || !password) {
         return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
     }
     if (password.length < 6) {
@@ -283,8 +280,8 @@ exports.deleteMyAccount = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
     try {
-        const { oldPassword, newPassword, confirmPassword } = req.body;
-        if (!oldPassword || !newPassword || !confirmPassword) {
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword) {
             return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
         }
         const doctor = await Doctor.findById(req.user._id);
@@ -294,9 +291,6 @@ exports.changePassword = async (req, res) => {
         const isMatch = await bcrypt.compare(oldPassword, doctor.password);
         if (!isMatch) {
             return res.status(400).json({ status: 'fail', message: 'Invalid old password' });
-        }
-        if (newPassword != confirmPassword) {
-            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as password' });
         }
         if (newPassword.length < 6) {
             return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
