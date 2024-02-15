@@ -20,8 +20,11 @@ const patientSignUp = async (req, res) => {
         // console.log(req.file);
         // console.log(req.body);
 
-        const { email, password, confirmPassword } = req.body;
+        const { password, confirmPassword } = req.body;
+
+        const email = req.body.email.toLowerCase();
         console.log(email, password);
+
         //check if all fields are filled
 
         if (!password || !confirmPassword || !email) {
@@ -96,7 +99,9 @@ const patientSignUp = async (req, res) => {
 
 const patientLogin = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { password } = req.body;
+
+        const email = req.body.email.toLowerCase();
 
         if (!email || !password) {
             return res.status(400).json({
@@ -159,35 +164,31 @@ const verifyEmail = async (req, res) => {
 // forgor password
 const forgotPassword = async (req, res) => {
     try {
-        const { email } = req.body;
+        const email = req.body.email.toLowerCase();
         if (!email) {
             return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
         }
         const patient = await Patient.findOne({ email });
         if (!patient) {
-            res.status(200).json({
+            // send 200 for not exist email to prevent email enumeration
+            return res.status(200).json({
                 status: 'success',
-                message: `Reset password link sent to ${patient.email}`,
+                message: `Reset password link sent to ${email}`,
             });
         }
-        const secret = patient.password + '-' + patient.createdAt;
-
-        // console.log(patient.createdAt);
-
+        const secret = patient.password + '-' + key;
         const token = jwt.sign({ _id: patient._id }, secret, { expiresIn: '15m' });
-
         if (!token) {
             return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
         }
-
         const link = `${process.env.BASE_URL}/api/v1/patients/reset-password/${token}`;
-        await sendingMail({
+        sendingMail({
             to: patient.email,
             subject: 'Reset Password',
             text: `Hi! There, You have recently visited
             our website and entered your email.
             Please follow the given link to reset your password ${link}
-            Thanks`,
+            Thanks, if you didn't request this, please ignore this email.`,
         });
         res.status(200).json({
             status: 'success',
@@ -197,6 +198,9 @@ const forgotPassword = async (req, res) => {
         res.status(500).json({ status: 'fail', error: err, message: 'Error in forgot password' });
     }
 };
+
+//const link =
+//
 const resetPassword = async (req, res) => {
     // console.log(token);
     const { id, token, password, confirmPassword } = req.body;
