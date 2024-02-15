@@ -10,8 +10,8 @@ const key = process.env.JWT_SECRET;
 
 exports.signup = async (req, res) => {
     try {
-        const { email, password, confirmPassword } = req.body;
-        if (!password || !confirmPassword || !email) {
+        const { email, password } = req.body;
+        if (!password || !email) {
             return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
         }
         const founded = await Doctor.findOne({ email });
@@ -69,7 +69,7 @@ exports.login = async (req, res) => {
             return res.status(400).json({ status: 'fail', message: 'Please verify your email' });
         }
         if (doctor.status !== 'accepted') {
-            return res.status(400).json({ status: 'fail', message: 'Your account is still pending' });
+            return res.status(400).json({ status: 'fail', message: 'Your account is not accepted yet' });
         }
         const token = jwt.sign({ _id: doctor._id }, key);
         if (!token) {
@@ -90,11 +90,11 @@ exports.verifyEmail = async (req, res) => {
         const { token } = req.params;
         jwt.verify(token, key, async (err, decoded) => {
             if (err) {
-                return res.status(404).send('Invalid token');
+                return res.status(401).send('Invalid token');
             }
             const doctor = await Doctor.findById(decoded._id);
             if (!doctor) {
-                return res.status(404).send('Doctor not found');
+                return res.status(401).send('Invalid token');
             }
             if (doctor.isVerified) {
                 return res.status(400).send('Email already verified');
@@ -105,7 +105,7 @@ exports.verifyEmail = async (req, res) => {
         });
     } catch (err) {
         if (err.name === 'CastError') {
-            return res.status(404).send('Doctor not found');
+            return res.status(401).send('Invalid token');
         }
         res.status(500).json({ status: 'fail', error: err, message: 'Error in verifying email' });
     }
@@ -142,6 +142,9 @@ exports.getDoctor = async (req, res) => {
         doctor.password = undefined;
         res.status(200).json({ status: 'success', data: { doctor } });
     } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(404).send('Doctor not found');
+        }
         res.status(500).json({ status: 'fail', error: err, message: 'Error in getting doctor' });
     }
 };
@@ -184,33 +187,40 @@ exports.forgotPassword = async (req, res) => {
 };
 
 exports.resetPassword = async (req, res) => {
-    const { token, password } = req.body;
-    if (!token || !password) {
-        return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-    }
-    if (password.length < 6) {
-        return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
-    }
-    const decoded = jwt.decode(token);
-    if (!decoded?._id) {
-        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
-    }
-    const doctor = await Doctor.findById(decoded._id);
-    if (!doctor) {
-        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
-    }
-    const secret = doctor.password + '-' + key;
-    jwt.verify(token, secret, async (err, payload) => {
-        if (err) {
+    try {
+        const { token, password } = req.body;
+        if (!token || !password) {
+            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
+        }
+        const decoded = jwt.decode(token);
+        if (!decoded?._id) {
             return res.status(401).json({ status: 'fail', message: 'Invalid token' });
         }
-        doctor.password = await bcrypt.hash(password, 10);
-        await doctor.save();
-        res.status(200).json({
-            status: 'success',
-            message: `Dr. ${doctor.englishFullName} password reset successfully`,
+        const doctor = await Doctor.findById(decoded._id);
+        if (!doctor) {
+            return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+        }
+        const secret = doctor.password + '-' + key;
+        jwt.verify(token, secret, async (err, payload) => {
+            if (err) {
+                return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+            }
+            doctor.password = await bcrypt.hash(password, 10);
+            await doctor.save();
+            res.status(200).json({
+                status: 'success',
+                message: `Dr. ${doctor.englishFullName} password reset successfully`,
+            });
         });
-    });
+    } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(401).send('Invalid token');
+        }
+        res.status(500).json({ status: 'fail', error: err, message: 'Error in reset password' });
+    }
 };
 
 exports.changeStatus = async (req, res) => {
@@ -231,6 +241,9 @@ exports.changeStatus = async (req, res) => {
             message: `Dr. ${doctor.englishFullName} status changed to ${status}`,
         });
     } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(404).send('Doctor not found');
+        }
         res.status(500).json({ status: 'fail', error: err, message: 'Error in changing status' });
     }
 };
@@ -244,6 +257,9 @@ exports.deleteDoctor = async (req, res) => {
         }
         res.status(204).json({ status: 'success', message: 'Doctor deleted successfully' });
     } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(404).send('Doctor not found');
+        }
         res.status(500).json({ status: 'fail', error: err, message: 'Error in deleting doctor' });
     }
 };
@@ -262,6 +278,9 @@ exports.update = async (req, res) => {
         doctor.password = undefined;
         res.status(200).json({ status: 'success', data: { doctor } });
     } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(401).send('Invalid token');
+        }
         res.status(500).json({ status: 'fail', error: err, message: 'Error in updating doctor' });
     }
 };
@@ -274,6 +293,9 @@ exports.deleteMyAccount = async (req, res) => {
         }
         res.status(204).json({ status: 'success', message: 'Doctor deleted successfully' });
     } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(401).send('Invalid token');
+        }
         res.status(500).json({ status: 'fail', error: err, message: 'Error in deleting doctor my account' });
     }
 };
@@ -299,6 +321,9 @@ exports.changePassword = async (req, res) => {
         await doctor.save();
         res.status(200).json({ status: 'success', message: 'Password changed successfully' });
     } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(401).send('Invalid token');
+        }
         res.status(500).json({ status: 'fail', error: err, message: 'Error in changing password' });
     }
 };
