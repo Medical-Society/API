@@ -298,9 +298,7 @@ const changePassword = async (req, res) => {
         if (newPassword.length < 6) {
             return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
         }
-        if (newPassword != confirmPassword) {
-            return res.status(400).json({ status: 'fail', message: 'confirm password not the same as newPassword' });
-        }
+        
         const patient = await Patient.findById(req.user._id);
 
         const isMatch = await bcrypt.compare(oldPassword, patient.password);
