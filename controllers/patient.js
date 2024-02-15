@@ -289,9 +289,9 @@ const updateMe = async (req, res) => {
 
 const changePassword = async (req, res) => {
     try {
-        const { oldPassword, newPassword, confirmPassword } = req.body;
+        const { oldPassword, newPassword } = req.body;
 
-        if (!oldPassword || !newPassword || !confirmPassword) {
+        if (!oldPassword || !newPassword) {
             return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
         }
 
