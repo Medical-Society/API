@@ -5,7 +5,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 beforeAll(async () => {
-    const url = process.env.MONGODB_URL;
+    const url = process.env.MONGODB_URL_EU;
     await mongoose.connect(url);
 });
 

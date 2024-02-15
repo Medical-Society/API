@@ -33,7 +33,7 @@ describe('POST /api/v1/patients/login', () => {
         await db.dropDatabase();
     });
     test('should return 200 if the patient login successfully', async () => {
-        await mongoose.connect(process.env.MONGODB_URL);
+        await mongoose.connect(process.env.MONGODB_URL_EU);
         const res = await request(app).post('/api/v1/patients/login').send({
             email: 'EmanTest@gmail.com',
             password: '1234567',
