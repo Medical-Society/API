@@ -17,11 +17,11 @@ router.delete('/delete/:id', checkAuth, checkAdmin, patientController.deletePati
 router.post('/signup', patientController.patientSignUp); //test done
 router.get('/verify/:token', patientController.verifyEmail); //test done
 router.post('/login', patientController.patientLogin); //test done
-router.patch('/updateMe', checkAuth,checkPatient, patientController.updateMe); //test done
+router.patch('/updateMe', checkAuth, checkPatient, patientController.updateMe); //test done
 router.post('/reset-password', patientController.resetPassword);
 router.post('/forgot-password', patientController.forgotPassword);
-router.post('/change-password', checkAuth,checkPatient, patientController.changePassword);
-router.delete('/delete-my-account',checkAuth,checkPatient, patientController.deleteMyAccount);
+router.post('/change-password', checkAuth, checkPatient, patientController.changePassword);
+router.delete('/delete-my-account', checkAuth, checkPatient, patientController.deleteMyAccount);
 
 module.exports = router;
 
