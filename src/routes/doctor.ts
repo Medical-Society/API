@@ -9,11 +9,14 @@ import { checkDoctor } from '../middlewares/checkDoctor';
 import { checkAdmin } from '../middlewares/checkAdmin';
 import validateResource from '../middlewares/validateResource';
 import {
+  changeDoctorStatusSchema,
   deleteDoctorSchema,
+  deleteMyAccountSchema,
   forgotPasswordDoctorSchema,
   getAllDoctorsSchema,
   getDoctorSchema,
   loginDoctorSchema,
+  resetPasswordDoctorSchema,
   signupDoctorSchema,
   updateDoctorPasswordSchema,
   updateDoctorSchema,
@@ -54,7 +57,7 @@ router.post(
 );
 router.post(
   '/reset-password',
-  validateResource(forgotPasswordDoctorSchema),
+  validateResource(resetPasswordDoctorSchema),
   doctorController.resetPassword
 );
 router.patch(
@@ -68,6 +71,7 @@ router.patch(
   '/status/:id',
   checkAuth,
   checkAdmin,
+  validateResource(changeDoctorStatusSchema),
   doctorController.changeStatus
 );
 router.patch(
@@ -81,9 +85,15 @@ router.delete(
   '/',
   checkAuth,
   checkDoctor,
-  validateResource(deleteDoctorSchema),
+  validateResource(deleteMyAccountSchema),
   doctorController.deleteMyAccount
 );
-router.delete('/:id', checkAuth, checkAdmin, doctorController.deleteDoctor);
+router.delete(
+  '/:id',
+  checkAuth,
+  checkAdmin,
+  validateResource(deleteDoctorSchema),
+  doctorController.deleteDoctor
+);
 
 export default router;

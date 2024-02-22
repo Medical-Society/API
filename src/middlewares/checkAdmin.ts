@@ -7,7 +7,7 @@ export const checkAdmin = async (
   next: NextFunction
 ) => {
   try {
-    const admin = await Admin.findById(req.body.auth.id);
+    const admin = await Admin.findById(req.body.auth._id);
     if (!admin) {
       return res.status(401).json({
         status: 'fail',

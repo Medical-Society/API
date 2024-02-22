@@ -7,6 +7,9 @@ import { Status } from '../models/doctor';
 import { sendingMail } from '../utils/mailing';
 import { Request, Response } from 'express';
 import {
+  ChangeDoctorStatusInput,
+  DeleteDoctorInput,
+  DeleteMyDoctorInput,
   ForgotPasswordDoctorInput,
   GetAllDoctorsInput,
   GetDoctorInput,
@@ -70,7 +73,7 @@ export const login = async (
         .json({ status: 'fail', message: 'Invalid email or password' });
     }
 
-    const isMatch = await bcrypt.compare(req.body.password, doctor.password);
+    const isMatch = await doctor.comparePassword(req.body.password);
     if (!isMatch) {
       return res
         .status(400)
@@ -224,7 +227,7 @@ export const resetPassword = async (
   try {
     const { token, password } = req.body;
     const decoded = jwt.decode(token) as JwtPayload;
-    if (decoded._id) {
+    if (!decoded._id) {
       return res.status(401).json({ status: 'fail', message: 'Invalid token' });
     }
     const doctor = await findDoctorById(decoded._id);
@@ -250,15 +253,17 @@ export const resetPassword = async (
   }
 };
 
-export const changeStatus = async (req: Request, res: Response) => {
+export const changeStatus = async (
+  req: Request<
+    ChangeDoctorStatusInput['params'],
+    {},
+    ChangeDoctorStatusInput['body']
+  >,
+  res: Response
+) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    if (!status) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'You must fill all fields' });
-    }
     const doctor = await findDoctorById(id);
     if (!doctor) {
       return res
@@ -283,10 +288,12 @@ export const changeStatus = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteDoctor = async (req: Request, res: Response) => {
+export const deleteDoctor = async (
+  req: Request<DeleteDoctorInput>,
+  res: Response
+) => {
   try {
-    const { id } = req.params;
-    const doctor = await findDoctorByIdAndDelete(id);
+    const doctor = await findDoctorByIdAndDelete(req.params.id);
     if (!doctor) {
       return res
         .status(404)
@@ -312,7 +319,10 @@ export const update = async (
   res: Response
 ) => {
   try {
-    const doctor = await findDoctorByIdAndUpdate(req.body.auth.id, req.body);
+    const doctor = await findDoctorByIdAndUpdate(
+      req.body.auth._id,
+      req.body
+    ).select('-password');
     res.status(200).json({ status: 'success', data: { doctor } });
   } catch (err: any) {
     if (err.name === 'CastError') {
@@ -326,7 +336,10 @@ export const update = async (
   }
 };
 
-export const deleteMyAccount = async (req: Request, res: Response) => {
+export const deleteMyAccount = async (
+  req: Request<{}, {}, DeleteMyDoctorInput>,
+  res: Response
+) => {
   try {
     await findDoctorByIdAndDelete(req.body.auth._id);
     res
@@ -350,7 +363,7 @@ export const changePassword = async (
 ) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const doctor = await findDoctorById(req.body.auth.id);
+    const doctor = await findDoctorById(req.body.auth._id);
     if (!doctor) {
       return res
         .status(404)

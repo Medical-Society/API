@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Gender } from '../models/doctor';
+import { Gender, Status } from '../models/doctor';
 import mongoose from 'mongoose';
 
 // Schemas
@@ -23,7 +23,9 @@ export const signupDoctorSchema = z.object({
     phoneNumber: z
       .string({ required_error: 'Phone Number is required' })
       .regex(/^\d{11}$/),
-    birthdate: z.date({ required_error: 'Birthdate is required' }),
+    birthdate: z
+      .string({ required_error: 'Birthdate is required' })
+      .datetime({ message: 'Invalid datetime string! Must be ISO.' }),
     gender: z.nativeEnum(Gender, { required_error: 'Gender is required' }),
   }),
 });
@@ -43,8 +45,8 @@ export const verifyDoctorSchema = z.object({
 
 export const getAllDoctorsSchema = z.object({
   query: z.object({
-    page: z.number().optional(),
-    limit: z.number().optional(),
+    page: z.string().optional(),
+    limit: z.string().optional(),
   }),
 });
 
@@ -72,7 +74,7 @@ export const resetPasswordDoctorSchema = z.object({
 export const updateDoctorSchema = z.object({
   body: z.object({
     auth: z.object({
-      id: z
+      _id: z
         .string()
         .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
     }),
@@ -85,10 +87,10 @@ export const updateDoctorSchema = z.object({
   }),
 });
 
-export const deleteDoctorSchema = z.object({
+export const deleteMyAccountSchema = z.object({
   body: z.object({
     auth: z.object({
-      id: z
+      _id: z
         .string()
         .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
     }),
@@ -98,7 +100,7 @@ export const deleteDoctorSchema = z.object({
 export const updateDoctorPasswordSchema = z.object({
   body: z.object({
     auth: z.object({
-      id: z
+      _id: z
         .string()
         .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
     }),
@@ -106,6 +108,27 @@ export const updateDoctorPasswordSchema = z.object({
     newPassword: z
       .string({ required_error: 'New Password is required' })
       .min(8),
+  }),
+});
+
+export const changeDoctorStatusSchema = z.object({
+  params: z.object({
+    id: z
+      .string()
+      .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
+  }),
+  body: z.object({
+    status: z.nativeEnum(Status, {
+      required_error: 'Status is required',
+    }),
+  }),
+});
+
+export const deleteDoctorSchema = z.object({
+  params: z.object({
+    id: z
+      .string()
+      .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
   }),
 });
 
@@ -130,8 +153,12 @@ export type ResetPasswordDoctorInput = z.infer<
 
 export type UpdateDoctorInput = z.infer<typeof updateDoctorSchema>['body'];
 
-export type DeleteDoctorInput = z.infer<typeof deleteDoctorSchema>['body'];
+export type DeleteMyDoctorInput = z.infer<typeof deleteMyAccountSchema>['body'];
 
 export type UpdateDoctorPasswordInput = z.infer<
   typeof updateDoctorPasswordSchema
 >['body'];
+
+export type ChangeDoctorStatusInput = z.infer<typeof changeDoctorStatusSchema>;
+
+export type DeleteDoctorInput = z.infer<typeof deleteDoctorSchema>['params'];
