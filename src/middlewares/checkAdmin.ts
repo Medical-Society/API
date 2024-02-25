@@ -4,7 +4,7 @@ import Admin from '../models/admin';
 export const checkAdmin = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const admin = await Admin.findById(req.body.auth._id);

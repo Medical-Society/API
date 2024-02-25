@@ -1,63 +1,85 @@
-const mongoose = require('mongoose');
+import {
+  prop,
+  getModelForClass,
+  modelOptions,
+  Severity,
+  pre,
+  DocumentType,
+  index,
+} from '@typegoose/typegoose';
+import argon2 from 'argon2';
 
-const Schema = mongoose.Schema;
+export enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
 
-const patientSchema = new Schema(
-    {
-        patientName: {
-            type: String,
-            required: [true, 'Name is Mandatory'],
-            trim: true,
-        },
-        email: {
-            type: String,
-            required: [true, 'Email is Mandatory'],
-            unique: true,
-            trim: true,
-            match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        },
-        password: {
-            type: String,
-            required: [true, 'Password is Mandatory'],
-            minlength: 6,
-            trim: true,
-        },
-        birthdate: {
-            type: Date,
-            required: [true, 'Birthdate is Mandatory'],
+@pre<Patient>('save', async function () {
+  if (!this.isModified('password')) {
+    return;
+  }
+  try {
+    const hash = await argon2.hash(this.password);
+    this.password = hash;
+  } catch (error) {
+    throw new Error('Failed to hash password');
+  }
+})
+@index({ email: 1 })
+@modelOptions({
+  schemaOptions: {
+    timestamps: true,
+  },
+  options: {
+    allowMixed: Severity.ALLOW,
+  },
+})
+export class Patient {
+  @prop({ required: true, trim: true })
+  patientName: string;
 
-            validate: {
-                validator: function (value) {
-                    return value > 0;
-                },
-                message: 'Age must be greater than zero',
-            },
-        },
-        gender: {
-            type: String,
-            enum: ['male', 'female'],
-            required: [true, 'Gender is Mandatory'],
-        },
-        address: {
-            type: String,
-            required: [true, 'Address is Mandatory'],
-        },
-        mobile: {
-            type: String,
-            required: [true, 'Mobile is Mandatory'],
-            match: /^01(0|1|2|5)[0-9]{8}$/,
-            minlength: 11,
-        },
-        isVerified: {
-            type: Boolean,
-            default: false,
-        },
-        photo: {
-            type: String,
-            default: 'default.jpg',
-        },
-    },
-    { timestamps: true }
-);
+  @prop({ required: true, unique: true, trim: true, lowercase: true })
+  email: string;
 
-module.exports = mongoose.model('Patient', patientSchema);
+  @prop({ required: true, trim: true })
+  password: string;
+
+  @prop({ required: true })
+  birthdate: Date;
+
+  @prop({ required: true })
+  gender: Gender;
+
+  @prop({ required: true })
+  address: string;
+
+  @prop({ required: true })
+  phoneNumber: string;
+
+  @prop({ default: false })
+  isVerified: boolean;
+
+  async validatePassword(
+    this: DocumentType<Patient>,
+    candidatePassword: string,
+  ) {
+    try {
+      return await argon2.verify(this.password, candidatePassword);
+    } catch (e) {
+      console.log(e, 'can not validate password');
+      return false;
+    }
+  }
+}
+const PatientModel = getModelForClass(Patient);
+export default PatientModel;
+
+//model in service
+// schema and service in controller
+//schema and controller in router
+//🍩// model
+//🍩 schema
+//🍩 router
+//services
+// controller
+//🍩middleware

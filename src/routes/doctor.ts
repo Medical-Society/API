@@ -28,72 +28,72 @@ const router = express.Router();
 router.post(
   '/signup',
   validateResource(signupDoctorSchema),
-  doctorController.signup
+  doctorController.signup,
 );
 router.post(
   '/login',
   validateResource(loginDoctorSchema),
-  doctorController.login
+  doctorController.login,
 );
 router.get(
   '/verify/:token',
   validateResource(verifyDoctorSchema),
-  doctorController.verifyEmail
+  doctorController.verifyEmail,
 );
 router.get(
   '/',
   validateResource(getAllDoctorsSchema),
-  doctorController.getAllDoctors
+  doctorController.getAllDoctors,
 );
 router.get(
   '/:id',
   validateResource(getDoctorSchema),
-  doctorController.getDoctor
+  doctorController.getDoctor,
 );
 router.post(
   '/forgot-password',
   validateResource(forgotPasswordDoctorSchema),
-  doctorController.forgotPassword
+  doctorController.forgotPassword,
 );
 router.post(
   '/reset-password',
   validateResource(resetPasswordDoctorSchema),
-  doctorController.resetPassword
+  doctorController.resetPassword,
 );
 router.patch(
   '/',
   checkAuth,
   checkDoctor,
   validateResource(updateDoctorSchema),
-  doctorController.update
+  doctorController.update,
 );
 router.patch(
   '/status/:id',
   checkAuth,
   checkAdmin,
   validateResource(changeDoctorStatusSchema),
-  doctorController.changeStatus
+  doctorController.changeStatus,
 );
 router.patch(
   '/password',
   checkAuth,
   checkDoctor,
   validateResource(updateDoctorPasswordSchema),
-  doctorController.changePassword
+  doctorController.changePassword,
 );
 router.delete(
   '/',
   checkAuth,
   checkDoctor,
   validateResource(deleteMyAccountSchema),
-  doctorController.deleteMyAccount
+  doctorController.deleteMyAccount,
 );
 router.delete(
   '/:id',
   checkAuth,
   checkAdmin,
   validateResource(deleteDoctorSchema),
-  doctorController.deleteDoctor
+  doctorController.deleteDoctor,
 );
 
 export default router;

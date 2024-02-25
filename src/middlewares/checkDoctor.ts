@@ -4,7 +4,7 @@ import Doctor from '../models/doctor';
 export const checkDoctor = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const doctor = await Doctor.findById(req.body.auth._id);
@@ -20,12 +20,10 @@ export const checkDoctor = async (
     }
     next();
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        status: 'fail',
-        error: err,
-        message: 'Error in checking doctor',
-      });
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error in checking doctor',
+    });
   }
 };

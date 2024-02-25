@@ -1,115 +1,89 @@
-// Third party modules
+import { Request, Response } from 'express';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import argon2 from 'argon2';
+import {
+  getAllPatientInput,
+  getPatientInput,
+  deletePatientInput,
+  signupPatientInput,
+  loginPatientInput,
+  verifyEmailPatientInput,
+  updatePatientInput,
+  resetPasswordPatientInput,
+  forgotPasswordPatientInput,
+  changePasswordPatientInput,
+  deleteMyAccountPatientInput,
+} from '../schema/patient';
 
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import {
+  findPatientByEmail,
+  createPatient,
+  findPatientById,
+  findpatientsPagination,
+  findPatientByIdAndUpdate,
+  findPatientByIdAndDelete,
+} from '../services/patient';
 
-// local modules
+import { sendingMail } from '../utils/mailing';
 
-const Patient = require('../models/patient');
-const { sendingMail } = require('../utils/mailing');
-const doctor = require('../models/doctor');
+// sign up
+const key = process.env.JWT_SECRET as string;
 
-// Varaibles
+export const signUp = async (
+  req: Request<{}, {}, signupPatientInput>,
+  res: Response,
+) => {
+  const body = req.body;
 
-const key = process.env.JWT_SECRET;
-
-// signup
-
-const patientSignUp = async (req, res) => {
-    try {
-        // console.log(req.file);
-        // console.log(req.body);
-
-        const { email, password } = req.body;
-
-        //check if all fields are filled
-
-        if (!password || !email) {
-            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-        }
-
-        // Check if the user already exists
-
-        let foundPatient = await Patient.findOne({ email: email });
-        if (foundPatient) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'Email is already signed up,try login ',
-            });
-        }
-        if (password.length < 6) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'password must be at least 6 characters',
-            });
-        }
-
-        // Hash the password
-        req.body.password = await bcrypt.hash(req.body.password, 10);
-
-        // Create a new Patient
-        req.body.isVerified = false;
-        const patient = new Patient(req.body);
-
-        // Save the Patient to the database
-
-        await patient.save();
-
-        // Generate a token
-        const token = jwt.sign({ _id: patient._id }, key);
-        if (!token) {
-            return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
-        }
-        // sending email
-
-        sendingMail({
-            to: patient.email,
-            // Subject of Email
-            subject: 'Email Verification',
-
-            // This would be the text of email body
-            text: `Hi ${patient.patientName}! There, You have recently visited 
-		our website and entered your email. 
-		Please follow the given link to verify your email 
-		${process.env.BASE_URL}/api/v1/patients/verify/${token} 
-		Thanks`,
-        });
-
-        // Return the response with token and user data
-
-        return res.status(201).json({
-            status: 'success',
-            message: `${patient.patientName} Sign up successfully ,please verify your email`,
-        });
-    } catch (err) {
-        if (err.name === 'ValidationError') {
-            return res.status(400).json({ status: 'fail', message: err.message });
-        }
-
-        res.status(500).json({ status: 'fail', error: err, message: 'Error in patient signup' });
+  try {
+    const patient = await createPatient(body);
+    patient.isVerified = false;
+    patient.save();
+    const token = jwt.sign({ _id: patient._id }, key);
+    if (!token) {
+        return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
     }
+    const link = `${process.env.BASE_URL}/api/v1/patients/verify/${token}`
+
+    sendingMail({
+    
+        to: patient.email,
+        subject: 'Email Verification',
+        text: `Hi ${patient.patientName}! There, You have recently visited
+        our website and entered your email.
+        Please follow the given link to verify your email ${link}
+        Thanks`,
+    });
+    return res.status(201).json({
+        status: 'success',
+        message: `${patient.patientName} Sign up successfully ,please verify your email`,
+    });
+  } catch (err: any) {
+    if (err.code === 11000) {
+      return res.status(409).send('Account already exists');
+    }
+
+    res
+      .status(500)
+      .json({ status: 'fail', error: err, message: 'Error in patient signup' });
+  }
 };
 
-// log in
+// login 
 
-const patientLogin = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'All the fields are mandatory',
-            });
-        }
-        const patient = await Patient.findOne({ email: email });
+export const login = async (
+    req:Request<{},{},loginPatientInput>,
+    res:Response
+)=>{
+    try{
+        const patient = findPatientByEmail(req.body.email);
         if (!patient) {
             return res.status(400).json({
                 status: 'fail',
                 message: 'This Email is not exist',
             });
         }
-        const passwordMatch = await bcrypt.compare(password, patient.password);
+        const passwordMatch = await patient.validatePassword(req.body.password);
         if (!passwordMatch) {
             return res.status(400).json({
                 status: 'fail',
@@ -126,42 +100,60 @@ const patientLogin = async (req, res) => {
         patient.password = undefined;
         res.status(200).json({
             status: 'success',
-            data: { token, patient },
+            data: { token, patient},
         });
-    } catch (err) {
+
+    }catch(err:any){
         return res.status(500).json({
-            status: 'error',
-            error: err.message,
+        status: 'error',
+        error: 'fail in Login Patient',
         });
     }
 };
 
+
+
+
 // verify Email
 
-const verifyEmail = async (req, res) => {
-    const { token } = req.params;
-    jwt.verify(token, key, async (err, decoded) => {
-        if (err) {
-            return res.status(400).json({ status: 'fail', message: 'Invalid token' });
-        }
-        const patient = await Patient.findById(decoded._id);
-        if (!patient) {
-            return res.status(400).json({ status: 'fail', message: 'Patient not found' });
-        }
-        patient.isVerified = true;
-        await patient.save();
-        res.status(200).json({ status: 'success', message: 'Patient verified successfully' });
-    });
+export const verifyEmail = async (
+    req:Request<verifyEmailPatientInput>,
+    res:Response
+    ) => {
+        try{
+            const decode = jwt.verify(req.params.token,key) as JwtPayload;
+            const patient = await findPatientById(decode._id); 
+            if (!patient) {
+                return res.status(400).json({ status: 'fail', message: 'Patient not found' });
+            }
+            if (patient.isVerified) {
+                return res.status(400).json({ status: 'fail', message: 'Email is Already Verified' });
+            }
+            patient.isVerified = true;
+            await patient.save();
+            res.status(200).json({ status: 'success', message: 'Patient verified successfully' });
+
+        }catch(err:any){
+            if (err.name === 'CastError') {
+                return res.status(401).send('Invalid token');
+            }
+            res.status(500).json({
+            status: 'fail',
+            error: err,
+            message: 'Error in verifying email',
+            });
+        }   
+   
 };
 
 // forgor password
-const forgotPassword = async (req, res) => {
+export const forgotPassword = async (
+    req:Request<{},{},forgotPasswordPatientInput>,
+    res:Response
+    ) => {
     try {
         const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-        }
-        const patient = await Patient.findOne({ email });
+        const patient = await findPatientByEmail(email);
         if (!patient) {
             // send 200 for not exist email to prevent email enumeration
             return res.status(200).json({
@@ -192,184 +184,168 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-//const link =
-//
-const resetPassword = async (req, res) => {
-    // console.log(token);
-    const { token, password } = req.body;
+// Reset password
 
-    if (!token || !password) {
-        return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-    }
-    if (password.length < 6) {
-        return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
-    }
-
-    const decoded = jwt.decode(token);
-
-    if (!decoded?._id) {
-        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
-    }
-    const patient = await Patient.findById(decoded._id);
-    if (!patient) {
-        return res.status(401).json({ status: 'fail', message: 'Invalid token' });
-    }
-    const secret = patient.password + '-' + key;
-    jwt.verify(token, secret, async (err, payload) => {
-        if (err) {
+export const resetPassword = async (
+    req:Request<{},{},resetPasswordPatientInput>,
+    res:Response
+    ) => {
+    try{
+        const { token, password } = req.body;
+       
+        const decoded = jwt.decode(token) as JwtPayload;
+    
+        if (!decoded?._id) {
             return res.status(401).json({ status: 'fail', message: 'Invalid token' });
         }
-        patient.password = await bcrypt.hash(password, 10);
+        const patient = await findPatientById(decoded._id);
+        if (!patient) {
+            return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+        }
+        const secret = patient.password + '-' + key;
+        jwt.verify(token, secret);
+        patient.password = await argon2.hash(password);
         await patient.save();
         res.status(200).json({
             status: 'success',
             message: `${patient.patientName} password reset successfully`,
         });
-    });
-};
 
-//upload image
-
-const uploadImage = async (req, res) => {
-    try {
-        const { originalName, buffer, mimeType } = req.file;
-        const image = new Patient({
-            data: buffer,
-            contentType: mimeType,
-        });
-
-        await image.save();
-
-        res.status(201).send('Image uploaded successfully');
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-    }
-};
-
-const filterObj = (obj, ...allowedFields) => {
-    const newObj = {};
-    Object.keys(obj).forEach((el) => {
-        if (allowedFields.includes(el)) newObj[el] = obj[el];
-    });
-    return newObj;
-};
-
-const updateMe = async (req, res) => {
-    try {
-        // Filtered out unwanted fields names that are not allowed to be updated
-
-        //put fields that you want to update in filterObj function below
-
-        if (req.body.email || req.body.password || req.body.gender) {
-            return res.status(404).json({
-                status: 'fail',
-                message:
-                    'you are not allowed to update Email or Gender or password,if you want to change password go to change password please!!,',
-            });
+    }catch (err: any) {
+        console.log({ err: JSON.parse(JSON.stringify(err)) });
+        if (err.name === 'CastError') {
+          return res.status(401).send('Invalid token');
         }
-        const filteredBody = filterObj(req.body, 'patientName', 'birthdate', 'address', 'mobile');
+        res
+          .status(500)
+          .json({ status: 'fail', error: err, message: 'Error in reset password' });
+      }
+    
+};
 
-        const patient = await Patient.findByIdAndUpdate(req.user._id, filteredBody, { new: true });
+// update Me 
 
-        patient.password = undefined;
+export const updateMe = async (
+    req:Request<{},{},updatePatientInput>,
+    res:Response
+    ) => {
+    try {
+        
+        const patient = await findPatientByIdAndUpdate(req.body.auth.id,req.body).select('-password');
+       
         return res.status(200).json({
             status: 'success',
             data: {
                 patient,
             },
         });
-    } catch (err) {
-        return res.status(500).json({
-            status: 'fail',
-            message: 'Error in updating patient',
-        });
+    } catch (err: any) {
+        console.log({ err: JSON.parse(JSON.stringify(err)) });
+        if (err.name === 'CastError') {
+          return res.status(401).send('Invalid token');
+        }
+        res
+          .status(500)
+          .json({ status: 'fail', error: err, message: 'Error in Update Patient' });
+      
     }
 };
+// change password 
 
-const changePassword = async (req, res) => {
+export const changePassword = async (
+    req:Request<{},{},changePasswordPatientInput>,
+    res:Response
+    ) => {
     try {
         const { oldPassword, newPassword } = req.body;
 
-        if (!oldPassword || !newPassword) {
-            return res.status(400).json({ status: 'fail', message: 'You must fill all fields' });
-        }
 
-        if (newPassword.length < 6) {
-            return res.status(400).json({ status: 'fail', message: 'password must be more than 6 characters' });
-        }
-        
-        const patient = await Patient.findById(req.user._id);
-
-        const isMatch = await bcrypt.compare(oldPassword, patient.password);
-        if (!isMatch) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'Invalid old password',
-            });
-        }
-
-        patient.password = await bcrypt.hash(newPassword, 10);
-        patient.save();
-        res.status(200).json({ status: 'success', message: 'Password changed successfully' });
-    } catch (err) {
-        return res.status(500).json({
-            status: 'fail',
-            message: 'Error in change  password of patient',
-        });
-    }
-};
-
-const deleteMyAccount = async (req, res) => {
-    try {
-        const patient = await Patient.findByIdAndDelete(req.user._id);
+        const patient = await findPatientById(req.body.auth.id);
         if (!patient) {
             return res.status(404).json({
                 status: 'fail',
                 message: 'Patient not found!!',
             });
         }
-        return res.status(204).json({ status: 'success', message: 'Patient deleted successfully' });
-    } catch (err) {
-        return res.status(500).json({
-            status: 'fail',
-            message: 'Error in delete my account',
-        });
+        const isMatch = await patient.validatePassword(oldPassword);
+        if (!isMatch) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Invalid password',
+            });
+        }
+        patient.password = await argon2.hash(newPassword);
+        patient.save();
+        res.status(200).json({ status: 'success', message: 'Password changed successfully' });
+    } catch (err: any) {
+        console.log({ err: JSON.parse(JSON.stringify(err)) });
+        if (err.name === 'CastError') {
+          return res.status(401).send('Invalid token');
+        }
+        res
+          .status(500)
+          .json({ status: 'fail', error: err, message: 'Error in Change Password' });
+    }
+};
+
+ // Delete My Account 
+
+export const deleteMyAccount = async (
+    req:Request<{},{},deleteMyAccountPatientInput>,
+    res:Response) => {
+    try {
+        const patient = await findPatientByIdAndDelete(req.body.auth.id);
+        if (!patient) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Patient not found!!',
+            });
+        }
+        return res.status(204).json({ status: 'success', message: 'You Are deleted successfully' });
+    } catch (err: any) {
+        console.log({ err: JSON.parse(JSON.stringify(err)) });
+        if (err.name === 'CastError') {
+          return res.status(401).send('Invalid token');
+        }
+        res
+          .status(500)
+          .json({ status: 'fail', error: err, message: 'Error in Delete My Account' });
     }
 };
 
 // For Admin
 
-const getAllPatient = async (req, res) => {
+export const getAllPatient = async (
+    req:Request<{},{},{},getAllPatientInput>,
+    res:Response
+    ) => {
     try {
-        const count = await Patient.countDocuments();
-        const limit = 20;
-        const page = Math.min(Math.ceil(count / limit), req.query.page * 1 || 1);
-
-        const patient = await Patient.find()
-            .limit(limit)
-            .skip((page - 1) * limit)
-            .sort({ createdAt: -1 });
-
+        const data = await findpatientsPagination({},req.query.page,req.query.limit)
+        if (data.patients.length === 0) {
+            return res
+              .status(404)
+              .json({ status: 'fail', message: 'No doctors found' });
+          }
         return res.status(200).json({
             status: 'success',
-            results: patient.length,
-            data: {
-                patient,
-                totalPages: Math.ceil(count / limit),
-                currentPage: page,
-            },
+            results: data.patients.length,
+            data
         });
-    } catch (err) {
+    } catch (err:any) {
         return res.status(500).json({
             status: 'fail',
-            message: err.message,
+            message: 'Error in Get All Patient',
         });
     }
 };
-const getPatient = async (req, res) => {
+// get Patient 
+
+export const getPatient = async (
+    req:Request<getPatientInput>
+    ,res:Response
+    ) => {
     try {
-        const patient = await Patient.findById(req.params.id);
+        const patient = await findPatientById(req.params.id);
         if (!patient) {
             return res.status(404).json({
                 status: 'fail',
@@ -389,9 +365,12 @@ const getPatient = async (req, res) => {
         });
     }
 };
-const deletePatient = async (req, res) => {
+export const deletePatient = async (
+    req:Request<deletePatientInput>,
+    res:Response
+    ) => {
     try {
-        const patient = await Patient.findByIdAndDelete(req.params.id);
+        const patient = await findPatientByIdAndDelete(req.params.id);
         if (!patient) {
             return res.status(404).json({
                 status: 'fail',
@@ -407,19 +386,3 @@ const deletePatient = async (req, res) => {
     }
 };
 
-module.exports = {
-    patientSignUp,
-    getAllPatient,
-    getPatient,
-    verifyEmail,
-    patientLogin,
-    forgotPassword,
-    resetPassword,
-    updateMe,
-    deletePatient,
-    changePassword,
-    deleteMyAccount,
-};
-
-// delete patient
-// fix reset password

@@ -33,7 +33,7 @@ const key: string = process.env.JWT_SECRET as string;
 
 export const signup = async (
   req: Request<{}, {}, SignupDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const doctor = await createDoctor(req.body);
@@ -63,7 +63,7 @@ export const signup = async (
 
 export const login = async (
   req: Request<{}, {}, LoginDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const doctor = await findDoctorByEmail(req.body.email);
@@ -106,7 +106,7 @@ export const login = async (
 
 export const verifyEmail = async (
   req: Request<VerifyDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const decoded = jwt.verify(req.params.token, key) as JwtPayload;
@@ -134,13 +134,13 @@ export const verifyEmail = async (
 
 export const getAllDoctors = async (
   req: Request<{}, {}, {}, GetAllDoctorsInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const data = await findDoctorsPagination(
       {},
       req.query.page,
-      req.query.limit
+      req.query.limit,
     );
     if (data.doctors.length === 0) {
       return res
@@ -162,7 +162,7 @@ export const getAllDoctors = async (
 
 export const getDoctor = async (
   req: Request<GetDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const doctor = await findDoctorById(req.params.id, { password: 0 });
@@ -184,7 +184,7 @@ export const getDoctor = async (
 
 export const forgotPassword = async (
   req: Request<{}, {}, ForgotPasswordDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { email } = req.body;
@@ -222,7 +222,7 @@ export const forgotPassword = async (
 
 export const resetPassword = async (
   req: Request<{}, {}, ResetPasswordDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { token, password } = req.body;
@@ -259,7 +259,7 @@ export const changeStatus = async (
     {},
     ChangeDoctorStatusInput['body']
   >,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { id } = req.params;
@@ -290,7 +290,7 @@ export const changeStatus = async (
 
 export const deleteDoctor = async (
   req: Request<DeleteDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const doctor = await findDoctorByIdAndDelete(req.params.id);
@@ -316,12 +316,12 @@ export const deleteDoctor = async (
 
 export const update = async (
   req: Request<{}, {}, UpdateDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const doctor = await findDoctorByIdAndUpdate(
       req.body.auth._id,
-      req.body
+      req.body,
     ).select('-password');
     res.status(200).json({ status: 'success', data: { doctor } });
   } catch (err: any) {
@@ -338,7 +338,7 @@ export const update = async (
 
 export const deleteMyAccount = async (
   req: Request<{}, {}, DeleteMyDoctorInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     await findDoctorByIdAndDelete(req.body.auth._id);
@@ -359,7 +359,7 @@ export const deleteMyAccount = async (
 
 export const changePassword = async (
   req: Request<{}, {}, UpdateDoctorPasswordInput>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { oldPassword, newPassword } = req.body;

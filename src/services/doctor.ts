@@ -11,7 +11,7 @@ export const createDoctor = (doctor: any) => {
 
 export const findDoctorById = (
   id: string,
-  projection?: ProjectionType<Doctor>
+  projection?: ProjectionType<Doctor>,
 ) => {
   return DoctorModel.findById(id, projection);
 };
@@ -19,7 +19,7 @@ export const findDoctorById = (
 export const findDoctorsPagination = async (
   filter: FilterQuery<Doctor>,
   pageS: string = '1',
-  limitS: string = '20'
+  limitS: string = '20',
 ) => {
   const limit = parseInt(limitS);
   const count = await DoctorModel.countDocuments(filter);
@@ -29,7 +29,7 @@ export const findDoctorsPagination = async (
     doctors: await DoctorModel.find(
       {},
       { password: 0 },
-      { limit, skip: (page - 1) * limit, sort: { createdAt: -1 } }
+      { limit, skip: (page - 1) * limit, sort: { createdAt: -1 } },
     ),
     totalPages,
     currentPage: page,
@@ -39,7 +39,7 @@ export const findDoctorsPagination = async (
 export const findDoctorByIdAndUpdate = (
   id: string,
   update: any,
-  options: any = { new: true }
+  options: any = { new: true },
 ) => {
   return DoctorModel.findByIdAndUpdate(id, update, options);
 };
