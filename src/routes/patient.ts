@@ -83,8 +83,8 @@ router.post(
 router.post(
   '/change-password',
   checkAuth,
-  validateResource(changePasswordPatientSchema),
   checkPatient,
+  validateResource(changePasswordPatientSchema),
   patientController.changePassword,
 );
 router.delete(

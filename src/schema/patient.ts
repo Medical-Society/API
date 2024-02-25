@@ -1,4 +1,4 @@
-import { object, string, TypeOf, nativeEnum } from 'zod';
+import { object, string, TypeOf, nativeEnum,z} from 'zod';
 import { Gender } from '../models/patient';
 import mongoose from 'mongoose';
 
@@ -128,7 +128,7 @@ export type getAllPatientInput = TypeOf<typeof getAllPatientSchema>['query'];
 export type getPatientInput = TypeOf<typeof getPatientSchema>['params'];
 export type deletePatientInput = TypeOf<typeof deletePatientSchema>['params'];
 export type signupPatientInput = TypeOf<typeof signupPatientSchema>['body'];
-export type loginPatientInput = TypeOf<typeof loginPatientSchema>['body'];
+export type loginPatientInput = z.infer<typeof loginPatientSchema>['body'];
 export type verifyEmailPatientInput = TypeOf<
   typeof verifyEmailPatientSchema
 >['params'];

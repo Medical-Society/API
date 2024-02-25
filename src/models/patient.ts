@@ -2,12 +2,11 @@ import {
   prop,
   getModelForClass,
   modelOptions,
-  Severity,
   pre,
-  DocumentType,
   index,
 } from '@typegoose/typegoose';
 import argon2 from 'argon2';
+import bcrypt from 'bcryptjs';
 
 export enum Gender {
   MALE = 'MALE',
@@ -15,24 +14,14 @@ export enum Gender {
 }
 
 @pre<Patient>('save', async function () {
-  if (!this.isModified('password')) {
-    return;
-  }
-  try {
-    const hash = await argon2.hash(this.password);
-    this.password = hash;
-  } catch (error) {
-    throw new Error('Failed to hash password');
-  }
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password, 10);
 })
 @index({ email: 1 })
 @modelOptions({
   schemaOptions: {
     timestamps: true,
-  },
-  options: {
-    allowMixed: Severity.ALLOW,
-  },
+  }
 })
 export class Patient {
   @prop({ required: true, trim: true })
@@ -59,16 +48,8 @@ export class Patient {
   @prop({ default: false })
   isVerified: boolean;
 
-  async validatePassword(
-    this: DocumentType<Patient>,
-    candidatePassword: string,
-  ) {
-    try {
-      return await argon2.verify(this.password, candidatePassword);
-    } catch (e) {
-      console.log(e, 'can not validate password');
-      return false;
-    }
+  async comparePassword(candidatePassword: string) {
+    return await bcrypt.compare(candidatePassword, this.password);
   }
 }
 const PatientModel = getModelForClass(Patient);

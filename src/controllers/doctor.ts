@@ -72,7 +72,7 @@ export const login = async (
         .status(400)
         .json({ status: 'fail', message: 'Invalid email or password' });
     }
-
+    // console.log(doctor.password);
     const isMatch = await doctor.comparePassword(req.body.password);
     if (!isMatch) {
       return res

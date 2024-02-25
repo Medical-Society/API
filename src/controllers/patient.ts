@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import argon2 from 'argon2';
+import bcrypt from 'bcryptjs';
+
 import {
   getAllPatientInput,
   getPatientInput,
@@ -27,7 +29,7 @@ import {
 import { sendingMail } from '../utils/mailing';
 
 // sign up
-const key = process.env.JWT_SECRET as string;
+const key:string = process.env.JWT_SECRET as string;
 
 export const signUp = async (
   req: Request<{}, {}, signupPatientInput>,
@@ -72,45 +74,44 @@ export const signUp = async (
 // login 
 
 export const login = async (
-    req:Request<{},{},loginPatientInput>,
-    res:Response
-)=>{
-    try{
-        const patient = findPatientByEmail(req.body.email);
-        if (!patient) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'This Email is not exist',
-            });
-        }
-        const passwordMatch = await patient.validatePassword(req.body.password);
-        if (!passwordMatch) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'Password is wrong',
-            });
-        }
-        if (!patient.isVerified) {
-            return res.status(400).json({ status: 'fail', message: 'Please verify your email' });
-        }
-        const token = jwt.sign({ _id: patient._id }, key);
-        if (!token) {
-            return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
-        }
-        patient.password = undefined;
-        res.status(200).json({
-            status: 'success',
-            data: { token, patient},
-        });
-
-    }catch(err:any){
-        return res.status(500).json({
-        status: 'error',
-        error: 'fail in Login Patient',
-        });
+    req: Request<{}, {}, loginPatientInput>,
+    res: Response,
+  ) => {
+    try {
+      const patient = await findPatientByEmail(req.body.email);
+      if (!patient) {
+        return res
+          .status(400)
+          .json({ status: 'fail', message: 'Invalid  password' });
+      }
+      console.log(patient.password);
+      const isMatch = await bcrypt.compare(req.body.password,patient.password);
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ status: 'fail', message: 'Invalid password' });
+      }
+  
+      if (!patient.isVerified) {
+        return res
+          .status(400)
+          .json({ status: 'fail', message: 'Please verify your email' });
+      }
+  
+      
+      const token = jwt.sign({ _id: patient._id }, key);
+      const { password: _, ...result } = patient.toObject();
+      res.status(200).json({
+        status: 'success',
+        data: { token, result },
+      });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ status: 'fail', error: err, message: 'Error in patient login' });
     }
-};
-
+  };
+  
 
 
 
@@ -194,7 +195,7 @@ export const resetPassword = async (
         const { token, password } = req.body;
        
         const decoded = jwt.decode(token) as JwtPayload;
-    
+        console.log(decoded._id);
         if (!decoded?._id) {
             return res.status(401).json({ status: 'fail', message: 'Invalid token' });
         }
@@ -204,7 +205,8 @@ export const resetPassword = async (
         }
         const secret = patient.password + '-' + key;
         jwt.verify(token, secret);
-        patient.password = await argon2.hash(password);
+        console.log(password);
+        patient.password = await bcrypt.hash(password,10);
         await patient.save();
         res.status(200).json({
             status: 'success',
@@ -212,13 +214,13 @@ export const resetPassword = async (
         });
 
     }catch (err: any) {
-        console.log({ err: JSON.parse(JSON.stringify(err)) });
+        // console.log({ err: JSON.parse(JSON.stringify(err)) });
         if (err.name === 'CastError') {
           return res.status(401).send('Invalid token');
         }
         res
           .status(500)
-          .json({ status: 'fail', error: err, message: 'Error in reset password' });
+          .json({ status: 'fail', error: err.message, message: 'Error in reset password' });
       }
     
 };
@@ -267,7 +269,7 @@ export const changePassword = async (
                 message: 'Patient not found!!',
             });
         }
-        const isMatch = await patient.validatePassword(oldPassword);
+        const isMatch = await patient.comparePassword(oldPassword);
         if (!isMatch) {
             return res.status(400).json({
                 status: 'fail',
