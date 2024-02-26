@@ -305,7 +305,7 @@ export const update = async (
   try {
     const doctor = await findDoctorByIdAndUpdate(
       req.body.auth.id,
-      req.body
+      req.body,
     ).select('-password');
     res.status(200).json({ status: 'success', data: { doctor } });
   } catch (err: any) {
@@ -387,7 +387,7 @@ export const searchDoctor = async (
       req.query.specialization,
       req.query.clinicAddress,
       req.query.page,
-      req.query.limit
+      req.query.limit,
     );
     console.log(doctor);
     if (!doctor) {
