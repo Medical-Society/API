@@ -21,10 +21,10 @@ export const findDoctorsPagination = async (
   pageS: string = '1',
   limitS: string = '20',
 ) => {
+  const page = parseInt(pageS);
   const limit = parseInt(limitS);
   const count = await DoctorModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
-  const page = Math.min(totalPages, parseInt(pageS));
   return {
     doctors: await DoctorModel.find(
       {},

@@ -5,6 +5,7 @@ const validateResource =
   (schema: AnyZodObject) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
+      // use parseAsync
       schema.parse({
         body: req.body,
         query: req.query,

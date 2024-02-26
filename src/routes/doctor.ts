@@ -36,7 +36,7 @@ router.post(
   validateResource(loginDoctorSchema),
   doctorController.login,
 );
-router.get(
+router.post(
   '/verify/:token',
   validateResource(verifyDoctorSchema),
   doctorController.verifyEmail,

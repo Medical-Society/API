@@ -4,7 +4,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 
 // local modules
 import { Status } from '../models/doctor';
-import { sendingMail } from '../utils/mailing';
 import { Request, Response } from 'express';
 import {
   ChangeDoctorStatusInput,
@@ -30,6 +29,10 @@ import {
   findDoctorsPagination,
   findDoctor,
 } from '../services/doctor';
+import {
+  sendResetPasswordEmail,
+  sendVerificationEmail,
+} from '../services/mailing';
 
 const key: string = process.env.JWT_SECRET as string;
 
@@ -40,15 +43,7 @@ export const signup = async (
   try {
     const doctor = await createDoctor(req.body);
     const token = jwt.sign({ _id: doctor._id }, key, { expiresIn: '1d' });
-    const link = `${process.env.BASE_URL}/api/v1/doctors/verify/${token}`;
-    await sendingMail({
-      to: doctor.email,
-      subject: 'Email Verification',
-      text: `Hi! There, You have recently visited
-            our website and entered your email.
-            Please follow the given link to verify your email ${link}
-            Thanks, if you didn't request this, please ignore this email.`,
-    });
+    sendVerificationEmail(doctor.email, token, 'doctors');
     res.status(201).json({
       status: 'success',
       message: `Dr. ${doctor.englishFullName} signed up successfully, Please verify your email`,
@@ -144,11 +139,6 @@ export const getAllDoctors = async (
       req.query.page,
       req.query.limit,
     );
-    if (data.doctors.length === 0) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'No doctors found' });
-    }
     res.status(200).json({
       status: 'success',
       data,
@@ -192,23 +182,14 @@ export const forgotPassword = async (
     const { email } = req.body;
     const doctor = await findDoctorByEmail(email);
     if (!doctor) {
-      // send 200 for not exist email to prevent email enumeration
       return res.status(200).json({
         status: 'success',
-        message: `Reset password link sent to ${email}`,
+        message: `If the email: ${email} exists in the system, a reset password link will be sent to it`,
       });
     }
     const secret = doctor.password + '-' + key;
     const token = jwt.sign({ _id: doctor._id }, secret, { expiresIn: '15m' });
-    const link = `${process.env.FRONT_URL}/reset-password/doctors?token=${token}`;
-    sendingMail({
-      to: doctor.email,
-      subject: 'Reset Password',
-      text: `Hi! There, You have recently visited
-            our website and entered your email.
-            Please follow the given link to reset your password ${link}
-            Thanks, if you didn't request this, please ignore this email.`,
-    });
+    sendResetPasswordEmail(doctor.email, token, 'doctors');
     res.status(200).json({
       status: 'success',
       message: `Reset password link sent to ${doctor.email}`,
@@ -228,8 +209,8 @@ export const resetPassword = async (
 ) => {
   try {
     const { token, password } = req.body;
-    const decoded = jwt.decode(token) as JwtPayload;
-    if (!decoded._id) {
+    const decoded = jwt.decode(token);
+    if (typeof decoded === 'string' || !decoded?._id) {
       return res.status(401).json({ status: 'fail', message: 'Invalid token' });
     }
     const doctor = await findDoctorById(decoded._id);
@@ -279,6 +260,7 @@ export const changeStatus = async (
       message: `Dr. ${doctor.englishFullName} status changed to ${status}`,
     });
   } catch (err: any) {
+    // use a standardized error handling middleware
     if (err.name === 'CastError') {
       return res.status(404).send('Doctor not found');
     }
@@ -322,8 +304,8 @@ export const update = async (
 ) => {
   try {
     const doctor = await findDoctorByIdAndUpdate(
-      req.body.auth._id,
-      req.body,
+      req.body.auth.id,
+      req.body
     ).select('-password');
     res.status(200).json({ status: 'success', data: { doctor } });
   } catch (err: any) {
@@ -343,7 +325,7 @@ export const deleteMyAccount = async (
   res: Response,
 ) => {
   try {
-    await findDoctorByIdAndDelete(req.body.auth._id);
+    await findDoctorByIdAndDelete(req.body.auth.id);
     res
       .status(204)
       .json({ status: 'success', message: 'Doctor deleted successfully' });
@@ -365,7 +347,7 @@ export const changePassword = async (
 ) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const doctor = await findDoctorById(req.body.auth._id);
+    const doctor = await findDoctorById(req.body.auth.id);
     if (!doctor) {
       return res
         .status(404)

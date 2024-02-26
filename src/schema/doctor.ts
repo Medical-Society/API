@@ -1,46 +1,56 @@
-import { z } from 'zod';
+import { isValid, z } from 'zod';
 import { Gender, Status } from '../models/doctor';
 import mongoose from 'mongoose';
 
+const zodObjectId = z
+  .string()
+  .refine((id) => mongoose.Types.ObjectId.isValid(id), 'Invalid Id');
+
 // Schemas
 export const signupDoctorSchema = z.object({
-  body: z.object({
-    englishFullName: z.string({
-      required_error: 'English Full Name is required',
-    }),
-    arabicFullName: z.string({
-      required_error: 'Arabic Full Name is required',
-    }),
-    email: z.string({ required_error: 'Email is required' }).email(),
-    password: z.string({ required_error: 'Password is required' }).min(8),
-    specialization: z
-      .string({ required_error: 'Specialization is required' })
-      .min(3),
-    clinicAddress: z.string().optional(),
-    nationalID: z
-      .string({ required_error: 'National ID is required' })
-      .length(14),
-    phoneNumber: z
-      .string({ required_error: 'Phone Number is required' })
-      .regex(/^\d{11}$/),
-    birthdate: z
-      .string({ required_error: 'Birthdate is required' })
-      .datetime({ message: 'Invalid datetime string! Must be ISO.' }),
-    gender: z.nativeEnum(Gender, { required_error: 'Gender is required' }),
-  }),
+  body: z
+    .object({
+      englishFullName: z.string({
+        required_error: 'English Full Name is required',
+      }),
+      arabicFullName: z.string({
+        required_error: 'Arabic Full Name is required',
+      }),
+      email: z.string({ required_error: 'Email is required' }).email(),
+      password: z.string({ required_error: 'Password is required' }).min(8),
+      specialization: z
+        .string({ required_error: 'Specialization is required' })
+        .min(3),
+      clinicAddress: z.string().optional(),
+      nationalID: z
+        .string({ required_error: 'National ID is required' })
+        .length(14),
+      phoneNumber: z
+        .string({ required_error: 'Phone Number is required' })
+        .regex(/^01[0|1|2|5][0-9]{8}$/),
+      birthdate: z
+        .string({ required_error: 'Birthdate is required' })
+        .datetime({ message: 'Invalid datetime string! Must be ISO.' }),
+      gender: z.nativeEnum(Gender, { required_error: 'Gender is required' }),
+    })
+    .strict(),
 });
 
 export const loginDoctorSchema = z.object({
-  body: z.object({
-    email: z.string({ required_error: 'Email is required' }).email(),
-    password: z.string({ required_error: 'Password is required' }),
-  }),
+  body: z
+    .object({
+      email: z.string({ required_error: 'Email is required' }).email(),
+      password: z.string({ required_error: 'Password is required' }),
+    })
+    .strict(),
 });
 
 export const verifyDoctorSchema = z.object({
-  params: z.object({
-    token: z.string({ required_error: 'Token is required' }),
-  }),
+  params: z
+    .object({
+      token: z.string({ required_error: 'Token is required' }),
+    })
+    .strict(),
 });
 
 export const getAllDoctorsSchema = z.object({
@@ -51,85 +61,91 @@ export const getAllDoctorsSchema = z.object({
 });
 
 export const getDoctorSchema = z.object({
-  params: z.object({
-    id: z
-      .string()
-      .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
-  }),
+  params: z
+    .object({
+      id: zodObjectId,
+    })
+    .strict(),
 });
 
 export const forgotPasswordDoctorSchema = z.object({
-  body: z.object({
-    email: z.string({ required_error: 'Email is required' }).email(),
-  }),
+  body: z
+    .object({
+      email: z.string({ required_error: 'Email is required' }).email(),
+    })
+    .strict(),
 });
 
 export const resetPasswordDoctorSchema = z.object({
-  body: z.object({
-    token: z.string({ required_error: 'Token is required' }),
-    password: z.string({ required_error: 'Password is required' }).min(8),
-  }),
+  body: z
+    .object({
+      token: z.string({ required_error: 'Token is required' }),
+      password: z.string({ required_error: 'Password is required' }).min(8),
+    })
+    .strict(),
 });
 
 export const updateDoctorSchema = z.object({
-  body: z.object({
-    auth: z.object({
-      _id: z
+  body: z
+    .object({
+      auth: z.object({
+        id: zodObjectId,
+      }),
+      specialization: z.string().optional(),
+      clinicAddress: z.string().optional(),
+      phoneNumber: z
         .string()
-        .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
-    }),
-    specialization: z.string().optional(),
-    clinicAddress: z.string().optional(),
-    phoneNumber: z
-      .string()
-      .regex(/^\d{11}$/)
-      .optional(),
-  }),
+        .regex(/^01[0|1|2|5][0-9]{8}$/)
+        .optional(),
+    })
+    .strict(),
 });
 
 export const deleteMyAccountSchema = z.object({
-  body: z.object({
-    auth: z.object({
-      _id: z
-        .string()
-        .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
-    }),
-  }),
+  body: z
+    .object({
+      auth: z.object({
+        id: zodObjectId,
+      }),
+    })
+    .strict(),
 });
 
 export const updateDoctorPasswordSchema = z.object({
-  body: z.object({
-    auth: z.object({
-      _id: z
-        .string()
-        .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
-    }),
-    oldPassword: z.string({ required_error: 'Old Password is required' }),
-    newPassword: z
-      .string({ required_error: 'New Password is required' })
-      .min(8),
-  }),
+  body: z
+    .object({
+      auth: z.object({
+        id: zodObjectId,
+      }),
+      oldPassword: z.string({ required_error: 'Old Password is required' }),
+      newPassword: z
+        .string({ required_error: 'New Password is required' })
+        .min(8),
+    })
+    .strict(),
 });
 
 export const changeDoctorStatusSchema = z.object({
-  params: z.object({
-    id: z
-      .string()
-      .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
-  }),
-  body: z.object({
-    status: z.nativeEnum(Status, {
-      required_error: 'Status is required',
-    }),
-  }),
+  params: z
+    .object({
+      id: zodObjectId,
+    })
+    .strict(),
+  body: z
+    .object({
+      status: z.nativeEnum(Status, {
+        required_error: 'Status is required',
+      }),
+    })
+    .strict(),
 });
 
 export const deleteDoctorSchema = z.object({
-  params: z.object({
-    id: z
-      .string()
-      .refine((_id) => mongoose.Types.ObjectId.isValid(_id), 'Invalid Id'),
-  }),
+  params: z
+    .object({
+      id: zodObjectId,
+    })
+    .strict(),
 });
 
 export const searchDoctorSchema = z.object({

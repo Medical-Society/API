@@ -7,7 +7,7 @@ export const checkDoctor = async (
   next: NextFunction,
 ) => {
   try {
-    const doctor = await Doctor.findById(req.body.auth._id);
+    const doctor = await Doctor.findById(req.body.auth.id);
     if (!doctor) {
       return res
         .status(404)
