@@ -6,11 +6,7 @@ import {
   index,
 } from '@typegoose/typegoose';
 import bcrypt from 'bcryptjs';
-
-export enum Gender {
-  MALE = 'MALE',
-  FEMALE = 'FEMALE',
-}
+import { Gender } from './enums';
 
 @pre<Patient>('save', async function () {
   if (!this.isModified('password')) return;

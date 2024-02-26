@@ -7,18 +7,7 @@ import {
 } from '@typegoose/typegoose';
 
 import bcrypt from 'bcryptjs';
-
-export enum Gender {
-  MALE = 'MALE',
-  FEMALE = 'FEMALE',
-}
-
-export enum Status {
-  PENDING = 'PENDING',
-  IN_PROGRESS = 'IN_PROGRESS',
-  ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-}
+import { Gender, Status } from './enums'
 
 @pre<Doctor>('save', async function () {
   if (!this.isModified('password')) return;
@@ -57,7 +46,7 @@ export class Doctor {
   @prop({ required: true })
   gender!: Gender;
 
-  @prop({ required: true, default: 'PENDING' })
+  @prop({ required: true, default: Status.PENDING })
   status!: Status;
 
   @prop({ required: true, default: false })

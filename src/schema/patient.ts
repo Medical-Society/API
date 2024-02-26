@@ -1,5 +1,5 @@
-import { object, string, TypeOf, nativeEnum,z} from 'zod';
-import { Gender } from '../models/patient';
+import { object, string, TypeOf, nativeEnum, z } from 'zod';
+import { Gender } from '../models/enums';
 import mongoose from 'mongoose';
 
 export const getAllPatientSchema = object({
@@ -43,7 +43,7 @@ export const signupPatientSchema = object({
     birthdate: string({
       required_error: 'Birthdate is required',
     }).datetime({ message: 'Invalid Date Time must be ISO' }),
-    
+
     gender: nativeEnum(Gender, { required_error: 'Gender is required' }),
 
     address: string({ required_error: 'Address is required' }).optional(),
@@ -51,7 +51,7 @@ export const signupPatientSchema = object({
     phoneNumber: string({ required_error: 'Mobile is required' }).regex(
       /^01(0|1|2|5)[0-9]{8}$/,
     ),
-  }).strict()
+  }).strict(),
 });
 
 export const loginPatientSchema = object({
@@ -113,14 +113,14 @@ export const changePasswordPatientSchema = object({
 });
 
 export const deleteMyAccountPatientSchema = object({
-  body:object({
+  body: object({
     auth: object({
       id: string().refine(
         (_id) => mongoose.Types.ObjectId.isValid(_id),
         'Invalid id',
       ),
     }),
-})
+  }),
 });
 
 // export const deleteMyAccountPatientSchema = object({
@@ -150,4 +150,3 @@ export type changePasswordPatientInput = z.infer<
 export type deleteMyAccountPatientInput = z.infer<
   typeof deleteMyAccountPatientSchema
 >['body'];
-

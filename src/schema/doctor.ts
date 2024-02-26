@@ -1,5 +1,5 @@
-import { isValid, z } from 'zod';
-import { Gender, Status } from '../models/doctor';
+import { z } from 'zod';
+import { Gender, Status } from '../models/enums';
 import mongoose from 'mongoose';
 
 const zodObjectId = z

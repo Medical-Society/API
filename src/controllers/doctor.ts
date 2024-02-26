@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
 // local modules
-import { Status } from '../models/doctor';
+import { Status } from '../models/enums';
 import { Request, Response } from 'express';
 import {
   ChangeDoctorStatusInput,
