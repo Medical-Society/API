@@ -19,8 +19,7 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     }
 
     // Attach the decoded payload to the request for later use if needed
-    req.body.auth = decoded;
-
+    req.body.auth = { id: decoded._id }
     // Call next to pass control to the next middleware
     next();
   } catch (error) {

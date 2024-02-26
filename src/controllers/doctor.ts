@@ -19,6 +19,7 @@ import {
   UpdateDoctorInput,
   UpdateDoctorPasswordInput,
   VerifyDoctorInput,
+  SearchDoctorInput,
 } from '../schema/doctor';
 import {
   createDoctor,
@@ -27,6 +28,7 @@ import {
   findDoctorByIdAndDelete,
   findDoctorByIdAndUpdate,
   findDoctorsPagination,
+  findDoctor,
 } from '../services/doctor';
 
 const key: string = process.env.JWT_SECRET as string;
@@ -388,6 +390,40 @@ export const changePassword = async (
       status: 'fail',
       error: err,
       message: 'Error in changing password',
+    });
+  }
+};
+
+export const searchDoctor = async (
+  req: Request<{}, {}, {}, SearchDoctorInput>,
+  res: Response,
+) => {
+  try {
+    const doctor = await findDoctor(
+      {},
+      req.query.englishFullName,
+      req.query.specialization,
+      req.query.clinicAddress,
+      req.query.page,
+      req.query.limit
+    );
+    console.log(doctor);
+    if (!doctor) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Doctor not found!!',
+      });
+    }
+    return res.status(200).json({ status: 'success', doctor });
+  } catch (err: any) {
+    console.log({ err: JSON.parse(JSON.stringify(err)) });
+    if (err.name === 'CastError') {
+      return res.status(401).send('Invalid token');
+    }
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error Search Dcotor Name',
     });
   }
 };

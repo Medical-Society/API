@@ -132,6 +132,17 @@ export const deleteDoctorSchema = z.object({
   }),
 });
 
+export const searchDoctorSchema = z.object({
+  query:z.object({
+    englishFullName: z.string().optional(),
+    specialization: z.string().optional(),
+    clinicAddress: z.string().optional(),
+    page: z.string().optional(),
+    limit: z.string().optional(),
+
+  }).strict()
+})
+
 // Types
 export type SignupDoctorInput = z.infer<typeof signupDoctorSchema>['body'];
 
@@ -162,3 +173,5 @@ export type UpdateDoctorPasswordInput = z.infer<
 export type ChangeDoctorStatusInput = z.infer<typeof changeDoctorStatusSchema>;
 
 export type DeleteDoctorInput = z.infer<typeof deleteDoctorSchema>['params'];
+
+export type SearchDoctorInput = z.infer<typeof searchDoctorSchema>['query'];

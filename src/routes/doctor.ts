@@ -21,6 +21,7 @@ import {
   updateDoctorPasswordSchema,
   updateDoctorSchema,
   verifyDoctorSchema,
+  searchDoctorSchema,
 } from '../schema/doctor';
 
 const router = express.Router();
@@ -45,6 +46,12 @@ router.get(
   validateResource(getAllDoctorsSchema),
   doctorController.getAllDoctors,
 );
+router.get(
+  '/search',
+  validateResource(searchDoctorSchema),
+  doctorController.searchDoctor,
+);
+
 router.get(
   '/:id',
   validateResource(getDoctorSchema),

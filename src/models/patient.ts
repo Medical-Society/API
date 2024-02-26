@@ -5,7 +5,6 @@ import {
   pre,
   index,
 } from '@typegoose/typegoose';
-import argon2 from 'argon2';
 import bcrypt from 'bcryptjs';
 
 export enum Gender {

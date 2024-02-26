@@ -7,7 +7,7 @@ export const checkPatient = async (
   next: NextFunction,
 ) => {
   try {
-    const patient = await Patient.findById(req.body.auth._id);
+    const patient = await Patient.findById(req.body.auth.id);
     //     console.log(patient);
     if (!patient) {
       return res
@@ -19,7 +19,7 @@ export const checkPatient = async (
     console.log(err.message);
     res.status(500).json({
       status: 'fail',
-      error: err,
+      error: err.message,
       message: 'Error in checking Patient',
     });
   }

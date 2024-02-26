@@ -18,6 +18,7 @@ import {
     forgotPasswordPatientSchema,
     changePasswordPatientSchema,
     deleteMyAccountPatientSchema,
+
   } from '../schema/patient';
   
 
@@ -90,9 +91,8 @@ router.post(
 router.delete(
   '/delete-my-account',
   checkAuth,
-  validateResource(deleteMyAccountPatientSchema),
   checkPatient,
+  validateResource(deleteMyAccountPatientSchema),
   patientController.deleteMyAccount,
 );
-
 export default router;

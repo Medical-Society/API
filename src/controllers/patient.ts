@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import argon2 from 'argon2';
-import bcrypt from 'bcryptjs';
 
 import {
   getAllPatientInput,
@@ -39,8 +37,8 @@ export const signUp = async (
 
   try {
     const patient = await createPatient(body);
-    patient.isVerified = false;
-    patient.save();
+    // patient.isVerified = false;
+    // patient.save();
     const token = jwt.sign({ _id: patient._id }, key);
     if (!token) {
         return res.status(500).json({ status: 'fail', message: 'Error in token generation' });
@@ -82,10 +80,10 @@ export const login = async (
       if (!patient) {
         return res
           .status(400)
-          .json({ status: 'fail', message: 'Invalid  password' });
+          .json({ status: 'fail', message: 'Invalid  Email' });
       }
       console.log(patient.password);
-      const isMatch = await bcrypt.compare(req.body.password,patient.password);
+      const isMatch = await patient.comparePassword(req.body.password);
       if (!isMatch) {
         return res
           .status(400)
@@ -206,7 +204,7 @@ export const resetPassword = async (
         const secret = patient.password + '-' + key;
         jwt.verify(token, secret);
         console.log(password);
-        patient.password = await bcrypt.hash(password,10);
+        patient.password = password;
         await patient.save();
         res.status(200).json({
             status: 'success',
@@ -276,7 +274,7 @@ export const changePassword = async (
                 message: 'Invalid password',
             });
         }
-        patient.password = await argon2.hash(newPassword);
+        patient.password = newPassword;
         patient.save();
         res.status(200).json({ status: 'success', message: 'Password changed successfully' });
     } catch (err: any) {
@@ -314,6 +312,7 @@ export const deleteMyAccount = async (
           .json({ status: 'fail', error: err, message: 'Error in Delete My Account' });
     }
 };
+
 
 // For Admin
 
