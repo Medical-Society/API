@@ -91,6 +91,7 @@ export const updateDoctorSchema = z.object({
         .string()
         .regex(/^01[0|1|2|5][0-9]{8}$/)
         .optional(),
+      about: z.string().optional(),
     })
     .strict(),
 });
@@ -127,6 +128,9 @@ export const changeDoctorStatusSchema = z.object({
     .strict(),
   body: z
     .object({
+      auth: z.object({
+        id: zodObjectId,
+      }),
       status: z.nativeEnum(Status, {
         required_error: 'Status is required',
       }),

@@ -52,6 +52,9 @@ export class Doctor {
   @prop({ required: true, default: false })
   isVerified!: boolean;
 
+  @prop()
+  about?: string;
+
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);
   }
