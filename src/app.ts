@@ -11,6 +11,7 @@ import cors from 'cors';
 import patientRouter from './routes/patient';
 import doctorRouter from './routes/doctor';
 import adminRouter from './routes/admin';
+import imageRoutes from './routes/image';
 
 // Express App
 const app = express();
@@ -26,5 +27,5 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/api/v1/doctors', doctorRouter);
 app.use('/api/v1/patients', patientRouter);
 app.use('/api/v1/admins', adminRouter);
-
+app.use('/api/v1/images',imageRoutes);
 export default http.createServer(app);

@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import fs from 'fs';
+
 
 import {
   getAllPatientInput,
@@ -321,6 +323,8 @@ export const deleteMyAccount = async (
       });
   }
 };
+
+
 
 // For Admin
 

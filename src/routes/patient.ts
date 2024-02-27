@@ -7,20 +7,18 @@ import { checkAuth } from '../middlewares/checkAuth';
 import { checkAdmin } from '../middlewares/checkAdmin';
 import { checkPatient } from '../middlewares/checkPatient';
 import {
-    getAllPatientSchema,
-    getPatientSchema,
-    deletePatientSchema,
-    signupPatientSchema,
-    loginPatientSchema,
-    verifyEmailPatientSchema,
-    updatePatientSchema,
-    resetPasswordPatientSchema,
-    forgotPasswordPatientSchema,
-    changePasswordPatientSchema,
-    deleteMyAccountPatientSchema,
-
-  } from '../schema/patient';
-  
+  getAllPatientSchema,
+  getPatientSchema,
+  deletePatientSchema,
+  signupPatientSchema,
+  loginPatientSchema,
+  verifyEmailPatientSchema,
+  updatePatientSchema,
+  resetPasswordPatientSchema,
+  forgotPasswordPatientSchema,
+  changePasswordPatientSchema,
+  deleteMyAccountPatientSchema,
+} from '../schema/patient';
 
 const router = express.Router();
 
@@ -95,4 +93,5 @@ router.delete(
   validateResource(deleteMyAccountPatientSchema),
   patientController.deleteMyAccount,
 );
+
 export default router;

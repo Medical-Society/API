@@ -43,6 +43,9 @@ export class Patient {
   @prop({ default: false })
   isVerified: boolean;
 
+  @prop({ match: /^(http:\/\/|https:\/\/).+/ })
+  image: string;
+
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);
   }
