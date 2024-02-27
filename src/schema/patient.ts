@@ -123,30 +123,39 @@ export const deleteMyAccountPatientSchema = object({
   }),
 });
 
-// export const deleteMyAccountPatientSchema = object({
-//   headers: object({
-//     authorization: string()
-//   }) // Allow additional headers in the request
+export const savePatientImageSchema = object({
+  body: object({
+    auth: object({
+      id: string().refine(
+        (_id) => mongoose.Types.ObjectId.isValid(_id),
+        'Invalid id',
+      ),
+    }),
+    imageURL: string({ required_error: 'Image is required' }),
+  }).strict(),
+});
 
-// });
-export type getAllPatientInput = z.infer<typeof getAllPatientSchema>['query'];
-export type getPatientInput = z.infer<typeof getPatientSchema>['params'];
-export type deletePatientInput = z.infer<typeof deletePatientSchema>['params'];
-export type signupPatientInput = z.infer<typeof signupPatientSchema>['body'];
-export type loginPatientInput = z.infer<typeof loginPatientSchema>['body'];
-export type verifyEmailPatientInput = z.infer<
+export type GetAllPatientInput = z.infer<typeof getAllPatientSchema>['query'];
+export type GetPatientInput = z.infer<typeof getPatientSchema>['params'];
+export type DeletePatientInput = z.infer<typeof deletePatientSchema>['params'];
+export type SignupPatientInput = z.infer<typeof signupPatientSchema>['body'];
+export type LoginPatientInput = z.infer<typeof loginPatientSchema>['body'];
+export type VerifyEmailPatientInput = z.infer<
   typeof verifyEmailPatientSchema
 >['params'];
-export type updatePatientInput = z.infer<typeof updatePatientSchema>['body'];
-export type resetPasswordPatientInput = z.infer<
+export type UpdatePatientInput = z.infer<typeof updatePatientSchema>['body'];
+export type ResetPasswordPatientInput = z.infer<
   typeof resetPasswordPatientSchema
 >['body'];
-export type forgotPasswordPatientInput = z.infer<
+export type ForgotPasswordPatientInput = z.infer<
   typeof forgotPasswordPatientSchema
 >['body'];
-export type changePasswordPatientInput = z.infer<
+export type ChangePasswordPatientInput = z.infer<
   typeof changePasswordPatientSchema
 >['body'];
-export type deleteMyAccountPatientInput = z.infer<
+export type DeleteMyAccountPatientInput = z.infer<
   typeof deleteMyAccountPatientSchema
+>['body'];
+export type SaveImagePatientInput = z.infer<
+  typeof savePatientImageSchema
 >['body'];

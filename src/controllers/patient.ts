@@ -1,20 +1,19 @@
 import { Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import fs from 'fs';
-
 
 import {
-  getAllPatientInput,
-  getPatientInput,
-  deletePatientInput,
-  signupPatientInput,
-  loginPatientInput,
-  verifyEmailPatientInput,
-  updatePatientInput,
-  resetPasswordPatientInput,
-  forgotPasswordPatientInput,
-  changePasswordPatientInput,
-  deleteMyAccountPatientInput,
+  GetAllPatientInput,
+  GetPatientInput,
+  DeletePatientInput,
+  SignupPatientInput,
+  LoginPatientInput,
+  VerifyEmailPatientInput,
+  UpdatePatientInput,
+  ResetPasswordPatientInput,
+  ForgotPasswordPatientInput,
+  ChangePasswordPatientInput,
+  DeleteMyAccountPatientInput,
+  SaveImagePatientInput,
 } from '../schema/patient';
 
 import {
@@ -31,11 +30,91 @@ import {
   sendResetPasswordEmail,
 } from '../services/mailing';
 
+// For Admin
+
+export const getAllPatient = async (
+  req: Request<{}, {}, {}, GetAllPatientInput>,
+  res: Response,
+) => {
+  try {
+    const data = await findpatientsPagination(
+      {},
+      req.query.page,
+      req.query.limit,
+    );
+    if (data.patients.length === 0) {
+      return res
+        .status(404)
+        .json({ status: 'fail', message: 'No doctors found' });
+    }
+    return res.status(200).json({
+      status: 'success',
+      results: data.patients.length,
+      data,
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Error in Get All Patient',
+    });
+  }
+};
+
+// get Patient
+
+export const getPatient = async (
+  req: Request<GetPatientInput>,
+  res: Response,
+) => {
+  try {
+    const patient = await findPatientById(req.params.id);
+    if (!patient) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Patient not found!!',
+      });
+    }
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        patient,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: 'fail',
+      message: 'error in getting patient',
+    });
+  }
+};
+export const deletePatient = async (
+  req: Request<DeletePatientInput>,
+  res: Response,
+) => {
+  try {
+    const patient = await findPatientByIdAndDelete(req.params.id);
+    if (!patient) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Patient not found!!',
+      });
+    }
+    return res.status(204).json({});
+  } catch (err) {
+    return res.status(500).json({
+      status: 'fail',
+      message: 'error in deleting patient',
+    });
+  }
+};
+
+// For Patient
+
 // sign up
 const key: string = process.env.JWT_SECRET as string;
 
 export const signUp = async (
-  req: Request<{}, {}, signupPatientInput>,
+  req: Request<{}, {}, SignupPatientInput>,
   res: Response,
 ) => {
   const body = req.body;
@@ -68,7 +147,7 @@ export const signUp = async (
 // login
 
 export const login = async (
-  req: Request<{}, {}, loginPatientInput>,
+  req: Request<{}, {}, LoginPatientInput>,
   res: Response,
 ) => {
   try {
@@ -108,7 +187,7 @@ export const login = async (
 // verify Email
 
 export const verifyEmail = async (
-  req: Request<verifyEmailPatientInput>,
+  req: Request<VerifyEmailPatientInput>,
   res: Response,
 ) => {
   try {
@@ -143,7 +222,7 @@ export const verifyEmail = async (
 
 // forgor password
 export const forgotPassword = async (
-  req: Request<{}, {}, forgotPasswordPatientInput>,
+  req: Request<{}, {}, ForgotPasswordPatientInput>,
   res: Response,
 ) => {
   try {
@@ -169,20 +248,18 @@ export const forgotPassword = async (
       message: `Reset password link sent to ${patient.email}`,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        status: 'fail',
-        error: err,
-        message: 'Error in forgot password',
-      });
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error in forgot password',
+    });
   }
 };
 
 // Reset password
 
 export const resetPassword = async (
-  req: Request<{}, {}, resetPasswordPatientInput>,
+  req: Request<{}, {}, ResetPasswordPatientInput>,
   res: Response,
 ) => {
   try {
@@ -211,20 +288,18 @@ export const resetPassword = async (
     if (err.name === 'CastError') {
       return res.status(401).send('Invalid token');
     }
-    res
-      .status(500)
-      .json({
-        status: 'fail',
-        error: err.message,
-        message: 'Error in reset password',
-      });
+    res.status(500).json({
+      status: 'fail',
+      error: err.message,
+      message: 'Error in reset password',
+    });
   }
 };
 
 // update Me
 
 export const updateMe = async (
-  req: Request<{}, {}, updatePatientInput>,
+  req: Request<{}, {}, UpdatePatientInput>,
   res: Response,
 ) => {
   try {
@@ -252,7 +327,7 @@ export const updateMe = async (
 // change password
 
 export const changePassword = async (
-  req: Request<{}, {}, changePasswordPatientInput>,
+  req: Request<{}, {}, ChangePasswordPatientInput>,
   res: Response,
 ) => {
   try {
@@ -282,20 +357,18 @@ export const changePassword = async (
     if (err.name === 'CastError') {
       return res.status(401).send('Invalid token');
     }
-    res
-      .status(500)
-      .json({
-        status: 'fail',
-        error: err,
-        message: 'Error in Change Password',
-      });
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error in Change Password',
+    });
   }
 };
 
 // Delete My Account
 
 export const deleteMyAccount = async (
-  req: Request<{}, {}, deleteMyAccountPatientInput>,
+  req: Request<{}, {}, DeleteMyAccountPatientInput>,
   res: Response,
 ) => {
   try {
@@ -314,91 +387,32 @@ export const deleteMyAccount = async (
     if (err.name === 'CastError') {
       return res.status(401).send('Invalid token');
     }
-    res
-      .status(500)
-      .json({
-        status: 'fail',
-        error: err,
-        message: 'Error in Delete My Account',
-      });
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error in Delete My Account',
+    });
   }
 };
-
-
-
-// For Admin
-
-export const getAllPatient = async (
-  req: Request<{}, {}, {}, getAllPatientInput>,
+// Save image
+export const saveProfileImage = async (
+  req: Request<{}, {}, SaveImagePatientInput>,
   res: Response,
 ) => {
   try {
-    const data = await findpatientsPagination(
-      {},
-      req.query.page,
-      req.query.limit,
-    );
-    if (data.patients.length === 0) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'No doctors found' });
-    }
+    const patient = await findPatientByIdAndUpdate(req.body.auth.id, {
+      avatar: req.body.imageURL,
+    });
     return res.status(200).json({
       status: 'success',
-      results: data.patients.length,
-      data,
+      data: patient,
     });
   } catch (err: any) {
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Error in Get All Patient',
-    });
-  }
-};
-// get Patient
+    console.log({ err: JSON.parse(JSON.stringify(err)) });
 
-export const getPatient = async (
-  req: Request<getPatientInput>,
-  res: Response,
-) => {
-  try {
-    const patient = await findPatientById(req.params.id);
-    if (!patient) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Patient not found!!',
-      });
-    }
-    return res.status(200).json({
-      status: 'success',
-      data: {
-        patient,
-      },
-    });
-  } catch (err) {
     return res.status(500).json({
       status: 'fail',
-      message: 'error in getting patient',
-    });
-  }
-};
-export const deletePatient = async (
-  req: Request<deletePatientInput>,
-  res: Response,
-) => {
-  try {
-    const patient = await findPatientByIdAndDelete(req.params.id);
-    if (!patient) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Patient not found!!',
-      });
-    }
-    return res.status(204).json({});
-  } catch (err) {
-    return res.status(500).json({
-      status: 'fail',
-      message: 'error in deleting patient',
+      message: err.message,
     });
   }
 };

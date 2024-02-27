@@ -6,6 +6,7 @@ import validateResource from '../middlewares/validateResource';
 import { checkAuth } from '../middlewares/checkAuth';
 import { checkAdmin } from '../middlewares/checkAdmin';
 import { checkPatient } from '../middlewares/checkPatient';
+import { upload } from '../middlewares/image';
 import {
   getAllPatientSchema,
   getPatientSchema,
@@ -18,6 +19,7 @@ import {
   forgotPasswordPatientSchema,
   changePasswordPatientSchema,
   deleteMyAccountPatientSchema,
+  savePatientImageSchema,
 } from '../schema/patient';
 
 const router = express.Router();
@@ -92,6 +94,15 @@ router.delete(
   checkPatient,
   validateResource(deleteMyAccountPatientSchema),
   patientController.deleteMyAccount,
+);
+
+router.post(
+  '/avatar',
+  checkAuth,
+  checkPatient,
+  upload,
+  validateResource(savePatientImageSchema),
+  patientController.saveProfileImage,
 );
 
 export default router;

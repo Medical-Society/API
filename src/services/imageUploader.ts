@@ -12,6 +12,7 @@ export class ImageUploader {
     form.append('key', process.env.IMGBB_KEY);
     form.append('image', fs.createReadStream(imagePath));
 
+    console.log('her');
     try {
       const res = await axios.post<IImgbbResponseObject>(
         'https://api.imgbb.com/1/upload',
