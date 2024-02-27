@@ -1,10 +1,6 @@
 import { z } from 'zod';
 import { Gender, Status } from '../models/enums';
-import mongoose from 'mongoose';
-
-const zodObjectId = z
-  .string()
-  .refine((id) => mongoose.Types.ObjectId.isValid(id), 'Invalid Id');
+import { zodObjectId, validAgeDate } from './customZod';
 
 // Schemas
 export const signupDoctorSchema = z.object({
@@ -28,9 +24,7 @@ export const signupDoctorSchema = z.object({
       phoneNumber: z
         .string({ required_error: 'Phone Number is required' })
         .regex(/^01[0|1|2|5][0-9]{8}$/),
-      birthdate: z
-        .string({ required_error: 'Birthdate is required' })
-        .datetime({ message: 'Invalid datetime string! Must be ISO.' }),
+      birthdate: validAgeDate(18),
       gender: z.nativeEnum(Gender, { required_error: 'Gender is required' }),
     })
     .strict(),
@@ -55,8 +49,8 @@ export const verifyDoctorSchema = z.object({
 
 export const getAllDoctorsSchema = z.object({
   query: z.object({
-    page: z.string().optional(),
-    limit: z.string().optional(),
+    page: z.coerce.number().optional(),
+    limit: z.coerce.number().optional(),
   }),
 });
 
@@ -97,6 +91,7 @@ export const updateDoctorSchema = z.object({
         .string()
         .regex(/^01[0|1|2|5][0-9]{8}$/)
         .optional(),
+      about: z.string().optional(),
     })
     .strict(),
 });
@@ -133,6 +128,9 @@ export const changeDoctorStatusSchema = z.object({
     .strict(),
   body: z
     .object({
+      auth: z.object({
+        id: zodObjectId,
+      }),
       status: z.nativeEnum(Status, {
         required_error: 'Status is required',
       }),
@@ -149,15 +147,16 @@ export const deleteDoctorSchema = z.object({
 });
 
 export const searchDoctorSchema = z.object({
-  query:z.object({
-    englishFullName: z.string().optional(),
-    specialization: z.string().optional(),
-    clinicAddress: z.string().optional(),
-    page: z.string().optional(),
-    limit: z.string().optional(),
-
-  }).strict()
-})
+  query: z
+    .object({
+      englishFullName: z.string().optional(),
+      specialization: z.string().optional(),
+      clinicAddress: z.string().optional(),
+      page: z.string().optional(),
+      limit: z.string().optional(),
+    })
+    .strict(),
+});
 
 // Types
 export type SignupDoctorInput = z.infer<typeof signupDoctorSchema>['body'];

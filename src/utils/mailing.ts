@@ -8,12 +8,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = async ({ to, subject, text }: SendMailOptions) => {
+export const sendEmail = async (payload: SendMailOptions) => {
   let mailOptions: SendMailOptions = {
     from: process.env.EMAIL_USERNAME,
-    to,
-    subject,
-    text,
+    ...payload,
   };
   return await transporter.sendMail(mailOptions);
 };
