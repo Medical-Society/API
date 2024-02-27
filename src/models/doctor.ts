@@ -7,7 +7,7 @@ import {
 } from '@typegoose/typegoose';
 
 import bcrypt from 'bcryptjs';
-import { Gender, Status } from './enums'
+import { Gender, Status } from './enums';
 
 @pre<Doctor>('save', async function () {
   if (!this.isModified('password')) return;

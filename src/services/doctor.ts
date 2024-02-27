@@ -18,18 +18,17 @@ export const findDoctorById = (
 
 export const findDoctorsPagination = async (
   filter: FilterQuery<Doctor>,
-  pageS: string = '1',
-  limitS: string = '20',
+  page: number = 1,
+  limit: number = 20,
 ) => {
-  const page = parseInt(pageS);
-  const limit = parseInt(limitS);
   const count = await DoctorModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
+  const skip = (page - 1) * limit;
   return {
     doctors: await DoctorModel.find(
       {},
       { password: 0 },
-      { limit, skip: (page - 1) * limit, sort: { createdAt: -1 } },
+      { limit, skip, sort: { createdAt: -1 } },
     ),
     totalPages,
     currentPage: page,
