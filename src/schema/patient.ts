@@ -1,6 +1,6 @@
 import { object, string, TypeOf, nativeEnum, z } from 'zod';
 import { Gender } from '../models/enums';
-import mongoose from 'mongoose';
+import { zodObjectId, validAgeDate } from './customZod';
 
 export const getAllPatientSchema = object({
   query: object({
@@ -11,19 +11,13 @@ export const getAllPatientSchema = object({
 
 export const getPatientSchema = object({
   params: object({
-    id: string().refine(
-      (_id) => mongoose.Types.ObjectId.isValid(_id),
-      'Invalid id',
-    ),
+    id: zodObjectId,
   }),
 });
 
 export const deletePatientSchema = object({
   params: object({
-    id: string().refine(
-      (_id) => mongoose.Types.ObjectId.isValid(_id),
-      'Invalid id',
-    ),
+    id: zodObjectId,
   }),
 });
 
@@ -40,9 +34,7 @@ export const signupPatientSchema = object({
       required_error: 'Password is required',
     }).min(6, 'password is too short -should be min 6 chars'),
 
-    birthdate: string({
-      required_error: 'Birthdate is required',
-    }).datetime({ message: 'Invalid Date Time must be ISO' }),
+    birthdate: validAgeDate(0),
 
     gender: nativeEnum(Gender, { required_error: 'Gender is required' }),
 
@@ -70,10 +62,7 @@ export const verifyEmailPatientSchema = object({
 export const updatePatientSchema = object({
   body: object({
     auth: object({
-      id: string().refine(
-        (_id) => mongoose.Types.ObjectId.isValid(_id),
-        'Invalid id',
-      ),
+      id: zodObjectId,
     }),
     patientName: string().optional(),
     address: string().optional(),
@@ -99,10 +88,7 @@ export const forgotPasswordPatientSchema = object({
 export const changePasswordPatientSchema = object({
   body: object({
     auth: object({
-      id: string().refine(
-        (_id) => mongoose.Types.ObjectId.isValid(_id),
-        'Invalid id',
-      ),
+      id: zodObjectId,
     }),
     oldPassword: string({ required_error: 'Old Password is required' }),
     newPassword: string({ required_error: 'Token is required' }).min(
@@ -115,10 +101,7 @@ export const changePasswordPatientSchema = object({
 export const deleteMyAccountPatientSchema = object({
   body: object({
     auth: object({
-      id: string().refine(
-        (_id) => mongoose.Types.ObjectId.isValid(_id),
-        'Invalid id',
-      ),
+      id: zodObjectId,
     }),
   }),
 });
@@ -126,10 +109,7 @@ export const deleteMyAccountPatientSchema = object({
 export const savePatientImageSchema = object({
   body: object({
     auth: object({
-      id: string().refine(
-        (_id) => mongoose.Types.ObjectId.isValid(_id),
-        'Invalid id',
-      ),
+      id: zodObjectId,
     }),
     imageURL: string({ required_error: 'Image is required' }),
   }).strict(),
