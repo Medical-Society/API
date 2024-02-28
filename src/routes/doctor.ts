@@ -25,9 +25,19 @@ import {
 } from '../schema/doctor';
 import { checkPatient } from '../middlewares/checkPatient';
 import { addReviewSchema, getReviewsSchema } from '../schema/review';
+import { upload } from '../middlewares/image';
+import { saveImageSchema } from '../schema/customZod';
 
 const router = express.Router();
 
+router.post(
+  '/avatar',
+  checkAuth,
+  checkDoctor,
+  upload,
+  validateResource(saveImageSchema),
+  doctorController.saveProfileImage,
+);
 router.post(
   '/signup',
   validateResource(signupDoctorSchema),
@@ -65,7 +75,6 @@ router.get(
   validateResource(searchDoctorSchema),
   doctorController.searchDoctor,
 );
-
 router.get(
   '/:id',
   validateResource(getDoctorSchema),

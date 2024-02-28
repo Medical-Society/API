@@ -11,6 +11,9 @@ import bcrypt from 'bcryptjs';
 import { Gender, Status } from './enums';
 import { Review } from './review';
 
+const DEFAULT_IMAGE =
+  'https://bangkokmentalhealthhospital.com/wp-content/themes/bangkok-mental-health/images/blank-doctors.jpg';
+
 @pre<Doctor>('save', async function () {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
@@ -59,6 +62,9 @@ export class Doctor {
 
   @prop({ type: () => Review, ref: Review, default: [] })
   reviews: Ref<Review>[];
+
+  @prop({ match: /^(http:\/\/|https:\/\/).+/, default: DEFAULT_IMAGE })
+  avatar: string;
 
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);

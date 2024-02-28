@@ -16,3 +16,16 @@ export const validAgeDate = (age: number) => {
     return candidateAge >= age;
   }, 'Age must be greater than ' + age);
 };
+
+export const saveImageSchema = z.object({
+  body: z
+    .object({
+      auth: z.object({
+        id: zodObjectId,
+      }),
+      imageURL: z.string({ required_error: 'Image is required' }),
+    })
+    .strict(),
+});
+
+export type SaveImageInput = z.infer<typeof saveImageSchema>['body'];

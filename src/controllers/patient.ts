@@ -13,7 +13,6 @@ import {
   ForgotPasswordPatientInput,
   ChangePasswordPatientInput,
   DeleteMyAccountPatientInput,
-  SaveImagePatientInput,
 } from '../schema/patient';
 
 import {
@@ -29,6 +28,7 @@ import {
   sendVerificationEmail,
   sendResetPasswordEmail,
 } from '../services/mailing';
+import { SaveImageInput } from '../schema/customZod';
 
 // For Admin
 
@@ -396,7 +396,7 @@ export const deleteMyAccount = async (
 };
 // Save image
 export const saveProfileImage = async (
-  req: Request<{}, {}, SaveImagePatientInput>,
+  req: Request<{}, {}, SaveImageInput>,
   res: Response,
 ) => {
   try {

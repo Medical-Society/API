@@ -105,16 +105,6 @@ export const deleteMyAccountPatientSchema = object({
     }),
   }),
 });
-
-export const savePatientImageSchema = object({
-  body: object({
-    auth: object({
-      id: zodObjectId,
-    }),
-    imageURL: string({ required_error: 'Image is required' }),
-  }).strict(),
-});
-
 export type GetAllPatientInput = z.infer<typeof getAllPatientSchema>['query'];
 export type GetPatientInput = z.infer<typeof getPatientSchema>['params'];
 export type DeletePatientInput = z.infer<typeof deletePatientSchema>['params'];
@@ -135,7 +125,4 @@ export type ChangePasswordPatientInput = z.infer<
 >['body'];
 export type DeleteMyAccountPatientInput = z.infer<
   typeof deleteMyAccountPatientSchema
->['body'];
-export type SaveImagePatientInput = z.infer<
-  typeof savePatientImageSchema
 >['body'];

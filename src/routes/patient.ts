@@ -19,8 +19,8 @@ import {
   forgotPasswordPatientSchema,
   changePasswordPatientSchema,
   deleteMyAccountPatientSchema,
-  savePatientImageSchema,
 } from '../schema/patient';
+import { saveImageSchema } from '../schema/customZod';
 
 const router = express.Router();
 
@@ -101,7 +101,7 @@ router.post(
   checkAuth,
   checkPatient,
   upload,
-  validateResource(savePatientImageSchema),
+  validateResource(saveImageSchema),
   patientController.saveProfileImage,
 );
 

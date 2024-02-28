@@ -36,6 +36,7 @@ import {
   sendVerificationEmail,
 } from '../services/mailing';
 import { AddReviewBodyInput, AddReviewParamsInput } from '../schema/review';
+import { SaveImageInput } from '../schema/customZod';
 
 const key: string = process.env.JWT_SECRET as string;
 
@@ -453,6 +454,28 @@ export const getReviews = async (
       status: 'fail',
       error: err,
       message: 'Error in getting reviews',
+    });
+  }
+};
+
+export const saveProfileImage = async (
+  req: Request<{}, {}, SaveImageInput>,
+  res: Response,
+) => {
+  try {
+    const doctor = await findDoctorByIdAndUpdate(req.body.auth.id, {
+      avatar: req.body.imageURL,
+    });
+    return res.status(200).json({
+      status: 'success',
+      data: doctor,
+    });
+  } catch (err: any) {
+    console.log({ err: JSON.parse(JSON.stringify(err)) });
+
+    return res.status(500).json({
+      status: 'fail',
+      message: err.message,
     });
   }
 };
