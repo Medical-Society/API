@@ -1,5 +1,7 @@
 import { FilterQuery, ProjectionType } from 'mongoose';
 import DoctorModel, { Doctor } from '../models/doctor';
+import ReviewModel from '../models/review';
+import PatientModel from '../models/patient';
 
 export const findDoctorByEmail = (email: string) => {
   return DoctorModel.findOne({ email });
@@ -75,6 +77,42 @@ export const findDoctor = async (
   const skip = (page - 1) * limit;
   return {
     doctors: await DoctorModel.find(filter).skip(skip).limit(limit).exec(),
+    totalPages,
+    currentPage: page,
+  };
+};
+
+export const addReviewForDoctorById = async (
+  doctorId: string,
+  patientId: string,
+  reviewObj: any,
+) => {
+  const patient = await PatientModel.findById(patientId);
+  const doctor = await DoctorModel.findById(doctorId);
+  if (!patient || !doctor) {
+    return null;
+  }
+  const review = new ReviewModel({ ...reviewObj, patient: patient });
+  await review.save();
+  doctor.reviews.push(review);
+  await doctor.save();
+  return review;
+};
+
+export const findDoctorReviewsById = async (
+  doctorId: string,
+  page: number = 1,
+  limit: number = 20,
+) => {
+  const doctor = await DoctorModel.findById(doctorId).populate('reviews');
+  if (!doctor) {
+    return null;
+  }
+  const count = doctor.reviews.length;
+  const totalPages = Math.ceil(count / limit);
+  const skip = (page - 1) * limit;
+  return {
+    reviews: doctor.reviews.slice(skip, skip + limit),
     totalPages,
     currentPage: page,
   };

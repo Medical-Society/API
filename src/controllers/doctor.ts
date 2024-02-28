@@ -28,11 +28,14 @@ import {
   findDoctorByIdAndUpdate,
   findDoctorsPagination,
   findDoctor,
+  addReviewForDoctorById,
+  findDoctorReviewsById,
 } from '../services/doctor';
 import {
   sendResetPasswordEmail,
   sendVerificationEmail,
 } from '../services/mailing';
+import { AddReviewBodyInput, AddReviewParamsInput } from '../schema/review';
 
 const key: string = process.env.JWT_SECRET as string;
 
@@ -406,6 +409,50 @@ export const searchDoctor = async (
       status: 'fail',
       error: err,
       message: 'Error Search Dcotor Name',
+    });
+  }
+};
+
+export const addReview = async (
+  req: Request<AddReviewParamsInput, {}, AddReviewBodyInput>,
+  res: Response,
+) => {
+  try {
+    const review = await addReviewForDoctorById(
+      req.params.id,
+      req.body.auth.id,
+      req.body,
+    );
+
+    if (!review) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Patient or Doctor not found',
+      });
+    }
+    res.status(201).json({ status: 'success', data: { review } });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error in adding review',
+    });
+  }
+};
+
+export const getReviews = async (
+  req: Request<AddReviewParamsInput>,
+  res: Response,
+) => {
+  try {
+    const data = await findDoctorReviewsById(req.params.id);
+    res.status(200).json({ status: 'success', data });
+  } catch (err) {
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error in getting reviews',
     });
   }
 };

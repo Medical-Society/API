@@ -1,4 +1,5 @@
 import {
+  Ref,
   getModelForClass,
   index,
   modelOptions,
@@ -8,6 +9,7 @@ import {
 
 import bcrypt from 'bcryptjs';
 import { Gender, Status } from './enums';
+import { Review } from './review';
 
 @pre<Doctor>('save', async function () {
   if (!this.isModified('password')) return;
@@ -54,6 +56,9 @@ export class Doctor {
 
   @prop()
   about?: string;
+
+  @prop({ type: () => Review, ref: Review, default: [] })
+  reviews: Ref<Review>[];
 
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);

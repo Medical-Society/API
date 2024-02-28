@@ -23,6 +23,8 @@ import {
   verifyDoctorSchema,
   searchDoctorSchema,
 } from '../schema/doctor';
+import { checkPatient } from '../middlewares/checkPatient';
+import { addReviewSchema, getReviewsSchema } from '../schema/review';
 
 const router = express.Router();
 
@@ -40,6 +42,18 @@ router.post(
   '/verify/:token',
   validateResource(verifyDoctorSchema),
   doctorController.verifyEmail,
+);
+router.post(
+  '/:id/reviews',
+  checkAuth,
+  checkPatient,
+  validateResource(addReviewSchema),
+  doctorController.addReview,
+);
+router.get(
+  '/:id/reviews',
+  validateResource(getReviewsSchema),
+  doctorController.getReviews,
 );
 router.get(
   '/',
