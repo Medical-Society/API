@@ -19,6 +19,10 @@ import {
   UpdateDoctorPasswordInput,
   VerifyDoctorInput,
   SearchDoctorInput,
+  DeletePostParamsInput,
+  DeletePostBodyInput,
+  CreatePostInput,
+  GetPostByIdInput,
 } from '../schema/doctor';
 import {
   createDoctor,
@@ -30,6 +34,9 @@ import {
   findDoctor,
   addReviewForDoctorById,
   findDoctorReviewsById,
+  findDoctorByIdAndCreatePost,
+  findPostAndDeleteById,
+  findPostById,
 } from '../services/doctor';
 import {
   sendResetPasswordEmail,
@@ -476,6 +483,97 @@ export const saveProfileImage = async (
     return res.status(500).json({
       status: 'fail',
       message: err.message,
+    });
+  }
+};
+
+export const getDoctorPosts = async (
+  req: Request<GetDoctorInput>,
+  res: Response,
+) => {
+  try {
+    const doctor = await findDoctorById(req.params.id);
+
+    return res.status(200).json({
+      status: 'success',
+      data: { posts: doctor?.posts },
+    });
+  } catch (err: any) {
+    console.log({ err: JSON.parse(JSON.stringify(err)) });
+    if (err.name === 'CastError') {
+      return res.status(401).send('Invalid token');
+    }
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error Get Doctor Posts',
+    });
+  }
+};
+
+export const getPostById = async (
+  req: Request<GetPostByIdInput>,
+  res: Response,
+) => {
+  try {
+    const post = await findPostById(req.params.id);
+    return res.status(200).json({ status: 'success', data: { post } });
+  } catch (err: any) {
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error Create Doctor Posts',
+    });
+  }
+};
+
+export const createPost = async (
+  req: Request<{}, {}, CreatePostInput>,
+  res: Response,
+) => {
+  try {
+    console.log(req.body.description);
+    const post = await findDoctorByIdAndCreatePost(
+      req.body.auth.id,
+      req.body.description,
+      req.body.images,
+    );
+
+    return res.status(200).json({
+      status: 'success',
+      data: { post },
+    });
+  } catch (err: any) {
+    console.log(err);
+    if (err.name === 'CastError') {
+      return res.status(401).send('Invalid token');
+    }
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error Create Doctor Posts',
+    });
+  }
+};
+
+export const deletePost = async (
+  req: Request<DeletePostParamsInput, {}, DeletePostBodyInput>,
+  res: Response,
+) => {
+  try {
+    await findPostAndDeleteById(req.body.auth.id, req.params.id);
+    return res.status(204).json({
+      status: 'success',
+    });
+  } catch (err: any) {
+    console.log({ err: JSON.parse(JSON.stringify(err)) });
+    if (err.name === 'CastError') {
+      return res.status(401).send('Invalid token');
+    }
+    res.status(500).json({
+      status: 'fail',
+      error: err,
+      message: 'Error Delete Doctor Posts',
     });
   }
 };

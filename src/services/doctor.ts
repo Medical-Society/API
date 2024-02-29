@@ -2,6 +2,7 @@ import { FilterQuery, ProjectionType } from 'mongoose';
 import DoctorModel, { Doctor } from '../models/doctor';
 import ReviewModel from '../models/review';
 import PatientModel from '../models/patient';
+import PostModel from '../models/post';
 
 export const findDoctorByEmail = (email: string) => {
   return DoctorModel.findOne({ email });
@@ -82,6 +83,33 @@ export const findDoctor = async (
   };
 };
 
+export const findPostById = (id: string) => {
+  return PostModel.findById(id);
+}
+
+export const findDoctorByIdAndCreatePost = async (
+  id: string,
+  description: string,
+  images: string[] | undefined,
+) => {
+  const post = new PostModel();
+  post.description = description;
+  if (images != undefined) {
+    post.images = images;
+  }
+
+  await post.save();
+  const doctor = await DoctorModel.findById(id);
+  if (!doctor) throw Error('Doctor not found');
+  if (!doctor.posts)
+  doctor.posts = [];
+  console.log(doctor.posts);
+  doctor.posts.push(post);
+
+  await doctor.save();
+  return post;
+};
+
 export const addReviewForDoctorById = async (
   doctorId: string,
   patientId: string,
@@ -116,4 +144,24 @@ export const findDoctorReviewsById = async (
     totalPages,
     currentPage: page,
   };
+};
+
+export const findPostAndDeleteById = async (
+  doctorId: string,
+  postId: string,
+) => {
+  await PostModel.findByIdAndDelete(postId);
+  const doctor = await DoctorModel.findById(doctorId);
+  if (doctor) {
+    const idx = doctor.posts.findIndex(
+      (post) => post._id.toString() === postId,
+    );
+    if (idx !== -1) {
+      doctor.posts.splice(idx, 1);
+      await doctor.save();
+
+    } else {
+      throw new Error('post not found');
+    }
+  }
 };

@@ -33,12 +33,12 @@ export const signupPatientSchema = object({
     password: string({
       required_error: 'Password is required',
     }).min(6, 'password is too short -should be min 6 chars'),
-
+   
     birthdate: validAgeDate(0),
 
     gender: nativeEnum(Gender, { required_error: 'Gender is required' }),
 
-    address: string({ required_error: 'Address is required' }).optional(),
+    address: string({ required_error: 'Address is required' }),
 
     phoneNumber: string({ required_error: 'Mobile is required' }).regex(
       /^01(0|1|2|5)[0-9]{8}$/,

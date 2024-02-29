@@ -8,6 +8,8 @@ import {
 import bcrypt from 'bcryptjs';
 import { Gender } from './enums';
 
+const DEFAULT_IMAGE =
+  'https://www.businessnetworks.com/sites/default/files/default_images/default-avatar.png';
 @pre<Patient>('save', async function () {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
@@ -16,7 +18,7 @@ import { Gender } from './enums';
 @modelOptions({
   schemaOptions: {
     timestamps: true,
-  }
+  },
 })
 export class Patient {
   @prop({ required: true, trim: true })
@@ -43,7 +45,7 @@ export class Patient {
   @prop({ default: false })
   isVerified: boolean;
 
-  @prop({ match: /^(http:\/\/|https:\/\/).+/ })
+  @prop({ match: /^(http:\/\/|https:\/\/).+/, default: DEFAULT_IMAGE })
   avatar: string;
 
   async comparePassword(candidatePassword: string) {
@@ -53,12 +55,4 @@ export class Patient {
 const PatientModel = getModelForClass(Patient);
 export default PatientModel;
 
-//model in service
-// schema and service in controller
-//schema and controller in router
-//🍩// model
-//🍩 schema
-//🍩 router
-//services
-// controller
-//🍩middleware
+//🍩

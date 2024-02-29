@@ -22,12 +22,15 @@ import {
   updateDoctorSchema,
   verifyDoctorSchema,
   searchDoctorSchema,
+  createPostSchema,
+  deletePostSchema,
+  getPostByIdSchema,
 } from '../schema/doctor';
 import { checkPatient } from '../middlewares/checkPatient';
 import { addReviewSchema, getReviewsSchema } from '../schema/review';
 import { upload } from '../middlewares/image';
 import { saveImageSchema } from '../schema/customZod';
-
+import { uploadAlbum } from '../middlewares/album';
 const router = express.Router();
 
 router.post(
@@ -80,6 +83,32 @@ router.get(
   validateResource(getDoctorSchema),
   doctorController.getDoctor,
 );
+router.get(
+  '/posts/:id',
+  validateResource(getPostByIdSchema),
+  doctorController.getPostById,
+); //🎮
+router.get(
+  '/:id/posts',
+  validateResource(getDoctorSchema),
+  doctorController.getDoctorPosts,
+);
+router.post(
+  '/posts',
+  checkAuth,
+  checkDoctor,
+  uploadAlbum,
+  validateResource(createPostSchema),
+  doctorController.createPost,
+);
+router.delete(
+  '/posts/:id',
+  checkAuth,
+  checkDoctor,
+  validateResource(deletePostSchema),
+  doctorController.deletePost,
+);
+
 router.post(
   '/forgot-password',
   validateResource(forgotPasswordDoctorSchema),
