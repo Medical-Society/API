@@ -23,7 +23,7 @@ export const signupDoctorSchema = z.object({
         .length(14),
       phoneNumber: z
         .string({ required_error: 'Phone Number is required' })
-        .regex(/^01[0|1|2|5][0-9]{8}$/),
+        .regex(/^01[0|1|2|5][0-9]{8}$/, 'Invalid Phone Number'),
       birthdate: validAgeDate(18),
       gender: z.nativeEnum(Gender, { required_error: 'Gender is required' }),
     })

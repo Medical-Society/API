@@ -29,4 +29,3 @@ export const saveImageSchema = z.object({
 });
 
 export type SaveImageInput = z.infer<typeof saveImageSchema>['body'];
-

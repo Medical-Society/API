@@ -3,10 +3,11 @@ import { z } from 'zod';
 
 export default function errorHandler(
   err: Error | z.ZodError | any,
-  _: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ) {
+  err.location = `${req.method} ${req.url}`;
   console.log('In standard error handler');
   const errObj = {
     status: 'error',
@@ -20,16 +21,12 @@ export default function errorHandler(
     errObj.statusCode = 400;
   }
   if (err.code === 11000) {
-    errObj.errors = [];
+    errObj.errors = ['email must be unique'];
     errObj.message = 'Account already exist';
     errObj.statusCode = 409;
   }
   if (err instanceof Error) {
-    console.log('{{->');
     console.log(err);
-    console.log('<-}}');
   }
-  return res
-    .status(errObj.statusCode)
-    .json({ ...errObj, err: JSON.parse(JSON.stringify(err)) });
+  return res.status(errObj.statusCode).json({ ...errObj, err });
 }
