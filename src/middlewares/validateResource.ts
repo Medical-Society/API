@@ -2,8 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AnyZodObject } from 'zod';
 
 const validateResource =
-  (schema: AnyZodObject) =>
-  (req: Request, res: Response, next: NextFunction) => {
+  (schema: AnyZodObject) => (req: Request, _: Response, next: NextFunction) => {
     try {
       // use parseAsync
       schema.parse({
@@ -13,8 +12,8 @@ const validateResource =
         headers: req.headers,
       });
       next();
-    } catch (e: any) {
-      res.status(400).send(e.errors);
+    } catch (err: any) {
+      next(err);
     }
   };
 

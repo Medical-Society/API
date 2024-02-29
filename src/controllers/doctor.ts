@@ -4,7 +4,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 
 // local modules
 import { Status } from '../models/enums';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import {
   ChangeDoctorStatusInput,
   DeleteDoctorInput,
@@ -50,6 +50,7 @@ const key: string = process.env.JWT_SECRET as string;
 export const signup = async (
   req: Request<{}, {}, SignupDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const doctor = await createDoctor(req.body);
@@ -60,12 +61,7 @@ export const signup = async (
       message: `Dr. ${doctor.englishFullName} signed up successfully, Please verify your email`,
     });
   } catch (err: any) {
-    if (err.code === 11000) {
-      return res.status(409).send('Account already exist');
-    }
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in doctor signup' });
+    next(err);
   }
 };
 
