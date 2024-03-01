@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
 import {
@@ -29,12 +29,14 @@ import {
   sendResetPasswordEmail,
 } from '../services/mailing';
 import { SaveImageInput } from '../schema/customZod';
+import HttpException from '../models/errors';
 
 // For Admin
 
 export const getAllPatient = async (
   req: Request<{}, {}, {}, GetAllPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const data = await findpatientsPagination(
@@ -43,20 +45,15 @@ export const getAllPatient = async (
       req.query.limit,
     );
     if (data.patients.length === 0) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'No doctors found' });
+      throw new HttpException(404, 'No Patient Found', ['Patient NOt found ']);
     }
     return res.status(200).json({
       status: 'success',
-      results: data.patients.length,
-      data,
+      length: data.patients.length,
+      data: { data },
     });
   } catch (err: any) {
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Error in Get All Patient',
-    });
+    next(err);
   }
 };
 
@@ -65,14 +62,12 @@ export const getAllPatient = async (
 export const getPatient = async (
   req: Request<GetPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const patient = await findPatientById(req.params.id);
     if (!patient) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Patient not found!!',
-      });
+      throw new HttpException(404, 'Patient not found', ['Patient Not Found']);
     }
     return res.status(200).json({
       status: 'success',
@@ -80,31 +75,23 @@ export const getPatient = async (
         patient,
       },
     });
-  } catch (err) {
-    return res.status(500).json({
-      status: 'fail',
-      message: 'error in getting patient',
-    });
+  } catch (err: any) {
+    next(err);
   }
 };
 export const deletePatient = async (
   req: Request<DeletePatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const patient = await findPatientByIdAndDelete(req.params.id);
     if (!patient) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Patient not found!!',
-      });
+      throw new HttpException(404, 'Patient not found', ['Patient Not Found']);
     }
     return res.status(204).json({});
-  } catch (err) {
-    return res.status(500).json({
-      status: 'fail',
-      message: 'error in deleting patient',
-    });
+  } catch (err: any) {
+    next(err);
   }
 };
 
@@ -116,6 +103,7 @@ const key: string = process.env.JWT_SECRET as string;
 export const signUp = async (
   req: Request<{}, {}, SignupPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   const body = req.body;
 
@@ -124,23 +112,18 @@ export const signUp = async (
 
     const token = jwt.sign({ _id: patient._id }, key);
     if (!token) {
-      return res
-        .status(500)
-        .json({ status: 'fail', message: 'Error in token generation' });
+      throw new HttpException(500, 'Invalid Token Generation', [
+        'Error in token generation',
+      ]);
     }
     sendVerificationEmail(patient.email, token, 'patients');
+
     return res.status(201).json({
       status: 'success',
-      message: `${patient.patientName} Sign up successfully ,please verify your email`,
+      data: `${patient.patientName} Sign up successfully ,please verify your email`,
     });
   } catch (err: any) {
-    if (err.code === 11000) {
-      return res.status(409).send('Account already exists');
-    }
-
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in patient signup' });
+    next(err);
   }
 };
 
@@ -149,26 +132,28 @@ export const signUp = async (
 export const login = async (
   req: Request<{}, {}, LoginPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const patient = await findPatientByEmail(req.body.email);
     if (!patient) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Invalid  Email' });
+      throw new HttpException(400, 'Patient not Found', [
+        'patient does not exist',
+      ]);
     }
-    console.log(patient.password);
     const isMatch = await patient.comparePassword(req.body.password);
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Invalid password' });
+      throw new HttpException(
+        400,
+        'Your password is incorrect please try again!!',
+        ['Invalid Password'],
+      );
     }
 
     if (!patient.isVerified) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Please verify your email' });
+      throw new HttpException(400, 'Please Verify Your Email', [
+        'Email is not verified yet',
+      ]);
     }
 
     const token = jwt.sign({ _id: patient._id }, key);
@@ -177,10 +162,8 @@ export const login = async (
       status: 'success',
       data: { token, result },
     });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in patient login' });
+  } catch (err: any) {
+    next(err);
   }
 };
 
@@ -189,34 +172,29 @@ export const login = async (
 export const verifyEmail = async (
   req: Request<VerifyEmailPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const decode = jwt.verify(req.params.token, key) as JwtPayload;
     const patient = await findPatientById(decode._id);
     if (!patient) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Patient not found' });
+      throw new HttpException(400, 'Patient not Found', [
+        'patient does not exist',
+      ]);
     }
     if (patient.isVerified) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Email is Already Verified' });
+      throw new HttpException(400, 'Email is Already verified please login', [
+        'Email is verified',
+      ]);
     }
     patient.isVerified = true;
     await patient.save();
-    res
-      .status(200)
-      .json({ status: 'success', message: 'Patient verified successfully' });
-  } catch (err: any) {
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in verifying email',
+    res.status(200).json({
+      status: 'success',
+      data: 'Your Email Is Verified Successfully Please Log in',
     });
+  } catch (err: any) {
+    next(err);
   }
 };
 
@@ -224,35 +202,30 @@ export const verifyEmail = async (
 export const forgotPassword = async (
   req: Request<{}, {}, ForgotPasswordPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { email } = req.body;
     const patient = await findPatientByEmail(email);
-    if (!patient) {
-      // send 200 for not exist email to prevent email enumeration
-      return res.status(200).json({
-        status: 'success',
-        message: `Reset password link sent to ${email}`,
+    if (patient) {
+      const secret = patient.password + '-' + key;
+      const token = jwt.sign({ _id: patient._id }, secret, {
+        expiresIn: '15m',
       });
+
+      if (!token) {
+        throw new HttpException(500, 'Invalid Token Generation', [
+          'Error in token generation',
+        ]);
+      }
+      sendResetPasswordEmail(patient.email, token, 'patients');
     }
-    const secret = patient.password + '-' + key;
-    const token = jwt.sign({ _id: patient._id }, secret, { expiresIn: '15m' });
-    if (!token) {
-      return res
-        .status(500)
-        .json({ status: 'fail', message: 'Error in token generation' });
-    }
-    sendResetPasswordEmail(patient.email, token, 'patients');
     res.status(200).json({
       status: 'success',
-      message: `Reset password link sent to ${patient.email}`,
+      message: `If the email: ${email} exists in the system, a reset password link will be sent to it`,
     });
-  } catch (err) {
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in forgot password',
-    });
+  } catch (err: any) {
+    next(err);
   }
 };
 
@@ -261,38 +234,32 @@ export const forgotPassword = async (
 export const resetPassword = async (
   req: Request<{}, {}, ResetPasswordPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { token, password } = req.body;
 
     const decoded = jwt.decode(token) as JwtPayload;
-    console.log(decoded._id);
     if (!decoded?._id) {
-      return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+      throw new HttpException(401, 'Invalid Token', ['Invalid Token']);
     }
     const patient = await findPatientById(decoded._id);
     if (!patient) {
-      return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+      throw new HttpException(400, 'Patient not Found', [
+        'patient does not exist',
+      ]);
     }
     const secret = patient.password + '-' + key;
     jwt.verify(token, secret);
-    console.log(password);
     patient.password = password;
     await patient.save();
+
     res.status(200).json({
       status: 'success',
-      message: `${patient.patientName} password reset successfully`,
+      data: `${patient.patientName} password reset successfully`,
     });
   } catch (err: any) {
-    // console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err.message,
-      message: 'Error in reset password',
-    });
+    next(err);
   }
 };
 
@@ -301,6 +268,7 @@ export const resetPassword = async (
 export const updateMe = async (
   req: Request<{}, {}, UpdatePatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const patient = await findPatientByIdAndUpdate(
@@ -315,13 +283,7 @@ export const updateMe = async (
       },
     });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in Update Patient' });
+    next(err);
   }
 };
 // change password
@@ -329,39 +291,30 @@ export const updateMe = async (
 export const changePassword = async (
   req: Request<{}, {}, ChangePasswordPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { oldPassword, newPassword } = req.body;
 
     const patient = await findPatientById(req.body.auth.id);
     if (!patient) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Patient not found!!',
-      });
+      throw new HttpException(400, 'Patient not Found', [
+        'patient does not exist',
+      ]);
     }
     const isMatch = await patient.comparePassword(oldPassword);
     if (!isMatch) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Invalid password',
-      });
+      throw new HttpException(400, 'Password is incorrect please try again', [
+        'Invalid Password',
+      ]);
     }
     patient.password = newPassword;
     patient.save();
     res
       .status(200)
-      .json({ status: 'success', message: 'Password changed successfully' });
+      .json({ status: 'success', data: 'Password changed successfully' });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in Change Password',
-    });
+    next(err);
   }
 };
 
@@ -370,34 +323,28 @@ export const changePassword = async (
 export const deleteMyAccount = async (
   req: Request<{}, {}, DeleteMyAccountPatientInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const patient = await findPatientByIdAndDelete(req.body.auth.id);
     if (!patient) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Patient not found!!',
-      });
+      throw new HttpException(400, 'Patient not Found', [
+        'patient does not exist',
+      ]);
     }
-    return res
-      .status(204)
-      .json({ status: 'success', message: 'You Are deleted successfully' });
-  } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in Delete My Account',
+    return res.status(204).json({
+      status: 'success',
+      data: 'Your Account is deleted successfully',
     });
+  } catch (err: any) {
+    next(err);
   }
 };
 // Save image
 export const saveProfileImage = async (
   req: Request<{}, {}, SaveImageInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const patient = await findPatientByIdAndUpdate(req.body.auth.id, {
@@ -408,12 +355,6 @@ export const saveProfileImage = async (
       data: patient,
     });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-
-    return res.status(500).json({
-      status: 'fail',
-      message: err.message,
-    });
+    next(err);
   }
 };
-

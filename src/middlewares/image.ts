@@ -1,8 +1,12 @@
 import { FormParser } from '../utils/formParser';
 import { ImageUploader } from '../services/imageUploader';
 import { NextFunction, Request, Response } from 'express';
+import HttpException from '../models/errors';
 
-export const upload = async (req: Request, res: Response,next:NextFunction) => {
+export const upload = async (
+  req: Request,
+  next: NextFunction,
+) => {
   const acceptedContentType = 'multipart/form-data';
 
   // check 'content-type' header stars with multipart/form-data
@@ -11,10 +15,7 @@ export const upload = async (req: Request, res: Response,next:NextFunction) => {
   const isAcceptedContentType =
     req.headers['content-type']?.startsWith(acceptedContentType);
   if (!isAcceptedContentType) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Invalid content',
-    });
+    throw new HttpException(400, 'Invalid content', ['Content is not correct']);
   }
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 megabytes to bytes
@@ -25,9 +26,8 @@ export const upload = async (req: Request, res: Response,next:NextFunction) => {
   });
   // parse form data
 
-  const {  files } = await form.parse(req).catch((err) => {
-    console.error(err);
-    throw new Error();
+  const { files } = await form.parse(req).catch((err: any) => {
+    throw new HttpException(400, err.message, [err]);
   });
 
   // check `title` and `content` fields are strings
@@ -37,13 +37,13 @@ export const upload = async (req: Request, res: Response,next:NextFunction) => {
   const imageFile = Array.isArray(files.image) ? files.image[0] : files.image;
   const isImage = imageFile?.mimetype?.startsWith('image/');
   if (imageFile && !isImage) {
-    throw new Error();
+    throw new HttpException(400, 'Invalid Image File Or Image');
   }
-  console.log(imageFile);
+
   const image = imageFile
     ? await ImageUploader.upload(imageFile.filepath)
     : undefined;
 
-  req.body.imageURL = image ;
+  req.body.imageURL = image;
   next();
 };

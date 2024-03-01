@@ -1,10 +1,10 @@
 import { FormParser } from '../utils/albumFormParser';
 import { ImageUploader } from '../services/albumUploader';
 import { NextFunction, Request, Response } from 'express';
+import HttpException from '../models/errors';
 
 export const uploadAlbum = async (
   req: Request,
-  res: Response,
   next: NextFunction,
 ) => {
   const acceptedContentType = 'multipart/form-data';
@@ -15,10 +15,7 @@ export const uploadAlbum = async (
   const isAcceptedContentType =
     req.headers['content-type']?.startsWith(acceptedContentType);
   if (!isAcceptedContentType) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Invalid content',
-    });
+    throw new HttpException(400, 'Invalid content', ['Content is incorrect']);
   }
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 megabytes to bytes
@@ -29,33 +26,34 @@ export const uploadAlbum = async (
   });
   // parse form data
 
-  const { fields,files} = await form.parse(req).catch((err:any) => {
-    console.error(err);
-    throw new Error();
+  const { fields, files } = await form.parse(req).catch((err: any) => {
+    throw new HttpException(400, err.message, [err]);
   });
   let result = '';
   if (fields.description) {
     result = fields.description.join(', ');
-    console.log('fields',res);
   }
   // yala run🏃‍♂️
   // check `title` and `content` fields are strings
-  // check `image` field is a file and is an image    
+  // check `image` field is a file and is an image
 
   const imageFiles = Array.isArray(files.image) ? files.image : [files.image];
-  
 
   const images = await Promise.all(
-    imageFiles.map(async (imageFile:any) => {
+    imageFiles.map(async (imageFile: any) => {
       const isImage = imageFile?.mimetype?.startsWith('image/');
       if (!isImage) {
-        throw new Error('Uploaded file is not an image.');
+        throw new HttpException(400, 'Uploaded file is not an image.', [
+          'Uploaded file is incorrect please upload image',
+        ]);
       }
-      if (!imageFile) throw Error();
+      if (!imageFile)
+        throw new HttpException(400, 'Invalid Image File', [
+          'imageFile is incorrect',
+        ]);
       return await ImageUploader.upload(imageFile.filepath);
     }),
   );
-  console.log(images);
   req.body.images = images;
   req.body.description = result;
   next();
