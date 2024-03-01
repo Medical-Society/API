@@ -1,23 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import Admin from '../models/admin';
+import HttpException from '../models/errors';
 
 export const checkAdmin = async (
   req: Request,
-  res: Response,
+  _: Response,
   next: NextFunction,
 ) => {
   try {
     const admin = await Admin.findById(req.body.auth.id);
     if (!admin) {
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Unauthorized user. Admin access required.',
-      });
+      throw new HttpException(401, 'Unauthorized user. Admin access required.');
     }
     next();
   } catch (err) {
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in checking admin' });
+    next(err);
   }
 };

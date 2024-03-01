@@ -2,8 +2,8 @@ export default class HttpException extends Error {
   readonly status = 'fail';
   constructor(
     public statusCode: number = 500,
-    message: string = 'Something went wrong',
-    public errors: string[] = ['Internal server error'],
+    message: string = 'Internal server error',
+    public errors: string[] = ['Something went wrong'],
   ) {
     super(message);
   }

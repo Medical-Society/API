@@ -44,6 +44,8 @@ import {
 } from '../services/mailing';
 import { AddReviewBodyInput, AddReviewParamsInput } from '../schema/review';
 import { SaveImageInput } from '../schema/customZod';
+import HttpException from '../models/errors';
+import { N } from 'vitest/dist/reporters-MmQN-57K';
 
 const key: string = process.env.JWT_SECRET as string;
 
@@ -68,32 +70,33 @@ export const signup = async (
 export const login = async (
   req: Request<{}, {}, LoginDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const doctor = await findDoctorByEmail(req.body.email);
     if (!doctor) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Invalid email or password' });
+      throw new HttpException(400, 'Invalid email or password', [
+        'Email or password is incorrect',
+      ]);
     }
     // console.log(doctor.password);
     const isMatch = await doctor.comparePassword(req.body.password);
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Invalid email or password' });
+      throw new HttpException(400, 'Invalid email or password', [
+        'Email or password is incorrect',
+      ]);
     }
 
     if (!doctor.isVerified) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Please verify your email' });
+      throw new HttpException(400, 'Please verify your email', [
+        'Please verify your email',
+      ]);
     }
 
     if (doctor.status !== Status.ACCEPTED) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Your account is not accepted yet' });
+      throw new HttpException(400, 'Your account is not accepted yet', [
+        'Your account is not accepted yet',
+      ]);
     }
     const token = jwt.sign({ _id: doctor._id }, key);
     const { password: _, ...result } = doctor.toObject();
@@ -101,44 +104,42 @@ export const login = async (
       status: 'success',
       data: { token, result },
     });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in doctor login' });
+  } catch (err: any) {
+    next(err);
   }
 };
 
 export const verifyEmail = async (
   req: Request<VerifyDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const decoded = jwt.verify(req.params.token, key) as JwtPayload;
     const doctor = await findDoctorById(decoded._id);
     if (!doctor) {
-      return res.status(401).send('Invalid token');
+      throw new HttpException(400, 'Invalid token', ['Invalid token']);
     }
     if (doctor.isVerified) {
-      return res.status(400).send('Email already verified');
+      throw new HttpException(400, 'Email already verified', [
+        'Email already verified',
+      ]);
     }
     doctor.isVerified = true;
     await doctor.save();
-    res.status(200).send('Email verified successfully');
-  } catch (err: any) {
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in verifying email',
+    res.status(200).json({
+      status: 'success',
+      data: { message: 'Email verified successfully' },
     });
+  } catch (err: any) {
+    next(err);
   }
 };
 
 export const getAllDoctors = async (
   req: Request<{}, {}, {}, GetAllDoctorsInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const data = await findDoctorsPagination(
@@ -151,78 +152,62 @@ export const getAllDoctors = async (
       data,
     });
   } catch (err) {
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in getting all doctors',
-    });
+    next(err);
   }
 };
 
 export const getDoctor = async (
   req: Request<GetDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const doctor = await findDoctorById(req.params.id, { password: 0 });
     if (!doctor) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Doctor not found' });
+      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
     }
     res.status(200).json({ status: 'success', data: { doctor } });
   } catch (err: any) {
-    if (err.name === 'CastError') {
-      return res.status(404).send('Doctor not found');
-    }
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in getting doctor' });
+    next(err);
   }
 };
 
 export const forgotPassword = async (
   req: Request<{}, {}, ForgotPasswordDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { email } = req.body;
     const doctor = await findDoctorByEmail(email);
-    if (!doctor) {
-      return res.status(200).json({
-        status: 'success',
-        message: `If the email: ${email} exists in the system, a reset password link will be sent to it`,
-      });
+    if (doctor) {
+      const secret = doctor.password + '-' + key;
+      const token = jwt.sign({ _id: doctor._id }, secret, { expiresIn: '15m' });
+      sendResetPasswordEmail(doctor.email, token, 'doctors');
     }
-    const secret = doctor.password + '-' + key;
-    const token = jwt.sign({ _id: doctor._id }, secret, { expiresIn: '15m' });
-    sendResetPasswordEmail(doctor.email, token, 'doctors');
     res.status(200).json({
       status: 'success',
-      message: `Reset password link sent to ${doctor.email}`,
+      message: `If the email: ${email} exists in the system, a reset password link will be sent to it`,
     });
   } catch (err) {
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in forgot password',
-    });
+    next(err);
   }
 };
 
 export const resetPassword = async (
   req: Request<{}, {}, ResetPasswordDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { token, password } = req.body;
     const decoded = jwt.decode(token);
     if (typeof decoded === 'string' || !decoded?._id) {
-      return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+      throw new HttpException(400, 'Invalid token', ['Invalid token']);
     }
     const doctor = await findDoctorById(decoded._id);
     if (!doctor) {
-      return res.status(401).json({ status: 'fail', message: 'Invalid token' });
+      throw new HttpException(400, 'Invalid token', ['Invalid token']);
     }
     const secret = doctor.password + '-' + key;
     jwt.verify(token, secret);
@@ -233,13 +218,7 @@ export const resetPassword = async (
       message: `Dr. ${doctor.englishFullName} password reset successfully`,
     });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res
-      .status(500)
-      .json({ status: 'fail', error: err, message: 'Error in reset password' });
+    next(err);
   }
 };
 
@@ -250,15 +229,14 @@ export const changeStatus = async (
     ChangeDoctorStatusInput['body']
   >,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
     const doctor = await findDoctorById(id);
     if (!doctor) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Doctor not found' });
+      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
     }
     doctor.status = status;
     await doctor.save();
@@ -267,47 +245,32 @@ export const changeStatus = async (
       message: `Dr. ${doctor.englishFullName} status changed to ${status}`,
     });
   } catch (err: any) {
-    // use a standardized error handling middleware
-    if (err.name === 'CastError') {
-      return res.status(404).send('Doctor not found');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in changing status',
-    });
+    next(err);
   }
 };
 
 export const deleteDoctor = async (
   req: Request<DeleteDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const doctor = await findDoctorByIdAndDelete(req.params.id);
     if (!doctor) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Doctor not found' });
+      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
     }
     res
       .status(204)
       .json({ status: 'success', message: 'Doctor deleted successfully' });
   } catch (err: any) {
-    if (err.name === 'CastError') {
-      return res.status(404).send('Doctor not found');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in deleting doctor',
-    });
+    next(err);
   }
 };
 
 export const update = async (
   req: Request<{}, {}, UpdateDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const doctor = await findDoctorByIdAndUpdate(
@@ -316,20 +279,14 @@ export const update = async (
     ).select('-password');
     res.status(200).json({ status: 'success', data: { doctor } });
   } catch (err: any) {
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in updating doctor',
-    });
+    next(err);
   }
 };
 
 export const deleteMyAccount = async (
   req: Request<{}, {}, DeleteMyDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     await findDoctorByIdAndDelete(req.body.auth.id);
@@ -337,34 +294,26 @@ export const deleteMyAccount = async (
       .status(204)
       .json({ status: 'success', message: 'Doctor deleted successfully' });
   } catch (err: any) {
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in deleting doctor my account',
-    });
+    next(err);
   }
 };
 
 export const changePassword = async (
   req: Request<{}, {}, UpdateDoctorPasswordInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { oldPassword, newPassword } = req.body;
     const doctor = await findDoctorById(req.body.auth.id);
     if (!doctor) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Doctor not found' });
+      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
     }
     const isMatch = await bcrypt.compare(oldPassword, doctor.password);
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({ status: 'fail', message: 'Invalid old password' });
+      throw new HttpException(400, 'Invalid old password', [
+        'Invalid old password',
+      ]);
     }
     doctor.password = newPassword;
     await doctor.save();
@@ -372,23 +321,17 @@ export const changePassword = async (
       .status(200)
       .json({ status: 'success', message: 'Password changed successfully' });
   } catch (err: any) {
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in changing password',
-    });
+    next(err);
   }
 };
 
 export const searchDoctor = async (
   req: Request<{}, {}, {}, SearchDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const doctor = await findDoctor(
+    const doctors = await findDoctor(
       {},
       req.query.englishFullName,
       req.query.specialization,
@@ -396,30 +339,16 @@ export const searchDoctor = async (
       req.query.page,
       req.query.limit,
     );
-    console.log(doctor);
-    if (!doctor) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Doctor not found!!',
-      });
-    }
-    return res.status(200).json({ status: 'success', doctor });
+    return res.status(200).json({ status: 'success', data: { doctors } });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error Search Dcotor Name',
-    });
+    next(err);
   }
 };
 
 export const addReview = async (
   req: Request<AddReviewParamsInput, {}, AddReviewBodyInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const review = await addReviewForDoctorById(
@@ -427,43 +356,29 @@ export const addReview = async (
       req.body.auth.id,
       req.body,
     );
-
-    if (!review) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Patient or Doctor not found',
-      });
-    }
     res.status(201).json({ status: 'success', data: { review } });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in adding review',
-    });
+    next(err);
   }
 };
 
 export const getReviews = async (
   req: Request<AddReviewParamsInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const data = await findDoctorReviewsById(req.params.id);
     res.status(200).json({ status: 'success', data });
-  } catch (err) {
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in getting reviews',
-    });
+  } catch (err: any) {
+    next(err);
   }
 };
 
 export const saveProfileImage = async (
   req: Request<{}, {}, SaveImageInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const doctor = await findDoctorByIdAndUpdate(req.body.auth.id, {
@@ -474,61 +389,45 @@ export const saveProfileImage = async (
       data: doctor,
     });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-
-    return res.status(500).json({
-      status: 'fail',
-      message: err.message,
-    });
+    next(err);
   }
 };
 
 export const getDoctorPosts = async (
   req: Request<GetDoctorInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const doctor = await findDoctorById(req.params.id);
-
     return res.status(200).json({
       status: 'success',
       data: { posts: doctor?.posts },
     });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error Get Doctor Posts',
-    });
+    next(err);
   }
 };
 
 export const getPostById = async (
   req: Request<GetPostByIdInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const post = await findPostById(req.params.id);
     return res.status(200).json({ status: 'success', data: { post } });
   } catch (err: any) {
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error Create Doctor Posts',
-    });
+    next(err);
   }
 };
 
 export const createPost = async (
   req: Request<{}, {}, CreatePostInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    console.log(req.body.description);
     const post = await findDoctorByIdAndCreatePost(
       req.body.auth.id,
       req.body.description,
@@ -540,21 +439,14 @@ export const createPost = async (
       data: { post },
     });
   } catch (err: any) {
-    console.log(err);
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error Create Doctor Posts',
-    });
+    next(err);
   }
 };
 
 export const deletePost = async (
   req: Request<DeletePostParamsInput, {}, DeletePostBodyInput>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     await findPostAndDeleteById(req.body.auth.id, req.params.id);
@@ -562,14 +454,6 @@ export const deletePost = async (
       status: 'success',
     });
   } catch (err: any) {
-    console.log({ err: JSON.parse(JSON.stringify(err)) });
-    if (err.name === 'CastError') {
-      return res.status(401).send('Invalid token');
-    }
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error Delete Doctor Posts',
-    });
+    next(err);
   }
 };

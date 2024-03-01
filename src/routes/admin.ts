@@ -2,7 +2,7 @@ import express from 'express';
 
 import * as adminController from '../controllers/admin';
 import validateResource from '../middlewares/validateResource';
-import { loginAdminSchema } from '../schema/admin';
+import { loginAdminSchema, signupAdminSchema } from '../schema/admin';
 
 const router = express.Router();
 
@@ -12,6 +12,10 @@ router.post(
   validateResource(loginAdminSchema),
   adminController.login,
 );
-// router.post('/signup', adminController.signup);
+// router.post(
+//   '/signup',
+//   validateResource(signupAdminSchema),
+//   adminController.signup,
+// );
 
 export default router;
