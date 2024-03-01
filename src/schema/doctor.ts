@@ -92,7 +92,7 @@ export const updateDoctorSchema = z.object({
       clinicAddress: z.string().optional(),
       phoneNumber: z
         .string()
-        .regex(/^01[0|1|2|5][0-9]{8}$/)
+        .regex(/^01[0|1|2|5][0-9]{8}$/, 'Invalid phone number')
         .optional(),
       about: z.string().optional(),
     })

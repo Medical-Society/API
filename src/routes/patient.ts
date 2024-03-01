@@ -81,8 +81,8 @@ router.post(
   validateResource(forgotPasswordPatientSchema),
   patientController.forgotPassword,
 );
-router.post(
-  '/change-password',
+router.patch(
+  '/password',
   checkAuth,
   checkPatient,
   validateResource(changePasswordPatientSchema),

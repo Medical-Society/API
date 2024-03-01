@@ -86,7 +86,7 @@ export const findDoctorByIdAndCreatePost = async (
   post.description = description;
   if (images != undefined) {
     post.images = images;
-  }
+}
 
   await post.save();
   const doctor = await DoctorModel.findById(id);
@@ -112,11 +112,12 @@ export const addReviewForDoctorById = async (
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found');
   }
+
   const review = new ReviewModel({ ...reviewObj, patient: patient });
   await review.save();
   doctor.reviews.push(review);
   await doctor.save();
-  return review;
+  
 };
 
 export const findDoctorReviewsById = async (
@@ -124,7 +125,7 @@ export const findDoctorReviewsById = async (
   page: number = 1,
   limit: number = 20,
 ) => {
-  const doctor = await DoctorModel.findById(doctorId).populate('reviews');
+  const doctor = await DoctorModel.findById(doctorId).populate('reviews').select('-password');
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found');
   }
@@ -134,7 +135,7 @@ export const findDoctorReviewsById = async (
   const reviews = doctor.reviews.slice(skip, skip + limit);
   return {
     length: reviews.length,
-    reviews: doctor.reviews.slice(skip, skip + limit),
+    reviews,
     totalPages,
     currentPage: page,
   };
@@ -154,9 +155,9 @@ export const findPostAndDeleteById = async (
       doctor.posts.splice(idx, 1);
       await doctor.save();
     } else {
-      throw new HttpException(404, 'post not found');
+      throw new HttpException(404, 'post not found',[]);
     }
   } else {
-    throw new HttpException(404, 'Doctor not found');
+    throw new HttpException(404, 'Doctor not found',[]);
   }
 };

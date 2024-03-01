@@ -31,9 +31,8 @@ export const uploadAlbum = async (
     const { fields, files } = await form.parse(req).catch((err: any) => {
       throw new HttpException(400, err.message, [err]);
     });
-    let result = '';
     if (fields.description) {
-      result = fields.description.join(', ');
+      req.body.description = fields.description.join(', ');
     }
     // yala run🏃‍♂️
     // check `title` and `content` fields are strings
@@ -57,7 +56,6 @@ export const uploadAlbum = async (
       }),
     );
     req.body.images = images;
-    req.body.description = result;
     next();
   } catch (err: any) {
     next(err);

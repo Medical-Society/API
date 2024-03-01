@@ -273,13 +273,15 @@ export const changePassword = async (
     const { oldPassword, newPassword } = req.body;
     const doctor = await findDoctorById(req.body.auth.id);
     if (!doctor) {
-      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
+      throw new HttpException(404, 'Invalid Token', []);
     }
     const isMatch = await bcrypt.compare(oldPassword, doctor.password);
     if (!isMatch) {
-      throw new HttpException(400, 'Invalid old password', [
-        'Invalid old password',
-      ]);
+      throw new HttpException(
+        400,
+        'Password is incorrect please try again',
+        [],
+      );
     }
     doctor.password = newPassword;
     await doctor.save();
@@ -310,12 +312,13 @@ export const addReview = async (
   next: NextFunction,
 ) => {
   try {
-    const review = await addReviewForDoctorById(
-      req.params.id,
-      req.body.auth.id,
-      req.body,
-    );
-    res.status(201).json({ status: 'success', data: { review } });
+    await addReviewForDoctorById(req.params.id, req.body.auth.id, req.body);
+    res
+      .status(201)
+      .json({
+        status: 'success',
+        data: { message: 'Review is created successfully' },
+      });
   } catch (err) {
     next(err);
   }
@@ -346,7 +349,7 @@ export const saveProfileImage = async (
   try {
     const doctor = await findDoctorByIdAndUpdate(req.body.auth.id, {
       avatar: req.body.imageURL,
-    });
+    }).select('-password');
     return res.status(200).json({
       status: 'success',
       data: doctor,
@@ -379,6 +382,9 @@ export const getPostById = async (
 ) => {
   try {
     const post = await findPostById(req.params.id);
+    if (!post) {
+      throw new HttpException(404, 'Post Not Found', []);
+    }
     return res.status(200).json({ status: 'success', data: { post } });
   } catch (err: any) {
     next(err);

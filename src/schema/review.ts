@@ -7,7 +7,7 @@ export const addReviewSchema = z.object({
       auth: z.object({
         id: zodObjectId,
       }),
-      rating: z.number({ required_error: 'Rating is required' }),
+      rating: z.number({ required_error: 'Rating is required' }).max(5,'Max Rate is 5').min(1,'Minimum Rate is 1'),
       comment: z.string().optional(),
     })
     .strict(),
