@@ -46,7 +46,7 @@ export const loginDoctorSchema = z.object({
 });
 
 export const verifyDoctorSchema = z.object({
-  params: z
+  body: z
     .object({
       token: z.string({ required_error: 'Token is required' }),
     })
@@ -203,7 +203,7 @@ export type SignupDoctorInput = z.infer<typeof signupDoctorSchema>['body'];
 
 export type LoginDoctorInput = z.infer<typeof loginDoctorSchema>['body'];
 
-export type VerifyDoctorInput = z.infer<typeof verifyDoctorSchema>['params'];
+export type VerifyDoctorInput = z.infer<typeof verifyDoctorSchema>['body'];
 
 export type GetDoctorInput = z.infer<typeof getDoctorSchema>['params'];
 

@@ -112,12 +112,12 @@ export const login = async (
 };
 
 export const verifyEmail = async (
-  req: Request<VerifyDoctorInput>,
+  req: Request<{}, {}, VerifyDoctorInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const decoded = jwt.verify(req.params.token, key) as JwtPayload;
+    const decoded = jwt.verify(req.body.token, key) as JwtPayload;
     const doctor = await findDoctorById(decoded._id);
     if (!doctor) {
       throw new HttpException(400, 'Invalid token', ['Invalid token']);
@@ -313,12 +313,10 @@ export const addReview = async (
 ) => {
   try {
     await addReviewForDoctorById(req.params.id, req.body.auth.id, req.body);
-    res
-      .status(201)
-      .json({
-        status: 'success',
-        data: { message: 'Review is created successfully' },
-      });
+    res.status(201).json({
+      status: 'success',
+      data: { message: 'Review is created successfully' },
+    });
   } catch (err) {
     next(err);
   }

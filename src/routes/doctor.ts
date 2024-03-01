@@ -51,7 +51,7 @@ router.post(
   doctorController.login,
 );
 router.post(
-  '/verify/:token',
+  '/verify',
   validateResource(verifyDoctorSchema),
   doctorController.verifyEmail,
 );
