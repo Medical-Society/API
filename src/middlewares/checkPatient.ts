@@ -4,6 +4,7 @@ import HttpException from '../models/errors';
 
 export const checkPatient = async (
   req: Request,
+  _res:Response,
   next: NextFunction,
 ) => {
   try {
