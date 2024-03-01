@@ -1,29 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import Doctor from '../models/doctor';
+import HttpException from '../models/errors';
 
 export const checkDoctor = async (
   req: Request,
-  res: Response,
+  _: Response,
   next: NextFunction,
 ) => {
   try {
     const doctor = await Doctor.findById(req.body.auth.id);
     if (!doctor) {
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Please login as a doctor first' });
+      throw new HttpException(
+        401,
+        'Unauthorized user. Doctor access required.',
+      );
+    }
+    if (!doctor.isVerified) {
+      throw new HttpException(403, 'You are not verified');
     }
     if (doctor.status !== 'ACCEPTED') {
-      return res
-        .status(403)
-        .json({ status: 'fail', message: 'You are not authorized' });
+      throw new HttpException(403, 'Your account is not accepted yet');
     }
     next();
   } catch (err) {
-    res.status(500).json({
-      status: 'fail',
-      error: err,
-      message: 'Error in checking doctor',
-    });
+    next(err);
   }
 };

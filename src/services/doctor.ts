@@ -3,6 +3,7 @@ import DoctorModel, { Doctor } from '../models/doctor';
 import ReviewModel from '../models/review';
 import PatientModel from '../models/patient';
 import PostModel from '../models/post';
+import HttpException from '../models/errors';
 
 export const findDoctorByEmail = (email: string) => {
   return DoctorModel.findOne({ email });
@@ -85,7 +86,7 @@ export const findDoctor = async (
 
 export const findPostById = (id: string) => {
   return PostModel.findById(id);
-}
+};
 
 export const findDoctorByIdAndCreatePost = async (
   id: string,
@@ -100,9 +101,8 @@ export const findDoctorByIdAndCreatePost = async (
 
   await post.save();
   const doctor = await DoctorModel.findById(id);
-  if (!doctor) throw Error('Doctor not found');
-  if (!doctor.posts)
-  doctor.posts = [];
+  if (!doctor) throw new HttpException(404, 'Doctor not found');
+  if (!doctor.posts) doctor.posts = [];
   console.log(doctor.posts);
   doctor.posts.push(post);
 
@@ -117,8 +117,11 @@ export const addReviewForDoctorById = async (
 ) => {
   const patient = await PatientModel.findById(patientId);
   const doctor = await DoctorModel.findById(doctorId);
-  if (!patient || !doctor) {
-    return null;
+  if (!patient) {
+    throw new HttpException(404, 'Patient not found');
+  }
+  if (!doctor) {
+    throw new HttpException(404, 'Doctor not found');
   }
   const review = new ReviewModel({ ...reviewObj, patient: patient });
   await review.save();
@@ -134,7 +137,7 @@ export const findDoctorReviewsById = async (
 ) => {
   const doctor = await DoctorModel.findById(doctorId).populate('reviews');
   if (!doctor) {
-    return null;
+    throw new HttpException(404, 'Doctor not found');
   }
   const count = doctor.reviews.length;
   const totalPages = Math.ceil(count / limit);
@@ -159,9 +162,10 @@ export const findPostAndDeleteById = async (
     if (idx !== -1) {
       doctor.posts.splice(idx, 1);
       await doctor.save();
-
     } else {
-      throw new Error('post not found');
+      throw new HttpException(404, 'post not found');
     }
+  } else {
+    throw new HttpException(404, 'Doctor not found');
   }
 };
