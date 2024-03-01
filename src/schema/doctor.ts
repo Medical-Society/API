@@ -53,13 +53,6 @@ export const verifyDoctorSchema = z.object({
     .strict(),
 });
 
-export const getAllDoctorsSchema = z.object({
-  query: z.object({
-    page: z.coerce.number().optional(),
-    limit: z.coerce.number().optional(),
-  }),
-});
-
 export const getDoctorSchema = z.object({
   params: z
     .object({
@@ -162,8 +155,9 @@ export const searchDoctorSchema = z.object({
       englishFullName: z.string().optional(),
       specialization: z.string().optional(),
       clinicAddress: z.string().optional(),
-      page: z.string().optional(),
-      limit: z.string().optional(),
+      page: z.coerce.number().optional(),
+      limit: z.coerce.number().optional(),
+      id: zodObjectId.optional(),
     })
     .strict(),
 });
@@ -210,8 +204,6 @@ export type SignupDoctorInput = z.infer<typeof signupDoctorSchema>['body'];
 export type LoginDoctorInput = z.infer<typeof loginDoctorSchema>['body'];
 
 export type VerifyDoctorInput = z.infer<typeof verifyDoctorSchema>['params'];
-
-export type GetAllDoctorsInput = z.infer<typeof getAllDoctorsSchema>['query'];
 
 export type GetDoctorInput = z.infer<typeof getDoctorSchema>['params'];
 

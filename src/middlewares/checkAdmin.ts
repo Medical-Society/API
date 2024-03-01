@@ -10,7 +10,11 @@ export const checkAdmin = async (
   try {
     const admin = await Admin.findById(req.body.auth.id);
     if (!admin) {
-      throw new HttpException(401, 'Unauthorized user. Admin access required.');
+      throw new HttpException(
+        401,
+        'Unauthorized user. Admin access required.',
+        ['Unauthorized'],
+      );
     }
     next();
   } catch (err) {

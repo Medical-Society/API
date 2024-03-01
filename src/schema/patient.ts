@@ -40,7 +40,7 @@ export const signupPatientSchema = object({
 
     address: string({ required_error: 'Address is required' }),
 
-    phoneNumber: string({ required_error: 'Mobile is required' }).regex(
+    phoneNumber: string({ required_error: 'Phone Number is required' }).regex(
       /^01(0|1|2|5)[0-9]{8}$/,
       { message: 'Invalid Phone Number' },
     ),
@@ -57,7 +57,7 @@ export const loginPatientSchema = object({
 });
 
 export const verifyEmailPatientSchema = object({
-  params: object({
+  body: object({
     token: string({ required_error: 'Token is required' }),
   }),
 });
@@ -120,7 +120,7 @@ export type SignupPatientInput = z.infer<typeof signupPatientSchema>['body'];
 export type LoginPatientInput = z.infer<typeof loginPatientSchema>['body'];
 export type VerifyEmailPatientInput = z.infer<
   typeof verifyEmailPatientSchema
->['params'];
+>['body'];
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>['body'];
 export type ResetPasswordPatientInput = z.infer<
   typeof resetPasswordPatientSchema

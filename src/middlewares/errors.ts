@@ -19,6 +19,10 @@ export default function errorHandler(
     errObj.statusCode = 401;
     errObj.message = 'Unauthorized';
     errObj.errors = [err.message];
+  } else if (err instanceof SyntaxError) {
+    errObj.statusCode = 400;
+    errObj.message = 'Invalid JSON';
+    errObj.errors = [err.message];
   } else if (err.code === 11000) {
     errObj.statusCode = 400;
     errObj.message = 'Duplicate field value entered';

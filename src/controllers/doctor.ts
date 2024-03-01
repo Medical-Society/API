@@ -10,7 +10,6 @@ import {
   DeleteDoctorInput,
   DeleteMyDoctorInput,
   ForgotPasswordDoctorInput,
-  GetAllDoctorsInput,
   GetDoctorInput,
   LoginDoctorInput,
   ResetPasswordDoctorInput,
@@ -30,7 +29,6 @@ import {
   findDoctorById,
   findDoctorByIdAndDelete,
   findDoctorByIdAndUpdate,
-  findDoctorsPagination,
   findDoctor,
   addReviewForDoctorById,
   findDoctorReviewsById,
@@ -42,10 +40,14 @@ import {
   sendResetPasswordEmail,
   sendVerificationEmail,
 } from '../services/mailing';
-import { AddReviewBodyInput, AddReviewParamsInput } from '../schema/review';
+import {
+  AddReviewBodyInput,
+  AddReviewParamsInput,
+  GetReviewsParamsInput,
+  GetReviewsQueryInput,
+} from '../schema/review';
 import { SaveImageInput } from '../schema/customZod';
 import HttpException from '../models/errors';
-import { N } from 'vitest/dist/reporters-MmQN-57K';
 
 const key: string = process.env.JWT_SECRET as string;
 
@@ -56,7 +58,7 @@ export const signup = async (
 ) => {
   try {
     const doctor = await createDoctor(req.body);
-    const token = jwt.sign({ _id: doctor._id }, key, { expiresIn: '1d' });
+    const token = jwt.sign({ _id: doctor._id }, key, { expiresIn: '15m' });
     sendVerificationEmail(doctor.email, token, 'doctors');
     res.status(201).json({
       status: 'success',
@@ -131,42 +133,6 @@ export const verifyEmail = async (
       status: 'success',
       data: { message: 'Email verified successfully' },
     });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-export const getAllDoctors = async (
-  req: Request<{}, {}, {}, GetAllDoctorsInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const data = await findDoctorsPagination(
-      {},
-      req.query.page,
-      req.query.limit,
-    );
-    res.status(200).json({
-      status: 'success',
-      data,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const getDoctor = async (
-  req: Request<GetDoctorInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const doctor = await findDoctorById(req.params.id, { password: 0 });
-    if (!doctor) {
-      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
-    }
-    res.status(200).json({ status: 'success', data: { doctor } });
   } catch (err: any) {
     next(err);
   }
@@ -331,15 +297,8 @@ export const searchDoctor = async (
   next: NextFunction,
 ) => {
   try {
-    const doctors = await findDoctor(
-      {},
-      req.query.englishFullName,
-      req.query.specialization,
-      req.query.clinicAddress,
-      req.query.page,
-      req.query.limit,
-    );
-    return res.status(200).json({ status: 'success', data: { doctors } });
+    const data = await findDoctor({}, req.query);
+    return res.status(200).json({ status: 'success', data });
   } catch (err: any) {
     next(err);
   }
@@ -363,12 +322,16 @@ export const addReview = async (
 };
 
 export const getReviews = async (
-  req: Request<AddReviewParamsInput>,
+  req: Request<GetReviewsParamsInput, {}, {}, GetReviewsQueryInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const data = await findDoctorReviewsById(req.params.id);
+    const data = await findDoctorReviewsById(
+      req.params.id,
+      req.query.page,
+      req.query.limit,
+    );
     res.status(200).json({ status: 'success', data });
   } catch (err: any) {
     next(err);

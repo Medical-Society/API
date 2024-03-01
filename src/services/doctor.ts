@@ -4,6 +4,7 @@ import ReviewModel from '../models/review';
 import PatientModel from '../models/patient';
 import PostModel from '../models/post';
 import HttpException from '../models/errors';
+import { SearchDoctorInput } from '../schema/doctor';
 
 export const findDoctorByEmail = (email: string) => {
   return DoctorModel.findOne({ email });
@@ -20,25 +21,6 @@ export const findDoctorById = (
   return DoctorModel.findById(id, projection);
 };
 
-export const findDoctorsPagination = async (
-  filter: FilterQuery<Doctor>,
-  page: number = 1,
-  limit: number = 20,
-) => {
-  const count = await DoctorModel.countDocuments(filter);
-  const totalPages = Math.ceil(count / limit);
-  const skip = (page - 1) * limit;
-  return {
-    doctors: await DoctorModel.find(
-      {},
-      { password: 0 },
-      { limit, skip, sort: { createdAt: -1 } },
-    ),
-    totalPages,
-    currentPage: page,
-  };
-};
-
 export const findDoctorByIdAndUpdate = (
   id: string,
   update: any,
@@ -53,13 +35,20 @@ export const findDoctorByIdAndDelete = (id: string) => {
 
 export const findDoctor = async (
   filter: FilterQuery<Doctor>,
-  englishFullName: string = '',
-  specialization: string = '',
-  clinicAddress: string = '',
-  pageS: string = '1',
-  limitS: string = '20',
+  query: SearchDoctorInput,
 ) => {
-  console.log(specialization, englishFullName, clinicAddress);
+  const {
+    specialization,
+    englishFullName,
+    clinicAddress,
+    page = 1,
+    limit = 20,
+    id,
+  } = query;
+
+  if (id) {
+    filter['_id'] = id;
+  }
 
   if (englishFullName) {
     filter['englishFullName'] = { $regex: new RegExp(englishFullName, 'i') };
@@ -72,13 +61,13 @@ export const findDoctor = async (
   if (clinicAddress) {
     filter['clinicAddress'] = { $regex: new RegExp(clinicAddress, 'i') };
   }
-  const limit = parseInt(limitS);
   const count = await DoctorModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
-  const page = Math.min(totalPages, parseInt(pageS));
   const skip = (page - 1) * limit;
+  const doctors = await DoctorModel.find(filter).skip(skip).limit(limit).exec();
   return {
-    doctors: await DoctorModel.find(filter).skip(skip).limit(limit).exec(),
+    length: doctors.length,
+    doctors,
     totalPages,
     currentPage: page,
   };
@@ -142,7 +131,9 @@ export const findDoctorReviewsById = async (
   const count = doctor.reviews.length;
   const totalPages = Math.ceil(count / limit);
   const skip = (page - 1) * limit;
+  const reviews = doctor.reviews.slice(skip, skip + limit);
   return {
+    length: reviews.length,
     reviews: doctor.reviews.slice(skip, skip + limit),
     totalPages,
     currentPage: page,

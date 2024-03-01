@@ -8,7 +8,7 @@ export const checkAuth = (req: Request, _: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-      throw new HttpException(401, 'Please login first');
+      throw new HttpException(401, 'Please login first', ['Unauthorized']);
     }
     const decoded = jwt.verify(token, key) as JwtPayload;
     req.body.auth = { id: decoded._id };

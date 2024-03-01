@@ -1,5 +1,5 @@
 import { FormParser } from '../utils/albumFormParser';
-import { ImageUploader } from '../services/albumUploader';
+import { ImageUploader } from '../services/imageUploader';
 import { NextFunction, Request, Response } from 'express';
 import HttpException from '../models/errors';
 

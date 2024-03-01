@@ -54,8 +54,8 @@ router.post(
   validateResource(signupPatientSchema),
   patientController.signUp,
 );
-router.get(
-  '/verify/:token',
+router.post(
+  '/verify',
   validateResource(verifyEmailPatientSchema),
   patientController.verifyEmail,
 );

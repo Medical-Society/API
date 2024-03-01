@@ -13,7 +13,6 @@ import {
   deleteDoctorSchema,
   deleteMyAccountSchema,
   forgotPasswordDoctorSchema,
-  getAllDoctorsSchema,
   getDoctorSchema,
   loginDoctorSchema,
   resetPasswordDoctorSchema,
@@ -69,19 +68,9 @@ router.get(
   doctorController.getReviews,
 );
 router.get(
-  '/',
-  validateResource(getAllDoctorsSchema),
-  doctorController.getAllDoctors,
-);
-router.get(
   '/search',
   validateResource(searchDoctorSchema),
   doctorController.searchDoctor,
-);
-router.get(
-  '/:id',
-  validateResource(getDoctorSchema),
-  doctorController.getDoctor,
 );
 router.get(
   '/posts/:id',

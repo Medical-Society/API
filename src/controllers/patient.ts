@@ -49,8 +49,7 @@ export const getAllPatient = async (
     }
     return res.status(200).json({
       status: 'success',
-      length: data.patients.length,
-      data: { data },
+      data,
     });
   } catch (err: any) {
     next(err);
@@ -110,7 +109,7 @@ export const signUp = async (
   try {
     const patient = await createPatient(body);
 
-    const token = jwt.sign({ _id: patient._id }, key);
+    const token = jwt.sign({ _id: patient._id }, key, { expiresIn: '15m' });
     if (!token) {
       throw new HttpException(500, 'Invalid Token Generation', [
         'Error in token generation',
@@ -120,7 +119,9 @@ export const signUp = async (
 
     return res.status(201).json({
       status: 'success',
-      data: `${patient.patientName} Sign up successfully ,please verify your email`,
+      data: {
+        message: `${patient.patientName} Sign up successfully ,please verify your email`,
+      },
     });
   } catch (err: any) {
     next(err);
@@ -137,17 +138,15 @@ export const login = async (
   try {
     const patient = await findPatientByEmail(req.body.email);
     if (!patient) {
-      throw new HttpException(400, 'Patient not Found', [
-        'patient does not exist',
+      throw new HttpException(400, 'Invalid email or password', [
+        'Email or password is incorrect',
       ]);
     }
     const isMatch = await patient.comparePassword(req.body.password);
     if (!isMatch) {
-      throw new HttpException(
-        400,
-        'Your password is incorrect please try again!!',
-        ['Invalid Password'],
-      );
+      throw new HttpException(400, 'Invalid email or password', [
+        'Email or password is incorrect',
+      ]);
     }
 
     if (!patient.isVerified) {
@@ -170,12 +169,12 @@ export const login = async (
 // verify Email
 
 export const verifyEmail = async (
-  req: Request<VerifyEmailPatientInput>,
+  req: Request<{}, {}, VerifyEmailPatientInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const decode = jwt.verify(req.params.token, key) as JwtPayload;
+    const decode = jwt.verify(req.body.token, key) as JwtPayload;
     const patient = await findPatientById(decode._id);
     if (!patient) {
       throw new HttpException(400, 'Patient not Found', [
@@ -191,7 +190,7 @@ export const verifyEmail = async (
     await patient.save();
     res.status(200).json({
       status: 'success',
-      data: 'Your Email Is Verified Successfully Please Log in',
+      data: { message: 'Your Email Is Verified Successfully Please Log in' },
     });
   } catch (err: any) {
     next(err);
@@ -222,7 +221,9 @@ export const forgotPassword = async (
     }
     res.status(200).json({
       status: 'success',
-      message: `If the email: ${email} exists in the system, a reset password link will be sent to it`,
+      date: {
+        message: `If the email: ${email} exists in the system, a reset password link will be sent to it`,
+      },
     });
   } catch (err: any) {
     next(err);
@@ -245,9 +246,7 @@ export const resetPassword = async (
     }
     const patient = await findPatientById(decoded._id);
     if (!patient) {
-      throw new HttpException(400, 'Patient not Found', [
-        'patient does not exist',
-      ]);
+      throw new HttpException(401, 'Invalid Token', ['Invalid Token']);
     }
     const secret = patient.password + '-' + key;
     jwt.verify(token, secret);
@@ -256,7 +255,7 @@ export const resetPassword = async (
 
     res.status(200).json({
       status: 'success',
-      data: `${patient.patientName} password reset successfully`,
+      data: { message: `${patient.patientName} password reset successfully` },
     });
   } catch (err: any) {
     next(err);
@@ -296,7 +295,7 @@ export const changePassword = async (
   try {
     const { oldPassword, newPassword } = req.body;
 
-    const patient = await findPatientById(req.body.auth.id);
+    const patient = await findPatientById(req.body.auth.id, {});
     if (!patient) {
       throw new HttpException(400, 'Patient not Found', [
         'patient does not exist',
@@ -309,10 +308,11 @@ export const changePassword = async (
       ]);
     }
     patient.password = newPassword;
-    patient.save();
-    res
-      .status(200)
-      .json({ status: 'success', data: 'Password changed successfully' });
+    await patient.save();
+    res.status(200).json({
+      status: 'success',
+      data: { message: 'Password changed successfully' },
+    });
   } catch (err: any) {
     next(err);
   }
@@ -349,7 +349,7 @@ export const saveProfileImage = async (
   try {
     const patient = await findPatientByIdAndUpdate(req.body.auth.id, {
       avatar: req.body.imageURL,
-    });
+    }).select('-password');
     return res.status(200).json({
       status: 'success',
       data: patient,
