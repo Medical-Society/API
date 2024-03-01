@@ -28,12 +28,12 @@ export const signupPatientSchema = object({
     }),
     email: string({
       required_error: 'Email is required',
-    }).email('Not a valid email'),
+    }).email('Invalid Email'),
 
     password: string({
       required_error: 'Password is required',
-    }).min(6, 'password is too short -should be min 6 chars'),
-   
+    }).min(8, 'Invalid password , must be at least 8 characters'),
+
     birthdate: validAgeDate(0),
 
     gender: nativeEnum(Gender, { required_error: 'Gender is required' }),
@@ -42,13 +42,16 @@ export const signupPatientSchema = object({
 
     phoneNumber: string({ required_error: 'Mobile is required' }).regex(
       /^01(0|1|2|5)[0-9]{8}$/,
+      { message: 'Invalid Phone Number' },
     ),
   }).strict(),
 });
 
 export const loginPatientSchema = object({
   body: object({
-    email: string({ required_error: 'Email is required' }).email(),
+    email: string({ required_error: 'Email is required' }).email(
+      'Invalid Email',
+    ),
     password: string({ required_error: 'Password is required' }),
   }).strict(),
 });
@@ -67,7 +70,7 @@ export const updatePatientSchema = object({
     patientName: string().optional(),
     address: string().optional(),
     phoneNumber: string()
-      .regex(/^01(0|1|2|5)[0-9]{8}$/)
+      .regex(/^01(0|1|2|5)[0-9]{8}$/, { message: 'Invalid Phone Number' })
       .optional(),
   }).strict(),
 });
@@ -75,13 +78,18 @@ export const updatePatientSchema = object({
 export const resetPasswordPatientSchema = object({
   body: object({
     token: string({ required_error: 'Token is required' }),
-    password: string({ required_error: 'New Password is required' }).min(6),
+    password: string({ required_error: 'New Password is required' }).min(
+      8,
+      'Invalid password , must be at least 8 characters',
+    ),
   }).strict(),
 });
 
 export const forgotPasswordPatientSchema = object({
   body: object({
-    email: string({ required_error: 'Email is required' }).email(),
+    email: string({ required_error: 'Email is required' }).email(
+      'Invalid Email',
+    ),
   }).strict(),
 });
 
@@ -91,9 +99,9 @@ export const changePasswordPatientSchema = object({
       id: zodObjectId,
     }),
     oldPassword: string({ required_error: 'Old Password is required' }),
-    newPassword: string({ required_error: 'Token is required' }).min(
-      6,
-      'password is too short -should be min 6 chars',
+    newPassword: string({ required_error: 'New Password is required' }).min(
+      8,
+      'Invalid password , must be at least 8 characters',
     ),
   }).strict(),
 });

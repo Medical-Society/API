@@ -6,8 +6,12 @@ export const signupAdminSchema = z.object({
     name: z.string({
       required_error: 'English Full Name is required',
     }),
-    email: z.string({ required_error: 'Email is required' }).email(),
-    password: z.string({ required_error: 'Password is required' }).min(8),
+    email: z
+      .string({ required_error: 'Email is required' })
+      .email('Invalid Email'),
+    password: z
+      .string({ required_error: 'Password is required' })
+      .min(8, 'Invalid Password , must be at least 8 characters'),
   }),
 });
 
