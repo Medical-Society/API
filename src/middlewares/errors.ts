@@ -10,10 +10,10 @@ export default function errorHandler(
   _next: NextFunction,
 ) {
   const errObj = err instanceof HttpException ? err : new HttpException();
-  console.log(err.stack);
+  console.log('Error Handler:', err);
   if (err instanceof z.ZodError) {
     errObj.statusCode = 400;
-    errObj.message = 'Invalid request data';
+    errObj.message = 'Invalid data';
     errObj.errors = err.errors.map((err) => err.message);
   } else if (err instanceof JsonWebTokenError) {
     errObj.statusCode = 401;

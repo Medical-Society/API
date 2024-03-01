@@ -12,15 +12,19 @@ export const signupDoctorSchema = z.object({
       arabicFullName: z.string({
         required_error: 'Arabic Full Name is required',
       }),
-      email: z.string({ required_error: 'Email is required' }).email(),
-      password: z.string({ required_error: 'Password is required' }).min(8),
+      email: z
+        .string({ required_error: 'Email is required' })
+        .email('Invalid email'),
+      password: z
+        .string({ required_error: 'Password is required' })
+        .min(8, 'Password must be at least 8 characters long'),
       specialization: z
         .string({ required_error: 'Specialization is required' })
         .min(3),
       clinicAddress: z.string().optional(),
       nationalID: z
         .string({ required_error: 'National ID is required' })
-        .length(14),
+        .length(14, 'Invalid National ID, must be 14 digits'),
       phoneNumber: z
         .string({ required_error: 'Phone Number is required' })
         .regex(/^01[0|1|2|5][0-9]{8}$/, 'Invalid Phone Number'),
@@ -33,7 +37,9 @@ export const signupDoctorSchema = z.object({
 export const loginDoctorSchema = z.object({
   body: z
     .object({
-      email: z.string({ required_error: 'Email is required' }).email(),
+      email: z
+        .string({ required_error: 'Email is required' })
+        .email('Invalid email'),
       password: z.string({ required_error: 'Password is required' }),
     })
     .strict(),
@@ -65,7 +71,9 @@ export const getDoctorSchema = z.object({
 export const forgotPasswordDoctorSchema = z.object({
   body: z
     .object({
-      email: z.string({ required_error: 'Email is required' }).email(),
+      email: z
+        .string({ required_error: 'Email is required' })
+        .email('Invalid email'),
     })
     .strict(),
 });
@@ -74,7 +82,9 @@ export const resetPasswordDoctorSchema = z.object({
   body: z
     .object({
       token: z.string({ required_error: 'Token is required' }),
-      password: z.string({ required_error: 'Password is required' }).min(8),
+      password: z
+        .string({ required_error: 'Password is required' })
+        .min(8, 'Password must be at least 8 characters long'),
     })
     .strict(),
 });
@@ -115,7 +125,7 @@ export const updateDoctorPasswordSchema = z.object({
       oldPassword: z.string({ required_error: 'Old Password is required' }),
       newPassword: z
         .string({ required_error: 'New Password is required' })
-        .min(8),
+        .min(8, 'Password must be at least 8 characters long'),
     })
     .strict(),
 });
@@ -164,7 +174,7 @@ export const createPostSchema = z.object({
       auth: z.object({
         id: zodObjectId,
       }),
-      description: z.string(),
+      description: z.string({ required_error: 'Description is required' }),
       images: z.array(z.string()).optional(),
     })
     .strict(),
@@ -177,13 +187,14 @@ export const deletePostSchema = z.object({
     }),
   }),
   params: z.object({
-    id: z.string(),
+    id: zodObjectId,
   }),
 });
+
 export const getPostByIdSchema = z.object({
   params: z
     .object({
-      id: z.string(),
+      id: zodObjectId,
     })
     .strict(),
 });

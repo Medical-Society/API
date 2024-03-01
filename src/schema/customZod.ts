@@ -5,9 +5,14 @@ export const zodObjectId = z
   .string()
   .refine((id) => mongoose.Types.ObjectId.isValid(id), 'Invalid Id');
 
-const dateLike = z.union([z.number(), z.string(), z.date()]);
+const dateLike = z.union([z.number(), z.string(), z.date()], {
+  errorMap: (_) => {
+    return { message: 'birthdate is required' };
+  },
+});
 export const validAgeDate = (age: number) => {
   return dateLike.pipe(z.coerce.date()).refine((date: Date) => {
+    console.log('date', date.getTime());
     let ageDiff = Date.now() - date.getTime();
     let ageDiffDate = new Date(ageDiff);
     let startDate = new Date(0);

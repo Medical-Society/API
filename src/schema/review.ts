@@ -6,7 +6,7 @@ export const addReviewSchema = z.object({
     auth: z.object({
       id: zodObjectId,
     }),
-    rating: z.number(),
+    rating: z.number({ required_error: 'Rating is required' }),
     comment: z.string().optional(),
   }),
   params: z.object({
