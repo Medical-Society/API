@@ -1,32 +1,29 @@
 import { NextFunction, Request, Response } from 'express';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { z } from 'zod';
+import HttpException from '../models/errors';
 
 export default function errorHandler(
-  err: Error | z.ZodError | any,
-  req: Request,
+  err: any,
+  _: Request,
   res: Response,
   _next: NextFunction,
 ) {
-  err.location = `${req.method} ${req.url}`;
-  console.log('In standard error handler');
-  const errObj = {
-    status: 'error',
-    errors: ['Internal Server Error'],
-    message: 'Something went wrong',
-    statusCode: 500,
-  };
+  const errObj = err instanceof HttpException ? err : new HttpException();
+  console.log(err.stack);
   if (err instanceof z.ZodError) {
-    errObj.errors = err.errors.map((error) => error.message);
-    errObj.message = 'Invalid Input';
     errObj.statusCode = 400;
+    errObj.message = 'Invalid request data';
+    errObj.errors = err.errors.map((err) => err.message);
+  } else if (err instanceof JsonWebTokenError) {
+    errObj.statusCode = 401;
+    errObj.message = 'Unauthorized';
+    errObj.errors = [err.message];
+  } else if (err.code === 11000) {
+    errObj.statusCode = 400;
+    errObj.message = 'Duplicate field value entered';
+    const keys = Object.keys(err.keyValue);
+    errObj.errors = keys.map((key) => `${key} must be unique`);
   }
-  if (err.code === 11000) {
-    errObj.errors = ['email must be unique'];
-    errObj.message = 'Account already exist';
-    errObj.statusCode = 409;
-  }
-  if (err instanceof Error) {
-    console.log(err);
-  }
-  return res.status(errObj.statusCode).json({ ...errObj, err });
+  res.status(errObj.statusCode).json(errObj);
 }
