@@ -13,6 +13,7 @@ import {
   ForgotPasswordPatientInput,
   ChangePasswordPatientInput,
   DeleteMyAccountPatientInput,
+  MyInfoPatientInput,
 } from '../schema/patient';
 
 import {
@@ -30,6 +31,7 @@ import {
 } from '../services/mailing';
 import { SaveImageInput } from '../schema/customZod';
 import HttpException from '../models/errors';
+import { R } from 'vitest/dist/reporters-MmQN-57K';
 
 // For Admin
 
@@ -353,6 +355,26 @@ export const saveProfileImage = async (
     return res.status(200).json({
       status: 'success',
       data: patient,
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+//my info
+
+export const myInfo = async (
+  req: Request<{}, {}, MyInfoPatientInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const patient = await findPatientById(req.body.auth.id).select('-password');
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        patient,
+      },
     });
   } catch (err: any) {
     next(err);

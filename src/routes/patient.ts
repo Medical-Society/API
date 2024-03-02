@@ -19,6 +19,7 @@ import {
   forgotPasswordPatientSchema,
   changePasswordPatientSchema,
   deleteMyAccountPatientSchema,
+  myInfoPatientSchema,
 } from '../schema/patient';
 import { saveImageSchema } from '../schema/customZod';
 
@@ -32,6 +33,15 @@ router.get(
   validateResource(getAllPatientSchema),
   patientController.getAllPatient,
 );
+//router for patient
+router.get(
+  '/myinfo',
+  checkAuth,
+  checkPatient,
+  validateResource(myInfoPatientSchema),
+  patientController.myInfo,
+);
+
 router.get(
   '/:id',
   checkAuth,
@@ -47,7 +57,6 @@ router.delete(
   patientController.deletePatient,
 );
 
-//router for patient
 
 router.post(
   '/signup',

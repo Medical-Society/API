@@ -113,6 +113,15 @@ export const deleteMyAccountPatientSchema = object({
     }),
   }),
 });
+
+export const myInfoPatientSchema = object({
+  body: object({
+    auth: object({
+      id: zodObjectId,
+    }),
+  }),
+});
+export type MyInfoPatientInput = z.infer<typeof myInfoPatientSchema>['body'];
 export type GetAllPatientInput = z.infer<typeof getAllPatientSchema>['query'];
 export type GetPatientInput = z.infer<typeof getPatientSchema>['params'];
 export type DeletePatientInput = z.infer<typeof deletePatientSchema>['params'];
