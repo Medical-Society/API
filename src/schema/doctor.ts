@@ -152,12 +152,12 @@ export const deleteDoctorSchema = z.object({
 export const searchDoctorSchema = z.object({
   query: z
     .object({
+      searchTerm: z.string().optional(),
       englishFullName: z.string().optional(),
       specialization: z.string().optional(),
       clinicAddress: z.string().optional(),
       page: z.coerce.number().optional(),
       limit: z.coerce.number().optional(),
-      id: zodObjectId.optional(),
     })
     .strict(),
 });

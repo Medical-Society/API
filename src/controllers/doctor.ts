@@ -306,6 +306,22 @@ export const searchDoctor = async (
   }
 };
 
+export const getDoctor = async (
+  req: Request<GetDoctorInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const doctor = await findDoctorById(req.params.id, { password: 0 });
+    if (!doctor) {
+      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
+    }
+    res.status(200).json({ status: 'success', data: { doctor } });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
 export const addReview = async (
   req: Request<AddReviewParamsInput, {}, AddReviewBodyInput>,
   res: Response,

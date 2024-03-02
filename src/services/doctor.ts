@@ -38,29 +38,33 @@ export const findDoctor = async (
   query: SearchDoctorInput,
 ) => {
   const {
+    searchTerm,
     specialization,
     englishFullName,
     clinicAddress,
     page = 1,
     limit = 20,
-    id,
   } = query;
-
-  if (id) {
-    filter['_id'] = id;
+  if (searchTerm) {
+    filter['$or'] = [
+      { englishFullName: { $regex: new RegExp(searchTerm, 'i') } },
+      { specialization: { $regex: new RegExp(searchTerm, 'i') } },
+      { clinicAddress: { $regex: new RegExp(searchTerm, 'i') } },
+    ];
   }
 
   if (englishFullName) {
     filter['englishFullName'] = { $regex: new RegExp(englishFullName, 'i') };
-    // filter['englishFullName'] = englishFullName;
   }
 
   if (specialization) {
-    filter['specialization'] = { $regex: new RegExp(specialization) };
+    filter['specialization'] = { $regex: new RegExp(specialization, 'i') };
   }
+
   if (clinicAddress) {
     filter['clinicAddress'] = { $regex: new RegExp(clinicAddress, 'i') };
   }
+
   const count = await DoctorModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
   const skip = (page - 1) * limit;
@@ -86,7 +90,7 @@ export const findDoctorByIdAndCreatePost = async (
   post.description = description;
   if (images != undefined) {
     post.images = images;
-}
+  }
 
   await post.save();
   const doctor = await DoctorModel.findById(id);
@@ -117,7 +121,6 @@ export const addReviewForDoctorById = async (
   await review.save();
   doctor.reviews.push(review);
   await doctor.save();
-  
 };
 
 export const findDoctorReviewsById = async (
@@ -125,7 +128,9 @@ export const findDoctorReviewsById = async (
   page: number = 1,
   limit: number = 20,
 ) => {
-  const doctor = await DoctorModel.findById(doctorId).populate('reviews').select('-password');
+  const doctor = await DoctorModel.findById(doctorId)
+    .populate('reviews')
+    .select('-password');
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found');
   }
@@ -155,9 +160,9 @@ export const findPostAndDeleteById = async (
       doctor.posts.splice(idx, 1);
       await doctor.save();
     } else {
-      throw new HttpException(404, 'post not found',[]);
+      throw new HttpException(404, 'post not found', []);
     }
   } else {
-    throw new HttpException(404, 'Doctor not found',[]);
+    throw new HttpException(404, 'Doctor not found', []);
   }
 };

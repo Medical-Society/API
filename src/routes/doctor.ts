@@ -68,9 +68,14 @@ router.get(
   doctorController.getReviews,
 );
 router.get(
-  '/search',
+  '/',
   validateResource(searchDoctorSchema),
   doctorController.searchDoctor,
+);
+router.get(
+  '/:id',
+  validateResource(getDoctorSchema),
+  doctorController.getDoctor,
 );
 router.get(
   '/posts/:id',
