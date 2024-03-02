@@ -10,7 +10,7 @@ export const createPatient = (patinet: any) => {
 };
 export const findPatientById = (
   id: string,
-  projection: ProjectionType<Patient> = { password: 0 },
+  projection: ProjectionType<Patient> = {},
 ) => {
   return PatientModel.findById(id, projection);
 };
