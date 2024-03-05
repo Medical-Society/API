@@ -162,42 +162,9 @@ export const searchDoctorSchema = z.object({
     .strict(),
 });
 
-export const createPostSchema = z.object({
-  body: z
-    .object({
-      auth: z.object({
-        id: zodObjectId,
-      }),
-      description: z.string({ required_error: 'Description is required' }),
-      images: z.array(z.string()).optional(),
-    })
-    .strict(),
-});
-
-export const deletePostSchema = z.object({
-  body: z.object({
-    auth: z.object({
-      id: zodObjectId,
-    }),
-  }),
-  params: z.object({
-    id: zodObjectId,
-  }),
-});
-
-export const getPostByIdSchema = z.object({
-  params: z
-    .object({
-      id: zodObjectId,
-    })
-    .strict(),
-});
 
 // Types
-export type GetPostByIdInput = z.infer<typeof getPostByIdSchema>['params'];
 
-export type DeletePostBodyInput = z.infer<typeof deletePostSchema>['body'];
-export type DeletePostParamsInput = z.infer<typeof deletePostSchema>['params'];
 
 export type SignupDoctorInput = z.infer<typeof signupDoctorSchema>['body'];
 
@@ -228,5 +195,3 @@ export type ChangeDoctorStatusInput = z.infer<typeof changeDoctorStatusSchema>;
 export type DeleteDoctorInput = z.infer<typeof deleteDoctorSchema>['params'];
 
 export type SearchDoctorInput = z.infer<typeof searchDoctorSchema>['query'];
-// export type GetDoctorPostsInput = z.infer<typeof getDoctorPostsSchema>['params'];
-export type CreatePostInput = z.infer<typeof createPostSchema>['body'];

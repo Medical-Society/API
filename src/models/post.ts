@@ -7,6 +7,9 @@ import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
 })
 export class Post {
   @prop()
+  doctorId: string;
+
+  @prop()
   description: string;
 
   @prop({ type: () => [String] })

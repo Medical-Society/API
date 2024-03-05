@@ -18,11 +18,13 @@ import {
   UpdateDoctorPasswordInput,
   VerifyDoctorInput,
   SearchDoctorInput,
+} from '../schema/doctor';
+import {
   DeletePostParamsInput,
   DeletePostBodyInput,
   CreatePostInput,
-  GetPostByIdInput,
-} from '../schema/doctor';
+  GetPostsInput,
+} from '../schema/post';
 import {
   createDoctor,
   findDoctorByEmail,
@@ -32,9 +34,9 @@ import {
   findDoctor,
   addReviewForDoctorById,
   findDoctorReviewsById,
-  findDoctorByIdAndCreatePost,
-  findPostAndDeleteById,
-  findPostById,
+  findPosts,
+  findPostByIdAndDelete,
+  CreatePost,
 } from '../services/doctor';
 import {
   sendResetPasswordEmail,
@@ -374,32 +376,17 @@ export const saveProfileImage = async (
 };
 
 export const getDoctorPosts = async (
-  req: Request<GetDoctorInput>,
+  req: Request<GetPostsInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const doctor = await findDoctorById(req.params.id);
+    const posts = await findPosts(req.params.id);
+    console.log(posts);
     return res.status(200).json({
       status: 'success',
-      data: { posts: doctor?.posts },
+      data: { posts: posts },
     });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-export const getPostById = async (
-  req: Request<GetPostByIdInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const post = await findPostById(req.params.id);
-    if (!post) {
-      throw new HttpException(404, 'Post Not Found', []);
-    }
-    return res.status(200).json({ status: 'success', data: { post } });
   } catch (err: any) {
     next(err);
   }
@@ -411,7 +398,7 @@ export const createPost = async (
   next: NextFunction,
 ) => {
   try {
-    const post = await findDoctorByIdAndCreatePost(
+    const post = await CreatePost(
       req.body.auth.id,
       req.body.description,
       req.body.images,
@@ -432,7 +419,7 @@ export const deletePost = async (
   next: NextFunction,
 ) => {
   try {
-    await findPostAndDeleteById(req.body.auth.id, req.params.id);
+    await findPostByIdAndDelete(req.params.id);
     return res.status(204).json({
       status: 'success',
     });

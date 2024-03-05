@@ -21,10 +21,12 @@ import {
   updateDoctorSchema,
   verifyDoctorSchema,
   searchDoctorSchema,
+} from '../schema/doctor';
+import {
   createPostSchema,
   deletePostSchema,
-  getPostByIdSchema,
-} from '../schema/doctor';
+  getPostsSchema,
+} from '../schema/post';
 import { checkPatient } from '../middlewares/checkPatient';
 import { addReviewSchema, getReviewsSchema } from '../schema/review';
 import { upload } from '../middlewares/image';
@@ -77,14 +79,10 @@ router.get(
   validateResource(getDoctorSchema),
   doctorController.getDoctor,
 );
-router.get(
-  '/posts/:id',
-  validateResource(getPostByIdSchema),
-  doctorController.getPostById,
-); //🎮
+//🎮
 router.get(
   '/:id/posts',
-  validateResource(getDoctorSchema),
+  validateResource(getPostsSchema),
   doctorController.getDoctorPosts,
 );
 router.post(

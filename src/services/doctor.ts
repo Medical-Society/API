@@ -77,29 +77,20 @@ export const findDoctor = async (
   };
 };
 
-export const findPostById = (id: string) => {
-  return PostModel.findById(id);
-};
-
-export const findDoctorByIdAndCreatePost = async (
+export const CreatePost = async (
   id: string,
   description: string,
   images: string[] | undefined,
 ) => {
   const post = new PostModel();
+  post.doctorId = id;
   post.description = description;
   if (images != undefined) {
     post.images = images;
   }
 
   await post.save();
-  const doctor = await DoctorModel.findById(id);
-  if (!doctor) throw new HttpException(404, 'Doctor not found');
-  if (!doctor.posts) doctor.posts = [];
-  console.log(doctor.posts);
-  doctor.posts.push(post);
 
-  await doctor.save();
   return post;
 };
 
@@ -145,24 +136,11 @@ export const findDoctorReviewsById = async (
     currentPage: page,
   };
 };
+export const findPosts = async (id: string) => {
+  const posts = await PostModel.find({ doctorId: id }).select('-doctorId');
+  return posts;
+};
 
-export const findPostAndDeleteById = async (
-  doctorId: string,
-  postId: string,
-) => {
-  await PostModel.findByIdAndDelete(postId);
-  const doctor = await DoctorModel.findById(doctorId);
-  if (doctor) {
-    const idx = doctor.posts.findIndex(
-      (post) => post._id.toString() === postId,
-    );
-    if (idx !== -1) {
-      doctor.posts.splice(idx, 1);
-      await doctor.save();
-    } else {
-      throw new HttpException(404, 'post not found', []);
-    }
-  } else {
-    throw new HttpException(404, 'Doctor not found', []);
-  }
+export const findPostByIdAndDelete = async (postId: string) => {
+  return await PostModel.findByIdAndDelete(postId);
 };
