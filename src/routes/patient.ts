@@ -57,7 +57,6 @@ router.delete(
   patientController.deletePatient,
 );
 
-
 router.post(
   '/signup',
   validateResource(signupPatientSchema),

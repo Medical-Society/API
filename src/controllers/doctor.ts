@@ -23,7 +23,8 @@ import {
   DeletePostParamsInput,
   DeletePostBodyInput,
   CreatePostInput,
-  GetPostsInput,
+  GetPostsParamsInput,
+  GetPostsQueryInput,
 } from '../schema/post';
 import {
   createDoctor,
@@ -376,16 +377,22 @@ export const saveProfileImage = async (
 };
 
 export const getDoctorPosts = async (
-  req: Request<GetPostsInput>,
+  req: Request<GetPostsParamsInput, {}, {}, GetPostsQueryInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const posts = await findPosts(req.params.id);
-    console.log(posts);
+    const data = await findPosts(
+      req.params.id,
+      req.query.page,
+      req.query.limit,
+    );
+    if (data.length === 0) {
+      throw new HttpException(404, 'No Posts Found', ['Posts NOt found ']);
+    }
     return res.status(200).json({
       status: 'success',
-      data: { posts: posts },
+      data,
     });
   } catch (err: any) {
     next(err);

@@ -67,13 +67,14 @@ export const findDoctor = async (
 
   const count = await DoctorModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
-  const skip = (page - 1) * limit;
+  const pageS = Math.min(totalPages, page);
+  const skip = (pageS - 1) * limit;
   const doctors = await DoctorModel.find(filter).skip(skip).limit(limit).exec();
   return {
     length: doctors.length,
     doctors,
     totalPages,
-    currentPage: page,
+    currentPage: pageS,
   };
 };
 
@@ -127,18 +128,33 @@ export const findDoctorReviewsById = async (
   }
   const count = doctor.reviews.length;
   const totalPages = Math.ceil(count / limit);
-  const skip = (page - 1) * limit;
+  const pageS = Math.min(totalPages, page);
+  const skip = (pageS - 1) * limit;
   const reviews = doctor.reviews.slice(skip, skip + limit);
   return {
     length: reviews.length,
     reviews,
     totalPages,
-    currentPage: page,
+    currentPage: pageS,
   };
 };
-export const findPosts = async (id: string) => {
-  const posts = await PostModel.find({ doctorId: id }).select('-doctorId');
-  return posts;
+export const findPosts = async (
+  id: string,
+  page: number = 1,
+  limit: number = 20,
+) => {
+  const result = await PostModel.find({ doctorId: id }).select('-doctorId');
+  const count = result.length;
+  const totalPages = Math.ceil(count / limit);
+  const pageS = Math.min(totalPages, page);
+  const skip = (pageS - 1) * limit;
+  const posts = result.slice(skip, skip + limit);
+  return {
+    length: result.length,
+    posts,
+    totalPages,
+    currentPage: pageS,
+  };
 };
 
 export const findPostByIdAndDelete = async (postId: string) => {

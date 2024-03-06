@@ -40,22 +40,32 @@ export const uploadAlbum = async (
 
     const imageFiles = Array.isArray(files.image) ? files.image : [files.image];
 
-    const images = await Promise.all(
-      imageFiles.map(async (imageFile: any) => {
-        const isImage = imageFile?.mimetype?.startsWith('image/');
-        if (!isImage) {
-          throw new HttpException(400, 'Uploaded file is not an image.', [
-            'Uploaded file is incorrect please upload image',
-          ]);
-        }
-        if (!imageFile)
-          throw new HttpException(400, 'Invalid Image File', [
-            'imageFile is incorrect',
-          ]);
-        return await ImageUploader.upload(imageFile.filepath);
-      }),
-    );
-    req.body.images = images;
+    if (imageFiles.length > 10) {
+      throw new HttpException(
+        400,
+        'You can upload at most 10 images only in the post',
+        ['You can upload at most 10 images only in the post'],
+      );
+    }
+    console.log(imageFiles.length);
+    if (imageFiles.length > 1) {
+      const images = await Promise.all(
+        imageFiles.map(async (imageFile: any) => {
+          const isImage = imageFile?.mimetype?.startsWith('image/');
+          if (!isImage) {
+            throw new HttpException(400, 'Uploaded file is not an image.', [
+              'Uploaded file is incorrect please upload image',
+            ]);
+          }
+          if (!imageFile)
+            throw new HttpException(400, 'Invalid Image File', [
+              'imageFile is incorrect',
+            ]);
+          return await ImageUploader.upload(imageFile.filepath);
+        }),
+      );
+      req.body.images = images;
+    }
     next();
   } catch (err: any) {
     next(err);

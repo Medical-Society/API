@@ -31,11 +31,14 @@ export const getPostsSchema = z.object({
       id: zodObjectId,
     })
     .strict(),
+  query: z.object({
+    limit: z.coerce.number().optional(),
+    page: z.coerce.number().optional(),
+  }).strict(),
 });
 
-
-export type GetPostsInput = z.infer<typeof getPostsSchema>['params'];
-
+export type GetPostsParamsInput = z.infer<typeof getPostsSchema>['params'];
+export type GetPostsQueryInput = z.infer<typeof getPostsSchema>['query'];
 export type CreatePostInput = z.infer<typeof createPostSchema>['body'];
 export type DeletePostBodyInput = z.infer<typeof deletePostSchema>['body'];
 export type DeletePostParamsInput = z.infer<typeof deletePostSchema>['params'];
