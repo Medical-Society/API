@@ -37,9 +37,8 @@ export const uploadAlbum = async (
     // yala run🏃‍♂️
     // check `title` and `content` fields are strings
     // check `image` field is a file and is an image
-
     const imageFiles = Array.isArray(files.image) ? files.image : [files.image];
-
+    // if(files.image)
     if (imageFiles.length > 10) {
       throw new HttpException(
         400,
@@ -47,8 +46,7 @@ export const uploadAlbum = async (
         ['You can upload at most 10 images only in the post'],
       );
     }
-    console.log(imageFiles.length);
-    if (imageFiles.length > 1) {
+    if (imageFiles.length > 0 && files.image !== undefined) {
       const images = await Promise.all(
         imageFiles.map(async (imageFile: any) => {
           const isImage = imageFile?.mimetype?.startsWith('image/');

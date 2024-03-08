@@ -5,9 +5,10 @@ import PatientModel from '../models/patient';
 import PostModel from '../models/post';
 import HttpException from '../models/errors';
 import { SearchDoctorInput } from '../schema/doctor';
+import CommentModel from '../models/comment';
 
-export const findDoctorByEmail = (email: string) => {
-  return DoctorModel.findOne({ email });
+export const findDoctorByEmail = async (email: string) => {
+  return await DoctorModel.findOne({ email });
 };
 
 export const createDoctor = (doctor: any) => {
@@ -29,8 +30,18 @@ export const findDoctorByIdAndUpdate = (
   return DoctorModel.findByIdAndUpdate(id, update, options);
 };
 
-export const findDoctorByIdAndDelete = (id: string) => {
-  return DoctorModel.findByIdAndDelete(id);
+export const findDoctorByIdAndDelete = async (doctorId: string) => {
+  const doctor = await DoctorModel.findById(doctorId);
+  if (!doctor) {
+    throw new HttpException(400, 'Doctor not Found', ['doctor does not exist']);
+  }
+  const posts = await PostModel.find({ doctorId });
+
+  for (const post of posts) {
+    await CommentModel.deleteMany({ postId: post._id });
+  }
+  await PostModel.deleteMany({ doctorId });
+  await DoctorModel.findByIdAndDelete(doctorId);
 };
 
 export const findDoctor = async (
@@ -83,15 +94,19 @@ export const CreatePost = async (
   description: string,
   images: string[] | undefined,
 ) => {
+  const doctor = await DoctorModel.findById(id);
+  if (!doctor) {
+    throw new HttpException(404, 'Doctor not found', ['doctor not found']);
+  }
   const post = new PostModel();
   post.doctorId = id;
   post.description = description;
   if (images != undefined) {
     post.images = images;
   }
-
   await post.save();
-
+  doctor.posts.push(post);
+  await doctor.save();
   return post;
 };
 
@@ -143,12 +158,16 @@ export const findPosts = async (
   page: number = 1,
   limit: number = 20,
 ) => {
-  const result = await PostModel.find({ doctorId: id }).select('-doctorId');
+  const result = await PostModel.find({ doctorId: id })
+    .select('-doctorId')
+    .populate('comments');
+
   const count = result.length;
   const totalPages = Math.ceil(count / limit);
   const pageS = Math.min(totalPages, page);
   const skip = (pageS - 1) * limit;
   const posts = result.slice(skip, skip + limit);
+
   return {
     length: result.length,
     posts,
@@ -158,5 +177,41 @@ export const findPosts = async (
 };
 
 export const findPostByIdAndDelete = async (postId: string) => {
+  const post = await PostModel.findById(postId);
+  if (!post) {
+    throw new HttpException(404, 'post not found');
+  }
+  const doctor = await DoctorModel.findById(post.doctorId);
+  if (!doctor) {
+    throw new HttpException(404, 'doctor not found', ['doctor not found']);
+  }
+  doctor.posts = doctor.posts.filter((obj) => obj.id !== postId);
+  await post.save();
+  await CommentModel.deleteMany({ postId: postId });
   return await PostModel.findByIdAndDelete(postId);
+};
+
+export const findPostByIdAndUpdate = async (
+  doctorId: string,
+  description: string | undefined,
+  images: string[] | undefined,
+  postId: string,
+) => {
+  const post = await PostModel.findById(postId).populate('comments');
+  if (!post) {
+    throw new HttpException(404, 'Post not found', ['post not found']);
+  }
+  if (post.doctorId !== doctorId) {
+    throw new HttpException(404, 'You are not allowed to Update this post', [
+      'You are not allowed to Update this post',
+    ]);
+  }
+  if (description !== undefined) {
+    post.description = description;
+  }
+  if (images !== undefined) {
+    post.images = images;
+  }
+  await post.save();
+  return post;
 };

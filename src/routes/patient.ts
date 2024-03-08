@@ -22,6 +22,12 @@ import {
   myInfoPatientSchema,
 } from '../schema/patient';
 import { saveImageSchema } from '../schema/customZod';
+import {
+  createCommentSchema,
+  deleteCommentSchema,
+  editCommentSchema,
+} from '../schema/comment';
+import { LikePatientPostSchema } from '../schema/likes';
 
 const router = express.Router();
 
@@ -49,6 +55,20 @@ router.get(
   validateResource(getPatientSchema),
   patientController.getPatient,
 );
+router.post(
+  '/unlike/:id',
+  checkAuth,
+  checkPatient,
+  validateResource(LikePatientPostSchema),
+  patientController.unlike,
+);
+router.delete(
+  '/delete-comment/:id',
+  checkAuth,
+  checkPatient,
+  validateResource(deleteCommentSchema),
+  patientController.deleteComment,
+);
 router.delete(
   '/delete/:id',
   checkAuth,
@@ -72,12 +92,34 @@ router.post(
   validateResource(loginPatientSchema),
   patientController.login,
 );
+router.post(
+  '/like/:id',
+  checkAuth,
+  checkPatient,
+  validateResource(LikePatientPostSchema),
+  patientController.Like,
+);
+router.patch(
+  '/edit-comment/:id',
+  checkAuth,
+  checkPatient,
+  validateResource(editCommentSchema),
+  patientController.updateComment,
+);
 router.patch(
   '/updateMe',
   checkAuth,
   checkPatient,
   validateResource(updatePatientSchema),
   patientController.updateMe,
+);
+
+router.post(
+  '/comment/:id',
+  checkAuth,
+  checkPatient,
+  validateResource(createCommentSchema),
+  patientController.createComment,
 );
 router.post(
   '/reset-password',

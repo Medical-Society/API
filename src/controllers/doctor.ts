@@ -25,6 +25,8 @@ import {
   CreatePostInput,
   GetPostsParamsInput,
   GetPostsQueryInput,
+  UpdatePostBodyInput,
+  UpdatePostParamsInput,
 } from '../schema/post';
 import {
   createDoctor,
@@ -38,6 +40,7 @@ import {
   findPosts,
   findPostByIdAndDelete,
   CreatePost,
+  findPostByIdAndUpdate,
 } from '../services/doctor';
 import {
   sendResetPasswordEmail,
@@ -224,10 +227,8 @@ export const deleteDoctor = async (
   next: NextFunction,
 ) => {
   try {
-    const doctor = await findDoctorByIdAndDelete(req.params.id);
-    if (!doctor) {
-      throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
-    }
+    await findDoctorByIdAndDelete(req.params.id);
+    
     res
       .status(204)
       .json({ status: 'success', message: 'Doctor deleted successfully' });
@@ -426,9 +427,26 @@ export const deletePost = async (
   next: NextFunction,
 ) => {
   try {
-    await findPostByIdAndDelete(req.params.id);
+    const post = await findPostByIdAndDelete(req.params.id);
+    
     return res.status(204).json({
       status: 'success',
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export const updatePost = async (
+  req: Request<UpdatePostParamsInput, {}, UpdatePostBodyInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const post = await findPostByIdAndUpdate(req.body.auth.id, req.body.description,req.body.images,req.params.id);
+    return res.status(200).json({
+      status: 'success',
+      post,
     });
   } catch (err: any) {
     next(err);

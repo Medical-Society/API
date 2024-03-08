@@ -1,6 +1,9 @@
 import { FilterQuery, ProjectionType } from 'mongoose';
 import PatientModel, { Patient } from '../models/patient';
-
+import CommentModel from '../models/comment';
+import PostModel from '../models/post';
+import HttpException from '../models/errors';
+import { Post } from '@typegoose/typegoose';
 export const findPatientByEmail = (email: string) => {
   return PatientModel.findOne({ email });
 };
@@ -44,6 +47,128 @@ export const findPatientByIdAndUpdate = (
   return PatientModel.findByIdAndUpdate(id, update, options);
 };
 
-export const findPatientByIdAndDelete = (id: string) => {
-  return PatientModel.findByIdAndDelete(id);
+export const findPatientByIdAndDelete = async (patientId: any) => {
+  const patient = await PatientModel.findById(patientId);
+  if (!patient) {
+    throw new HttpException(400, 'Patient not Found', [
+      'patient does not exist',
+    ]);
+  }
+  const comments = await CommentModel.find({ patientId });
+  const likes = await PostModel.find({ likes: patientId });
+
+  await Promise.all(likes.map(async (post) => {
+    post.numberOfLikes--;
+    post.numberOfComments -= comments.length;
+    await post.save();
+}));
+  await CommentModel.deleteMany({ patientId });
+
+  await PostModel.updateMany({}, { $pull: { likes: patientId } });
+
+  await PatientModel.findByIdAndDelete(patientId);
+};
+
+export const createPatientComment = async (
+  patientId: string,
+  postId: string,
+  text: string,
+) => {
+  const post = await PostModel.findById(postId);
+  if (!post) {
+    throw new HttpException(404, 'Post Not found you can not commit to it', [
+      'post not found you can not commit to it',
+    ]);
+  }
+  const comment = new CommentModel();
+  comment.patientId = patientId;
+  comment.postId = postId;
+  comment.text = text;
+  await comment.save();
+
+  post?.comments.push(comment);
+  post.numberOfComments++;
+  await post?.save();
+  return comment;
+};
+
+export const findCommentByIdAndDelete = async (
+  patientId: string,
+  commentId: any,
+) => {
+  const comment = await CommentModel.findById(commentId);
+  const post = await PostModel.findById(comment?.postId);
+  if (!post) {
+    throw new HttpException(404, 'Post not found', ['post not found']);
+  }
+  if (!comment) {
+    throw new HttpException(404, 'Comment not found', ['comment not found']);
+  }
+  if (comment.patientId !== patientId) {
+    throw new HttpException(404, 'You are not allowed to delete this comment', [
+      'You are not allowed to delete this comment',
+    ]);
+  }
+
+  post.comments = post.comments.filter((comment) => comment._id !== commentId);
+  post.numberOfComments--;
+  await post.save();
+  await CommentModel.findByIdAndDelete(commentId);
+  return comment;
+};
+
+export const editPatientComment = async (
+  patientId: any,
+  text: string,
+  commentId: any,
+) => {
+  const comment = await CommentModel.findById(commentId);
+  const post = await PostModel.findById(comment?.postId);
+  if (!post) {
+    throw new HttpException(404, 'Post not found', ['post not found']);
+  }
+  if (!comment) {
+    throw new HttpException(404, 'Comment not found', ['comment not found']);
+  }
+  if (comment.patientId !== patientId) {
+    throw new HttpException(404, 'You are not allowed to edit this comment', [
+      'You are not allowed to edit this comment',
+    ]);
+  }
+  post.comments = post.comments.filter((comment) => comment._id !== commentId);
+  await post.save();
+  comment.text = text;
+  await comment.save();
+  return comment;
+};
+
+export const LikePatientPost = async (patientId: any, postId: any) => {
+  const post = await PostModel.findById(postId);
+  if (!post) {
+    throw new HttpException(404, 'Post not found', ['post not found']);
+  }
+  if (post.likes.includes(patientId)) {
+    throw new HttpException(400, 'Post already liked by you', [
+      'Post already liked by you',
+    ]);
+  }
+  post.likes.push(patientId);
+  post.numberOfLikes++;
+  await post.save();
+  return post.likes;
+};
+
+export const unlikePatientPost = async (patientId: any, postId: any) => {
+  const post = await PostModel.findById(postId);
+  if (!post) {
+    throw new HttpException(404, 'Post not found', ['post not found']);
+  }
+  if (!post.likes.includes(patientId)) {
+    throw new HttpException(400, 'you did not like it', [
+      'you did not like it',
+    ]);
+  }
+  post.likes = post.likes.filter((id) => id !== patientId);
+  post.numberOfLikes--;
+  await post.save();
 };

@@ -64,9 +64,12 @@ export class Doctor {
   @prop({ type: () => Review, ref: Review, default: [] })
   reviews: Ref<Review>[];
 
+  @prop({ type: () => Post, ref: Post, default: [] })
+  posts: Ref<Post>[];
+
   @prop({ match: /^(http:\/\/|https:\/\/).+/, default: DEFAULT_IMAGE })
   avatar: string;
-  
+
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);
   }

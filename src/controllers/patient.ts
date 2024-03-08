@@ -23,6 +23,11 @@ import {
   findpatientsPagination,
   findPatientByIdAndUpdate,
   findPatientByIdAndDelete,
+  createPatientComment,
+  findCommentByIdAndDelete,
+  editPatientComment,
+  unlikePatientPost,
+  LikePatientPost,
 } from '../services/patient';
 
 import {
@@ -32,6 +37,18 @@ import {
 import { SaveImageInput } from '../schema/customZod';
 import HttpException from '../models/errors';
 import { R } from 'vitest/dist/reporters-MmQN-57K';
+import {
+  CreateCommentBodyInput,
+  CreateCommentParamsInput,
+  DeleteCommentBodyInput,
+  DeleteCommentParamsInput,
+  EditCommentBodyInput,
+  EditCommentParamsInput,
+} from '../schema/comment';
+import {
+  LikePatientPostBodyInput,
+  LikePatientPostParamsInput,
+} from '../schema/likes';
 
 // For Admin
 
@@ -86,10 +103,7 @@ export const deletePatient = async (
   next: NextFunction,
 ) => {
   try {
-    const patient = await findPatientByIdAndDelete(req.params.id);
-    if (!patient) {
-      throw new HttpException(404, 'Patient not found', ['Patient Not Found']);
-    }
+    await findPatientByIdAndDelete(req.params.id);
     return res.status(204).json({});
   } catch (err: any) {
     next(err);
@@ -328,12 +342,8 @@ export const deleteMyAccount = async (
   next: NextFunction,
 ) => {
   try {
-    const patient = await findPatientByIdAndDelete(req.body.auth.id);
-    if (!patient) {
-      throw new HttpException(400, 'Patient not Found', [
-        'patient does not exist',
-      ]);
-    }
+    await findPatientByIdAndDelete(req.body.auth.id);
+
     return res.status(204).json({
       status: 'success',
       data: 'Your Account is deleted successfully',
@@ -375,6 +385,101 @@ export const myInfo = async (
       data: {
         patient,
       },
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+// create comment
+
+export const createComment = async (
+  req: Request<CreateCommentParamsInput, {}, CreateCommentBodyInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const comment = await createPatientComment(
+      req.body.auth.id,
+      req.params.id,
+      req.body.text,
+    );
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        comment,
+      },
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+export const deleteComment = async (
+  req: Request<DeleteCommentParamsInput, {}, DeleteCommentBodyInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const comment = await findCommentByIdAndDelete(
+      req.body.auth.id,
+      req.params.id,
+    );
+    console.log(comment);
+    return res.status(204).json({
+      status: 'success',
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export const updateComment = async (
+  req: Request<EditCommentParamsInput, {}, EditCommentBodyInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const comment = await editPatientComment(
+      req.body.auth.id,
+      req.body.text,
+      req.params.id,
+    );
+    res.status(200).json({
+      status: 'success',
+      comment,
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export const Like = async (
+  req: Request<LikePatientPostParamsInput, {}, LikePatientPostBodyInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const like = await LikePatientPost(req.body.auth.id, req.params.id);
+    return res.status(200).json({
+      status: 'success',
+      like,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    next(err);
+  }
+};
+
+export const unlike = async (
+  req: Request<LikePatientPostParamsInput, {}, LikePatientPostBodyInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    await unlikePatientPost(req.body.auth.id, req.params.id);
+    return res.status(204).json({
+      status: 'success',
+      message: 'unlike post',
     });
   } catch (err: any) {
     next(err);

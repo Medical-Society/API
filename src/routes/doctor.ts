@@ -26,6 +26,7 @@ import {
   createPostSchema,
   deletePostSchema,
   getPostsSchema,
+  updatePostSchema,
 } from '../schema/post';
 import { checkPatient } from '../middlewares/checkPatient';
 import { addReviewSchema, getReviewsSchema } from '../schema/review';
@@ -100,7 +101,14 @@ router.delete(
   validateResource(deletePostSchema),
   doctorController.deletePost,
 );
-
+router.patch(
+  '/update-post/:id',
+  checkAuth,
+  checkDoctor,
+  uploadAlbum,
+  validateResource(updatePostSchema),
+  doctorController.updatePost,
+);
 router.post(
   '/forgot-password',
   validateResource(forgotPasswordDoctorSchema),
