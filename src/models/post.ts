@@ -20,18 +20,11 @@ export class Post {
   @prop({ type: () => [String] })
   images: string[];
 
-  @prop({default:0})
-  numberOfComments:number
-
   @prop({ type: () => Comment, ref: Comment, default: [] })
   comments: Ref<Comment>[];
 
-  @prop({default:0})
-  numberOfLikes:number
-
-  @prop({ type: () => [String] , default: [] })
+  @prop({ type: () => [String], default: [] })
   likes: string[];
-
 }
 const PostModel = getModelForClass(Post);
 export default PostModel;

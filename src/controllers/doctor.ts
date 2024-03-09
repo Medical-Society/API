@@ -388,9 +388,9 @@ export const getDoctorPosts = async (
       req.query.page,
       req.query.limit,
     );
-    if (data.length === 0) {
-      throw new HttpException(404, 'No Posts Found', ['Posts NOt found ']);
-    }
+    // if (data.length === 0) {
+    //   throw new HttpException(404, 'No Posts Found', ['Posts NOt found ']);
+    // }
     return res.status(200).json({
       status: 'success',
       data,

@@ -12,10 +12,10 @@ router.post(
   validateResource(loginAdminSchema),
   adminController.login,
 );
-// router.post(
-//   '/signup',
-//   validateResource(signupAdminSchema),
-//   adminController.signup,
-// );
+router.post(
+  '/signup',
+  validateResource(signupAdminSchema),
+  adminController.signup,
+);
 
 export default router;

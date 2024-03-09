@@ -8,7 +8,9 @@ import { SearchDoctorInput } from '../schema/doctor';
 import CommentModel from '../models/comment';
 
 export const findDoctorByEmail = async (email: string) => {
-  return await DoctorModel.findOne({ email });
+  return await DoctorModel.findOne({ email })
+    .populate('reviews')
+    .populate({ path: 'posts', populate: { path: 'comments' } });
 };
 
 export const createDoctor = (doctor: any) => {
@@ -158,9 +160,11 @@ export const findPosts = async (
   page: number = 1,
   limit: number = 20,
 ) => {
-  const result = await PostModel.find({ doctorId: id })
-    .select('-doctorId')
-    .populate('comments');
+  const doctor = await DoctorModel.findById(id).populate({ path: 'posts', populate: { path: 'comments' } });;
+  if (!doctor) {
+    throw new HttpException(404, 'Doctor not found', ['doctor not found']);
+  }
+  const result = doctor.posts;
 
   const count = result.length;
   const totalPages = Math.ceil(count / limit);
@@ -185,7 +189,7 @@ export const findPostByIdAndDelete = async (postId: string) => {
   if (!doctor) {
     throw new HttpException(404, 'doctor not found', ['doctor not found']);
   }
-  doctor.posts = doctor.posts.filter((obj) => obj.id !== postId);
+  doctor.posts = doctor.posts.filter((obj) => obj.id != postId);
   await post.save();
   await CommentModel.deleteMany({ postId: postId });
   return await PostModel.findByIdAndDelete(postId);
