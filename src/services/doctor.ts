@@ -80,7 +80,12 @@ export const findDoctor = async (
 
   const count = await DoctorModel.countDocuments(filter);
   if (count === 0) {
-    throw new HttpException(404, 'Doctors Not Found', ['doctors not found']);
+    return {
+      length: 0,
+      doctors: [],
+      totalPages: 1,
+      currentPage: 1,
+    };
   }
   const totalPages = Math.ceil(count / limit);
   const pageS = Math.min(totalPages, page);

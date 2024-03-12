@@ -25,7 +25,12 @@ export const findpatientsPagination = async (
   const limit = parseInt(limitS);
   const count = await PatientModel.countDocuments(fileter);
   if (count === 0) {
-    throw new HttpException(404, 'No Patient Found', ['Patient NOt found ']);
+    return {
+      length: 0,
+      patients:[],
+      totalPages:1,
+      currentPage: 1,
+    }; 
   }
   
   const totalPages = Math.ceil(count / limit);
