@@ -63,9 +63,7 @@ export const getAllPatient = async (
       req.query.page,
       req.query.limit,
     );
-    if (data.patients.length === 0) {
-      throw new HttpException(404, 'No Patient Found', ['Patient NOt found ']);
-    }
+    
     return res.status(200).json({
       status: 'success',
       data,

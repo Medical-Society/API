@@ -79,6 +79,9 @@ export const findDoctor = async (
   }
 
   const count = await DoctorModel.countDocuments(filter);
+  if (count === 0) {
+    throw new HttpException(404, 'Doctors Not Found', ['doctors not found']);
+  }
   const totalPages = Math.ceil(count / limit);
   const pageS = Math.min(totalPages, page);
   const skip = (pageS - 1) * limit;
@@ -160,7 +163,10 @@ export const findPosts = async (
   page: number = 1,
   limit: number = 20,
 ) => {
-  const doctor = await DoctorModel.findById(id).populate({ path: 'posts', populate: { path: 'comments' } });;
+  const doctor = await DoctorModel.findById(id).populate({
+    path: 'posts',
+    populate: { path: 'comments' },
+  });
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found', ['doctor not found']);
   }
