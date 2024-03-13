@@ -61,12 +61,6 @@ export class Doctor {
   @prop()
   about?: string;
 
-  @prop({ type: () => Review, ref: Review, default: [] })
-  reviews: Ref<Review>[];
-
-  @prop({ type: () => Post, ref: Post, default: [] })
-  posts: Ref<Post>[];
-
   @prop({ match: /^(http:\/\/|https:\/\/).+/, default: DEFAULT_IMAGE })
   avatar: string;
 

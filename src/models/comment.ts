@@ -1,4 +1,11 @@
-import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
+import {
+  prop,
+  getModelForClass,
+  modelOptions,
+  Ref,
+} from '@typegoose/typegoose';
+import { Patient } from './patient';
+import { Post } from './post';
 
 @modelOptions({
   schemaOptions: {
@@ -6,15 +13,14 @@ import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
   },
 })
 export class Comment {
-  
   @prop()
   text: string;
-  
-  @prop()
-  patientId: string;
-  
-  @prop()
-  postId: string;
+
+  @prop({ ref: Patient })
+  patient: Ref<Patient>;
+
+  @prop({ ref: Post })
+  post: Ref<Post>;
 }
 
 const CommentModel = getModelForClass(Comment);

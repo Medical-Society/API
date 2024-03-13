@@ -3,13 +3,13 @@ import PatientModel, { Patient } from '../models/patient';
 import CommentModel from '../models/comment';
 import PostModel from '../models/post';
 import HttpException from '../models/errors';
-import { Post } from '@typegoose/typegoose';
+import { GetAllPatientInput } from '../schema/patient';
 export const findPatientByEmail = (email: string) => {
   return PatientModel.findOne({ email });
 };
 
-export const createPatient = (patinet: any) => {
-  return PatientModel.create(patinet);
+export const createPatient = (patient: any) => {
+  return PatientModel.create(patient);
 };
 export const findPatientById = (
   id: string,
@@ -17,36 +17,26 @@ export const findPatientById = (
 ) => {
   return PatientModel.findById(id, projection);
 };
-export const findpatientsPagination = async (
-  fileter: FilterQuery<Patient>,
-  pageS: string = '1',
-  limitS: string = '20',
+export const findPatientsPagination = async (
+  filter: FilterQuery<Patient>,
+  query: GetAllPatientInput,
 ) => {
-  const limit = parseInt(limitS);
-  const count = await PatientModel.countDocuments(fileter);
-  if (count === 0) {
-    return {
-      length: 0,
-      patients:[],
-      totalPages:1,
-      currentPage: 1,
-    }; 
-  }
-  
+  let { page = 1, limit = 20 } = query;
+  const count = await PatientModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
-  const page = Math.min(totalPages, parseInt(pageS));
-
+  const currentPage = Math.min(totalPages, page);
+  const skip = Math.max(0, (currentPage - 1) * limit);
   const patients = await PatientModel.find(
     {},
     { password: 0 },
-    { limit, skip: (page - 1) * limit, sort: { createdAt: -1 } },
+    { limit, skip, sort: { createdAt: -1 } },
   );
-  
+
   return {
     length: patients.length,
     patients,
     totalPages,
-    currentPage: page,
+    currentPage,
   };
 };
 
@@ -85,14 +75,8 @@ export const createPatientComment = async (
       'post not found you can not commit to it',
     ]);
   }
-  const comment = new CommentModel();
-  comment.patientId = patientId;
-  comment.postId = postId;
-  comment.text = text;
+  const comment = new CommentModel({ patient: patientId, post: postId, text });
   await comment.save();
-
-  post?.comments.push(comment);
-  await post?.save();
   return comment;
 };
 
@@ -101,23 +85,19 @@ export const findCommentByIdAndDelete = async (
   commentId: any,
 ) => {
   const comment = await CommentModel.findById(commentId);
-  const post = await PostModel.findById(comment?.postId);
+  const post = await PostModel.findById(comment?.post._id);
   if (!comment) {
     throw new HttpException(404, 'Comment not found', ['comment not found']);
   }
   if (!post) {
     throw new HttpException(404, 'Post not found', ['post not found']);
   }
-  if (comment.patientId !== patientId) {
+  if (!comment.patient._id.equals(patientId)) {
     throw new HttpException(404, 'You are not allowed to delete this comment', [
       'You are not allowed to delete this comment',
     ]);
   }
 
-  post.comments = post.comments.filter((comment) => {
-    return comment != commentId;
-  });
-  await post.save();
   await CommentModel.findByIdAndDelete(commentId);
   return comment;
 };
@@ -128,14 +108,14 @@ export const editPatientComment = async (
   commentId: any,
 ) => {
   const comment = await CommentModel.findById(commentId);
-  const post = await PostModel.findById(comment?.postId);
+  const post = await PostModel.findById(comment?.post._id);
   if (!post) {
     throw new HttpException(404, 'Post not found', ['post not found']);
   }
   if (!comment) {
     throw new HttpException(404, 'Comment not found', ['comment not found']);
   }
-  if (comment.patientId !== patientId) {
+  if (!comment.patient._id.equals(patientId)) {
     throw new HttpException(404, 'You are not allowed to edit this comment', [
       'You are not allowed to edit this comment',
     ]);

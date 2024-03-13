@@ -16,6 +16,8 @@ export const checkAdmin = async (
         ['Unauthorized'],
       );
     }
+    req.body.auth.adminId = req.body.auth.id;
+    delete req.body.auth.id;
     next();
   } catch (err) {
     next(err);

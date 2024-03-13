@@ -21,26 +21,23 @@ import {
   updateDoctorSchema,
   verifyDoctorSchema,
   searchDoctorSchema,
+  saveDoctorAvatarSchema,
 } from '../schema/doctor';
-import {
-  createPostSchema,
-  deletePostSchema,
-  getPostsSchema,
-  updatePostSchema,
-} from '../schema/post';
-import { checkPatient } from '../middlewares/checkPatient';
-import { addReviewSchema, getReviewsSchema } from '../schema/review';
 import { upload } from '../middlewares/image';
-import { saveImageSchema } from '../schema/customZod';
-import { uploadAlbum } from '../middlewares/album';
+import reviewRouter from './review';
+import postRouter from './post';
+
 const router = express.Router();
+
+router.use('/:doctorId/reviews', reviewRouter);
+router.use('/:doctorId/posts', postRouter);
 
 router.post(
   '/avatar',
   checkAuth,
   checkDoctor,
   upload,
-  validateResource(saveImageSchema),
+  validateResource(saveDoctorAvatarSchema),
   doctorController.saveProfileImage,
 );
 router.post(
@@ -58,56 +55,15 @@ router.post(
   validateResource(verifyDoctorSchema),
   doctorController.verifyEmail,
 );
-router.post(
-  '/:id/reviews',
-  checkAuth,
-  checkPatient,
-  validateResource(addReviewSchema),
-  doctorController.addReview,
-);
-router.get(
-  '/:id/reviews',
-  validateResource(getReviewsSchema),
-  doctorController.getReviews,
-);
 router.get(
   '/',
   validateResource(searchDoctorSchema),
   doctorController.searchDoctor,
 );
 router.get(
-  '/:id',
+  '/:doctorId',
   validateResource(getDoctorSchema),
   doctorController.getDoctor,
-);
-//🎮
-router.get(
-  '/:id/posts',
-  validateResource(getPostsSchema),
-  doctorController.getDoctorPosts,
-);
-router.post(
-  '/posts',
-  checkAuth,
-  checkDoctor,
-  uploadAlbum,
-  validateResource(createPostSchema),
-  doctorController.createPost,
-);
-router.delete(
-  '/posts/:id',
-  checkAuth,
-  checkDoctor,
-  validateResource(deletePostSchema),
-  doctorController.deletePost,
-);
-router.patch(
-  '/update-post/:id',
-  checkAuth,
-  checkDoctor,
-  uploadAlbum,
-  validateResource(updatePostSchema),
-  doctorController.updatePost,
 );
 router.post(
   '/forgot-password',
@@ -127,7 +83,7 @@ router.patch(
   doctorController.update,
 );
 router.patch(
-  '/status/:id',
+  '/status/:doctorId',
   checkAuth,
   checkAdmin,
   validateResource(changeDoctorStatusSchema),
@@ -148,7 +104,7 @@ router.delete(
   doctorController.deleteMyAccount,
 );
 router.delete(
-  '/:id',
+  '/:doctorId',
   checkAuth,
   checkAdmin,
   validateResource(deleteDoctorSchema),

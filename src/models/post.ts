@@ -4,24 +4,21 @@ import {
   modelOptions,
   Ref,
 } from '@typegoose/typegoose';
-import { Comment } from './comment';
+import { Doctor } from './doctor';
 @modelOptions({
   schemaOptions: {
     timestamps: true,
   },
 })
 export class Post {
-  @prop()
-  doctorId: string;
+  @prop({ ref: Doctor })
+  doctor: Ref<Doctor>;
 
   @prop()
   description: string;
 
   @prop({ type: () => [String] })
   images: string[];
-
-  @prop({ type: () => Comment, ref: Comment, default: [] })
-  comments: Ref<Comment>[];
 
   @prop({ type: () => [String], default: [] })
   likes: string[];

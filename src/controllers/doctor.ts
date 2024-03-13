@@ -18,16 +18,8 @@ import {
   UpdateDoctorPasswordInput,
   VerifyDoctorInput,
   SearchDoctorInput,
+  SaveDoctorAvatarBody,
 } from '../schema/doctor';
-import {
-  DeletePostParamsInput,
-  DeletePostBodyInput,
-  CreatePostInput,
-  GetPostsParamsInput,
-  GetPostsQueryInput,
-  UpdatePostBodyInput,
-  UpdatePostParamsInput,
-} from '../schema/post';
 import {
   createDoctor,
   findDoctorByEmail,
@@ -35,24 +27,11 @@ import {
   findDoctorByIdAndDelete,
   findDoctorByIdAndUpdate,
   findDoctor,
-  addReviewForDoctorById,
-  findDoctorReviewsById,
-  findPosts,
-  findPostByIdAndDelete,
-  CreatePost,
-  findPostByIdAndUpdate,
 } from '../services/doctor';
 import {
   sendResetPasswordEmail,
   sendVerificationEmail,
-} from '../services/mailing';
-import {
-  AddReviewBodyInput,
-  AddReviewParamsInput,
-  GetReviewsParamsInput,
-  GetReviewsQueryInput,
-} from '../schema/review';
-import { SaveImageInput } from '../schema/customZod';
+} from '../services/mail';
 import HttpException from '../models/errors';
 
 const key: string = process.env.JWT_SECRET as string;
@@ -204,9 +183,9 @@ export const changeStatus = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const { doctorId } = req.params;
     const { status } = req.body;
-    const doctor = await findDoctorById(id);
+    const doctor = await findDoctorById(doctorId);
     if (!doctor) {
       throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
     }
@@ -227,8 +206,8 @@ export const deleteDoctor = async (
   next: NextFunction,
 ) => {
   try {
-    await findDoctorByIdAndDelete(req.params.id);
-    
+    await findDoctorByIdAndDelete(req.params.doctorId);
+
     res
       .status(204)
       .json({ status: 'success', message: 'Doctor deleted successfully' });
@@ -244,7 +223,7 @@ export const update = async (
 ) => {
   try {
     const doctor = await findDoctorByIdAndUpdate(
-      req.body.auth.id,
+      req.body.auth.doctorId,
       req.body,
     ).select('-password');
     res.status(200).json({ status: 'success', data: { doctor } });
@@ -259,7 +238,7 @@ export const deleteMyAccount = async (
   next: NextFunction,
 ) => {
   try {
-    await findDoctorByIdAndDelete(req.body.auth.id);
+    await findDoctorByIdAndDelete(req.body.auth.doctorId);
     res
       .status(204)
       .json({ status: 'success', message: 'Doctor deleted successfully' });
@@ -275,7 +254,7 @@ export const changePassword = async (
 ) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const doctor = await findDoctorById(req.body.auth.id);
+    const doctor = await findDoctorById(req.body.auth.doctorId);
     if (!doctor) {
       throw new HttpException(404, 'Invalid Token', []);
     }
@@ -316,7 +295,7 @@ export const getDoctor = async (
   next: NextFunction,
 ) => {
   try {
-    const doctor = await findDoctorById(req.params.id, { password: 0 });
+    const doctor = await findDoctorById(req.params.doctorId, { password: 0 });
     if (!doctor) {
       throw new HttpException(404, 'Doctor not found', ['Doctor not found']);
     }
@@ -326,127 +305,18 @@ export const getDoctor = async (
   }
 };
 
-export const addReview = async (
-  req: Request<AddReviewParamsInput, {}, AddReviewBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    await addReviewForDoctorById(req.params.id, req.body.auth.id, req.body);
-    res.status(201).json({
-      status: 'success',
-      data: { message: 'Review is created successfully' },
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const getReviews = async (
-  req: Request<GetReviewsParamsInput, {}, {}, GetReviewsQueryInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const data = await findDoctorReviewsById(
-      req.params.id,
-      req.query.page,
-      req.query.limit,
-    );
-    res.status(200).json({ status: 'success', data });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
 export const saveProfileImage = async (
-  req: Request<{}, {}, SaveImageInput>,
+  req: Request<{}, {}, SaveDoctorAvatarBody>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const doctor = await findDoctorByIdAndUpdate(req.body.auth.id, {
+    const doctor = await findDoctorByIdAndUpdate(req.body.auth.doctorId, {
       avatar: req.body.imageURL,
     }).select('-password');
     return res.status(200).json({
       status: 'success',
       data: doctor,
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-export const getDoctorPosts = async (
-  req: Request<GetPostsParamsInput, {}, {}, GetPostsQueryInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const data = await findPosts(
-      req.params.id,
-      req.query.page,
-      req.query.limit,
-    );
-    // if (data.length === 0) {
-    //   throw new HttpException(404, 'No Posts Found', ['Posts NOt found ']);
-    // }
-    return res.status(200).json({
-      status: 'success',
-      data,
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-export const createPost = async (
-  req: Request<{}, {}, CreatePostInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const post = await CreatePost(
-      req.body.auth.id,
-      req.body.description,
-      req.body.images,
-    );
-
-    return res.status(200).json({
-      status: 'success',
-      data: { post },
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-export const deletePost = async (
-  req: Request<DeletePostParamsInput, {}, DeletePostBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const post = await findPostByIdAndDelete(req.params.id);
-    
-    return res.status(204).json({
-      status: 'success',
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-export const updatePost = async (
-  req: Request<UpdatePostParamsInput, {}, UpdatePostBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const post = await findPostByIdAndUpdate(req.body.auth.id, req.body.description,req.body.images,req.params.id);
-    return res.status(200).json({
-      status: 'success',
-      post,
     });
   } catch (err: any) {
     next(err);

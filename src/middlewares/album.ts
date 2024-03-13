@@ -34,7 +34,6 @@ export const uploadAlbum = async (
     if (fields.description) {
       req.body.description = fields.description.join(', ');
     }
-    // yala run🏃‍♂️
     // check `title` and `content` fields are strings
     // check `image` field is a file and is an image
     const imageFiles = Array.isArray(files.image) ? files.image : [files.image];

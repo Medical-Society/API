@@ -3,6 +3,17 @@ import { Gender, Status } from '../models/enums';
 import { zodObjectId, validAgeDate } from './customZod';
 
 // Schemas
+export const saveDoctorAvatarSchema = z.object({
+  body: z
+    .object({
+      auth: z.object({
+        doctorId: zodObjectId,
+      }),
+      imageURL: z.string({ required_error: 'Image is required' }),
+    })
+    .strict(),
+});
+
 export const signupDoctorSchema = z.object({
   body: z
     .object({
@@ -56,7 +67,7 @@ export const verifyDoctorSchema = z.object({
 export const getDoctorSchema = z.object({
   params: z
     .object({
-      id: zodObjectId,
+      doctorId: zodObjectId,
     })
     .strict(),
 });
@@ -86,7 +97,7 @@ export const updateDoctorSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        doctorId: zodObjectId,
       }),
       specialization: z.string().optional(),
       clinicAddress: z.string().optional(),
@@ -103,7 +114,7 @@ export const deleteMyAccountSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        doctorId: zodObjectId,
       }),
     })
     .strict(),
@@ -113,7 +124,7 @@ export const updateDoctorPasswordSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        doctorId: zodObjectId,
       }),
       oldPassword: z.string({ required_error: 'Old Password is required' }),
       newPassword: z
@@ -126,13 +137,13 @@ export const updateDoctorPasswordSchema = z.object({
 export const changeDoctorStatusSchema = z.object({
   params: z
     .object({
-      id: zodObjectId,
+      doctorId: zodObjectId,
     })
     .strict(),
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        adminId: zodObjectId,
       }),
       status: z.nativeEnum(Status, {
         required_error: 'Status is required',
@@ -144,7 +155,7 @@ export const changeDoctorStatusSchema = z.object({
 export const deleteDoctorSchema = z.object({
   params: z
     .object({
-      id: zodObjectId,
+      doctorId: zodObjectId,
     })
     .strict(),
 });
@@ -156,15 +167,17 @@ export const searchDoctorSchema = z.object({
       englishFullName: z.string().optional(),
       specialization: z.string().optional(),
       clinicAddress: z.string().optional(),
-      page: z.coerce.number().optional(),
-      limit: z.coerce.number().optional(),
+      page: z.coerce.number().min(1, 'Page must be at least 1').optional(),
+      limit: z.coerce.number().min(1, 'Limit must be at least 1').optional(),
     })
     .strict(),
 });
 
-
 // Types
 
+export type SaveDoctorAvatarBody = z.infer<
+  typeof saveDoctorAvatarSchema
+>['body'];
 
 export type SignupDoctorInput = z.infer<typeof signupDoctorSchema>['body'];
 

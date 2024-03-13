@@ -22,6 +22,8 @@ export const checkDoctor = async (
     if (doctor.status !== 'ACCEPTED') {
       throw new HttpException(403, 'Your account is not accepted yet', []);
     }
+    req.body.auth.doctorId = req.body.auth.id;
+    delete req.body.auth.id;
     next();
   } catch (err) {
     next(err);

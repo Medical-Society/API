@@ -5,17 +5,17 @@ export const LikePatientPostSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        patientId: zodObjectId,
       }),
     })
     .strict(),
   params: z
     .object({
-      id: zodObjectId,
+      postId: zodObjectId,
     })
     .strict(),
 });
-  
+
 export type LikePatientPostBodyInput = z.infer<
   typeof LikePatientPostSchema
 >['body'];

@@ -2,22 +2,33 @@ import { object, string, TypeOf, nativeEnum, z } from 'zod';
 import { Gender } from '../models/enums';
 import { zodObjectId, validAgeDate } from './customZod';
 
+export const savePatientAvatarSchema = z.object({
+  body: z
+    .object({
+      auth: z.object({
+        patientId: zodObjectId,
+      }),
+      imageURL: z.string({ required_error: 'Image is required' }),
+    })
+    .strict(),
+});
+
 export const getAllPatientSchema = object({
   query: object({
-    page: string().optional(),
-    limit: string().optional(),
+    page: z.coerce.number().min(1, 'Page must be at least 1').optional(),
+    limit: z.coerce.number().min(1, 'Limit must be at least 1').optional(),
   }),
 });
 
 export const getPatientSchema = object({
   params: object({
-    id: zodObjectId,
+    patientId: zodObjectId,
   }),
 });
 
 export const deletePatientSchema = object({
   params: object({
-    id: zodObjectId,
+    patientId: zodObjectId,
   }),
 });
 
@@ -65,7 +76,7 @@ export const verifyEmailPatientSchema = object({
 export const updatePatientSchema = object({
   body: object({
     auth: object({
-      id: zodObjectId,
+      patientId: zodObjectId,
     }),
     patientName: string().optional(),
     address: string().optional(),
@@ -96,7 +107,7 @@ export const forgotPasswordPatientSchema = object({
 export const changePasswordPatientSchema = object({
   body: object({
     auth: object({
-      id: zodObjectId,
+      patientId: zodObjectId,
     }),
     oldPassword: string({ required_error: 'Old Password is required' }),
     newPassword: string({ required_error: 'New Password is required' }).min(
@@ -109,7 +120,7 @@ export const changePasswordPatientSchema = object({
 export const deleteMyAccountPatientSchema = object({
   body: object({
     auth: object({
-      id: zodObjectId,
+      patientId: zodObjectId,
     }),
   }),
 });
@@ -117,10 +128,14 @@ export const deleteMyAccountPatientSchema = object({
 export const myInfoPatientSchema = object({
   body: object({
     auth: object({
-      id: zodObjectId,
+      patientId: zodObjectId,
     }),
   }),
 });
+
+export type SavePatientAvatarBody = TypeOf<
+  typeof savePatientAvatarSchema
+>['body'];
 export type MyInfoPatientInput = z.infer<typeof myInfoPatientSchema>['body'];
 export type GetAllPatientInput = z.infer<typeof getAllPatientSchema>['query'];
 export type GetPatientInput = z.infer<typeof getPatientSchema>['params'];

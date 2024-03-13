@@ -20,8 +20,8 @@ import {
   changePasswordPatientSchema,
   deleteMyAccountPatientSchema,
   myInfoPatientSchema,
+  savePatientAvatarSchema,
 } from '../schema/patient';
-import { saveImageSchema } from '../schema/customZod';
 import {
   createCommentSchema,
   deleteCommentSchema,
@@ -49,28 +49,28 @@ router.get(
 );
 
 router.get(
-  '/:id',
+  '/:patientId',
   checkAuth,
   checkAdmin,
   validateResource(getPatientSchema),
   patientController.getPatient,
 );
 router.post(
-  '/unlike/:id',
+  '/unlike/:postId',
   checkAuth,
   checkPatient,
   validateResource(LikePatientPostSchema),
   patientController.unlike,
 );
 router.delete(
-  '/delete-comment/:id',
+  '/comments/:commentId',
   checkAuth,
   checkPatient,
   validateResource(deleteCommentSchema),
   patientController.deleteComment,
 );
 router.delete(
-  '/delete/:id',
+  '/:patientId',
   checkAuth,
   checkAdmin,
   validateResource(deletePatientSchema),
@@ -93,14 +93,14 @@ router.post(
   patientController.login,
 );
 router.post(
-  '/like/:id',
+  '/like/:postId',
   checkAuth,
   checkPatient,
   validateResource(LikePatientPostSchema),
   patientController.Like,
 );
 router.patch(
-  '/edit-comment/:id',
+  '/comments/:commentId',
   checkAuth,
   checkPatient,
   validateResource(editCommentSchema),
@@ -115,7 +115,7 @@ router.patch(
 );
 
 router.post(
-  '/comment/:id',
+  '/comments/:postId',
   checkAuth,
   checkPatient,
   validateResource(createCommentSchema),
@@ -151,7 +151,7 @@ router.post(
   checkAuth,
   checkPatient,
   upload,
-  validateResource(saveImageSchema),
+  validateResource(savePatientAvatarSchema),
   patientController.saveProfileImage,
 );
 

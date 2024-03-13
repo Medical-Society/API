@@ -5,14 +5,14 @@ export const createCommentSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        patientId: zodObjectId,
       }),
       text: z.string(),
     })
     .strict(),
   params: z
     .object({
-      id: zodObjectId,
+      postId: zodObjectId,
     })
     .strict(),
 });
@@ -20,13 +20,13 @@ export const deleteCommentSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        patientId: zodObjectId,
       }),
     })
     .strict(),
   params: z
     .object({
-      id: zodObjectId,
+      commentId: zodObjectId,
     })
     .strict(),
 });
@@ -35,14 +35,14 @@ export const editCommentSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        id: zodObjectId,
+        patientId: zodObjectId,
       }),
       text: z.string({ required_error: 'text required' }),
     })
     .strict(),
   params: z
     .object({
-      id: zodObjectId,
+      commentId: zodObjectId,
     })
     .strict(),
 });

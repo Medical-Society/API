@@ -14,13 +14,14 @@ import {
   ChangePasswordPatientInput,
   DeleteMyAccountPatientInput,
   MyInfoPatientInput,
+  SavePatientAvatarBody,
 } from '../schema/patient';
 
 import {
   findPatientByEmail,
   createPatient,
   findPatientById,
-  findpatientsPagination,
+  findPatientsPagination,
   findPatientByIdAndUpdate,
   findPatientByIdAndDelete,
   createPatientComment,
@@ -33,10 +34,8 @@ import {
 import {
   sendVerificationEmail,
   sendResetPasswordEmail,
-} from '../services/mailing';
-import { SaveImageInput } from '../schema/customZod';
+} from '../services/mail';
 import HttpException from '../models/errors';
-import { R } from 'vitest/dist/reporters-MmQN-57K';
 import {
   CreateCommentBodyInput,
   CreateCommentParamsInput,
@@ -58,12 +57,8 @@ export const getAllPatient = async (
   next: NextFunction,
 ) => {
   try {
-    const data = await findpatientsPagination(
-      {},
-      req.query.page,
-      req.query.limit,
-    );
-    
+    const data = await findPatientsPagination({}, req.query);
+
     return res.status(200).json({
       status: 'success',
       data,
@@ -81,7 +76,7 @@ export const getPatient = async (
   next: NextFunction,
 ) => {
   try {
-    const patient = await findPatientById(req.params.id);
+    const patient = await findPatientById(req.params.patientId);
     if (!patient) {
       throw new HttpException(404, 'Patient not found', ['Patient Not Found']);
     }
@@ -101,7 +96,7 @@ export const deletePatient = async (
   next: NextFunction,
 ) => {
   try {
-    await findPatientByIdAndDelete(req.params.id);
+    await findPatientByIdAndDelete(req.params.patientId);
     return res.status(204).json({});
   } catch (err: any) {
     next(err);
@@ -211,7 +206,7 @@ export const verifyEmail = async (
   }
 };
 
-// forgor password
+// forgot password
 export const forgotPassword = async (
   req: Request<{}, {}, ForgotPasswordPatientInput>,
   res: Response,
@@ -285,7 +280,7 @@ export const updateMe = async (
 ) => {
   try {
     const patient = await findPatientByIdAndUpdate(
-      req.body.auth.id,
+      req.body.auth.patientId,
       req.body,
     ).select('-password');
 
@@ -309,7 +304,7 @@ export const changePassword = async (
   try {
     const { oldPassword, newPassword } = req.body;
 
-    const patient = await findPatientById(req.body.auth.id, {});
+    const patient = await findPatientById(req.body.auth.patientId, {});
     if (!patient) {
       throw new HttpException(400, 'Patient not Found', [
         'patient does not exist',
@@ -340,7 +335,7 @@ export const deleteMyAccount = async (
   next: NextFunction,
 ) => {
   try {
-    await findPatientByIdAndDelete(req.body.auth.id);
+    await findPatientByIdAndDelete(req.body.auth.patientId);
 
     return res.status(204).json({
       status: 'success',
@@ -352,12 +347,12 @@ export const deleteMyAccount = async (
 };
 // Save image
 export const saveProfileImage = async (
-  req: Request<{}, {}, SaveImageInput>,
+  req: Request<{}, {}, SavePatientAvatarBody>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const patient = await findPatientByIdAndUpdate(req.body.auth.id, {
+    const patient = await findPatientByIdAndUpdate(req.body.auth.patientId, {
       avatar: req.body.imageURL,
     }).select('-password');
     return res.status(200).json({
@@ -377,7 +372,9 @@ export const myInfo = async (
   next: NextFunction,
 ) => {
   try {
-    const patient = await findPatientById(req.body.auth.id).select('-password');
+    const patient = await findPatientById(req.body.auth.patientId).select(
+      '-password',
+    );
     return res.status(200).json({
       status: 'success',
       data: {
@@ -398,8 +395,8 @@ export const createComment = async (
 ) => {
   try {
     const comment = await createPatientComment(
-      req.body.auth.id,
-      req.params.id,
+      req.body.auth.patientId,
+      req.params.postId,
       req.body.text,
     );
     return res.status(200).json({
@@ -419,8 +416,8 @@ export const deleteComment = async (
 ) => {
   try {
     const comment = await findCommentByIdAndDelete(
-      req.body.auth.id,
-      req.params.id,
+      req.body.auth.patientId,
+      req.params.commentId,
     );
     console.log(comment);
     return res.status(204).json({
@@ -438,9 +435,9 @@ export const updateComment = async (
 ) => {
   try {
     const comment = await editPatientComment(
-      req.body.auth.id,
+      req.body.auth.patientId,
       req.body.text,
-      req.params.id,
+      req.params.commentId,
     );
     res.status(200).json({
       status: 'success',
@@ -457,7 +454,10 @@ export const Like = async (
   next: NextFunction,
 ) => {
   try {
-    const like = await LikePatientPost(req.body.auth.id, req.params.id);
+    const like = await LikePatientPost(
+      req.body.auth.patientId,
+      req.params.postId,
+    );
     return res.status(200).json({
       status: 'success',
       like,
@@ -474,7 +474,7 @@ export const unlike = async (
   next: NextFunction,
 ) => {
   try {
-    await unlikePatientPost(req.body.auth.id, req.params.id);
+    await unlikePatientPost(req.body.auth.patientId, req.params.postId);
     return res.status(204).json({
       status: 'success',
       message: 'unlike post',

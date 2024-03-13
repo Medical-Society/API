@@ -1,4 +1,4 @@
-import { sendEmail } from '../utils/mailing';
+import { sendEmail } from '../utils/mail';
 
 function generateHTML(goal: string, link: string) {
   return `<h1>Hi! There,</h1>
