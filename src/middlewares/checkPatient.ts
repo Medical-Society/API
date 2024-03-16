@@ -19,7 +19,7 @@ export const checkPatient = async (
     if (!patient.isVerified) {
       throw new HttpException(403, 'You are not verified', []);
     }
-    req.body.auth.patientId = patient._id;
+    req.body.auth.patientId = req.body.auth.id;
     delete req.body.auth.id;
     next();
   } catch (err: any) {

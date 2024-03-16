@@ -62,13 +62,7 @@ router.post(
   validateResource(LikePatientPostSchema),
   patientController.unlike,
 );
-router.delete(
-  '/comments/:commentId',
-  checkAuth,
-  checkPatient,
-  validateResource(deleteCommentSchema),
-  patientController.deleteComment,
-);
+
 router.delete(
   '/:patientId',
   checkAuth,
@@ -99,13 +93,7 @@ router.post(
   validateResource(LikePatientPostSchema),
   patientController.Like,
 );
-router.patch(
-  '/comments/:commentId',
-  checkAuth,
-  checkPatient,
-  validateResource(editCommentSchema),
-  patientController.updateComment,
-);
+
 router.patch(
   '/updateMe',
   checkAuth,
@@ -114,13 +102,7 @@ router.patch(
   patientController.updateMe,
 );
 
-router.post(
-  '/comments/:postId',
-  checkAuth,
-  checkPatient,
-  validateResource(createCommentSchema),
-  patientController.createComment,
-);
+
 router.post(
   '/reset-password',
   validateResource(resetPasswordPatientSchema),

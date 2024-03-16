@@ -24,9 +24,6 @@ import {
   findPatientsPagination,
   findPatientByIdAndUpdate,
   findPatientByIdAndDelete,
-  createPatientComment,
-  findCommentByIdAndDelete,
-  editPatientComment,
   unlikePatientPost,
   LikePatientPost,
 } from '../services/patient';
@@ -380,68 +377,6 @@ export const myInfo = async (
       data: {
         patient,
       },
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-// create comment
-
-export const createComment = async (
-  req: Request<CreateCommentParamsInput, {}, CreateCommentBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const comment = await createPatientComment(
-      req.body.auth.patientId,
-      req.params.postId,
-      req.body.text,
-    );
-    return res.status(200).json({
-      status: 'success',
-      data: {
-        comment,
-      },
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
-export const deleteComment = async (
-  req: Request<DeleteCommentParamsInput, {}, DeleteCommentBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const comment = await findCommentByIdAndDelete(
-      req.body.auth.patientId,
-      req.params.commentId,
-    );
-    console.log(comment);
-    return res.status(204).json({
-      status: 'success',
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
-
-export const updateComment = async (
-  req: Request<EditCommentParamsInput, {}, EditCommentBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const comment = await editPatientComment(
-      req.body.auth.patientId,
-      req.body.text,
-      req.params.commentId,
-    );
-    res.status(200).json({
-      status: 'success',
-      comment,
     });
   } catch (err: any) {
     next(err);

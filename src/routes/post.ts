@@ -13,6 +13,10 @@ import { uploadAlbum } from '../middlewares/album';
 
 const router = express.Router({ mergeParams: true });
 
+import commentRouter from './comment';
+
+router.use('/:postId/comments',commentRouter);
+
 router
   .route('/')
   .get(validateResource(getPostsSchema), postController.getDoctorPosts)

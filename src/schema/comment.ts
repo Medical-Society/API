@@ -7,11 +7,21 @@ export const createCommentSchema = z.object({
       auth: z.object({
         patientId: zodObjectId,
       }),
+      
       text: z.string(),
     })
     .strict(),
   params: z
     .object({
+      doctorId: zodObjectId,
+      postId: zodObjectId,
+    })
+    .strict(),
+});
+export const getCommentSchema = z.object({
+  params: z
+    .object({
+      doctorId: zodObjectId,
       postId: zodObjectId,
     })
     .strict(),
@@ -27,6 +37,8 @@ export const deleteCommentSchema = z.object({
   params: z
     .object({
       commentId: zodObjectId,
+      doctorId: zodObjectId,
+      postId: zodObjectId,
     })
     .strict(),
 });
@@ -43,9 +55,15 @@ export const editCommentSchema = z.object({
   params: z
     .object({
       commentId: zodObjectId,
+      postId: zodObjectId,
+      doctorId: zodObjectId,
     })
     .strict(),
 });
+export type GetCommentParamsInput = z.infer<
+  typeof getCommentSchema
+>['params'];
+
 
 export type CreateCommentBodyInput = z.infer<
   typeof createCommentSchema
