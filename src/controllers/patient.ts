@@ -24,8 +24,7 @@ import {
   findPatientsPagination,
   findPatientByIdAndUpdate,
   findPatientByIdAndDelete,
-  unlikePatientPost,
-  LikePatientPost,
+  
 } from '../services/patient';
 
 import {
@@ -44,7 +43,7 @@ import {
 import {
   LikePatientPostBodyInput,
   LikePatientPostParamsInput,
-} from '../schema/likes';
+} from '../schema/like';
 
 // For Admin
 
@@ -383,38 +382,3 @@ export const myInfo = async (
   }
 };
 
-export const Like = async (
-  req: Request<LikePatientPostParamsInput, {}, LikePatientPostBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const like = await LikePatientPost(
-      req.body.auth.patientId,
-      req.params.postId,
-    );
-    return res.status(200).json({
-      status: 'success',
-      like,
-    });
-  } catch (err: any) {
-    console.log(err.message);
-    next(err);
-  }
-};
-
-export const unlike = async (
-  req: Request<LikePatientPostParamsInput, {}, LikePatientPostBodyInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    await unlikePatientPost(req.body.auth.patientId, req.params.postId);
-    return res.status(204).json({
-      status: 'success',
-      message: 'unlike post',
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};

@@ -66,31 +66,3 @@ export const findPatientByIdAndDelete = async (patientId: any) => {
 
 
 
-export const LikePatientPost = async (patientId: any, postId: any) => {
-  const post = await PostModel.findById(postId);
-  if (!post) {
-    throw new HttpException(404, 'Post not found', ['post not found']);
-  }
-  if (post.likes.includes(patientId)) {
-    throw new HttpException(400, 'Post already liked by you', [
-      'Post already liked by you',
-    ]);
-  }
-  post.likes.push(patientId);
-  await post.save();
-  return post.likes;
-};
-
-export const unlikePatientPost = async (patientId: any, postId: any) => {
-  const post = await PostModel.findById(postId);
-  if (!post) {
-    throw new HttpException(404, 'Post not found', ['post not found']);
-  }
-  if (!post.likes.includes(patientId)) {
-    throw new HttpException(400, 'you did not like it', [
-      'you did not like it',
-    ]);
-  }
-  post.likes = post.likes.filter((id) => id !== patientId);
-  await post.save();
-};

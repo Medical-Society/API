@@ -11,10 +11,22 @@ export const LikePatientPostSchema = z.object({
     .strict(),
   params: z
     .object({
+      doctorId: zodObjectId,
       postId: zodObjectId,
     })
     .strict(),
 });
+
+export const GetLikesPostSchema = z.object({
+  params: z.object({
+    doctorId: zodObjectId,
+    postId: zodObjectId,
+  }),
+});
+
+export type GetLikesPostParamsInput = z.infer<
+  typeof GetLikesPostSchema
+>['params'];
 
 export type LikePatientPostBodyInput = z.infer<
   typeof LikePatientPostSchema

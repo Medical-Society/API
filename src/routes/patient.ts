@@ -27,7 +27,6 @@ import {
   deleteCommentSchema,
   editCommentSchema,
 } from '../schema/comment';
-import { LikePatientPostSchema } from '../schema/likes';
 
 const router = express.Router();
 
@@ -55,13 +54,6 @@ router.get(
   validateResource(getPatientSchema),
   patientController.getPatient,
 );
-router.post(
-  '/unlike/:postId',
-  checkAuth,
-  checkPatient,
-  validateResource(LikePatientPostSchema),
-  patientController.unlike,
-);
 
 router.delete(
   '/:patientId',
@@ -86,13 +78,6 @@ router.post(
   validateResource(loginPatientSchema),
   patientController.login,
 );
-router.post(
-  '/like/:postId',
-  checkAuth,
-  checkPatient,
-  validateResource(LikePatientPostSchema),
-  patientController.Like,
-);
 
 router.patch(
   '/updateMe',
@@ -101,7 +86,6 @@ router.patch(
   validateResource(updatePatientSchema),
   patientController.updateMe,
 );
-
 
 router.post(
   '/reset-password',

@@ -19,9 +19,6 @@ export class Post {
 
   @prop({ type: () => [String] })
   images: string[];
-
-  @prop({ type: () => [String], default: [] })
-  likes: string[];
 }
 const PostModel = getModelForClass(Post);
 export default PostModel;

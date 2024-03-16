@@ -14,8 +14,10 @@ import { uploadAlbum } from '../middlewares/album';
 const router = express.Router({ mergeParams: true });
 
 import commentRouter from './comment';
+import likeRouter from './like';
 
 router.use('/:postId/comments',commentRouter);
+router.use('/:postId/like',likeRouter);
 
 router
   .route('/')
