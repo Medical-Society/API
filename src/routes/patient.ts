@@ -22,13 +22,10 @@ import {
   myInfoPatientSchema,
   savePatientAvatarSchema,
 } from '../schema/patient';
-import {
-  createCommentSchema,
-  deleteCommentSchema,
-  editCommentSchema,
-} from '../schema/comment';
+import appointmentRouter from './appointment';
 
 const router = express.Router();
+router.use('/appointments', appointmentRouter);
 
 //route for Admin
 router.get(
