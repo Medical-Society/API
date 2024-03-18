@@ -26,9 +26,11 @@ import {
 import { upload } from '../middlewares/image';
 import reviewRouter from './review';
 import postRouter from './post';
+import availableTimeRouter from './availableTime';
 
 const router = express.Router();
 
+router.use('/available-times', availableTimeRouter);
 router.use('/:doctorId/reviews', reviewRouter);
 router.use('/:doctorId/posts', postRouter);
 

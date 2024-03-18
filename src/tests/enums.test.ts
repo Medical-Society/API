@@ -1,4 +1,5 @@
-import { Gender, Status } from '../models/enums';
+import { AvailableTime } from '../models/availableTime';
+import { Gender, Status, WeekDay } from '../models/enums';
 import { expect, describe, it } from 'vitest';
 
 describe('Gender enums', () => {
@@ -7,3 +8,5 @@ describe('Gender enums', () => {
     expect(Gender.FEMALE).toBe('FEMALE');
   });
 });
+
+const avt = new AvailableTime();

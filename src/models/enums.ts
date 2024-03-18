@@ -16,3 +16,13 @@ export enum AppointmentStatus {
   FINISHED = 'FINISHED',
   CANCELED = 'CANCELED',
 }
+
+export enum WeekDay {
+  SUNDAY = 'SUNDAY',
+  MONDAY = 'MONDAY',
+  TUESDAY = 'TUESDAY',
+  WEDNESDAY = 'WEDNESDAY',
+  THURSDAY = 'THURSDAY',
+  FRIDAY = 'FRIDAY',
+  SATURDAY = 'SATURDAY',
+}

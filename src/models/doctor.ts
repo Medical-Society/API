@@ -1,5 +1,4 @@
 import {
-  Ref,
   getModelForClass,
   index,
   modelOptions,
@@ -9,8 +8,7 @@ import {
 
 import bcrypt from 'bcryptjs';
 import { Gender, Status } from './enums';
-import { Review } from './review';
-import { Post } from './post';
+import { AvailableTime } from './availableTime';
 
 const DEFAULT_IMAGE =
   'https://bangkokmentalhealthhospital.com/wp-content/themes/bangkok-mental-health/images/blank-doctors.jpg';
@@ -63,6 +61,9 @@ export class Doctor {
 
   @prop({ match: /^(http:\/\/|https:\/\/).+/, default: DEFAULT_IMAGE })
   avatar: string;
+
+  @prop({ required: true, default: new AvailableTime() })
+  availableTime!: AvailableTime;
 
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);
