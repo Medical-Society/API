@@ -13,7 +13,8 @@ const dateLike = z.union([z.number(), z.string(), z.date()], {
 
 export const validAgeDate = (age: number) => {
   return dateLike.pipe(z.coerce.date()).refine((date: Date) => {
-    const candidateAge = date.getFullYear() - new Date().getFullYear();
+    const candidateAge = new Date().getFullYear() - date.getFullYear();
+    console.log('candidateAge', candidateAge, age);
     return candidateAge >= age;
   }, 'Age must be greater than ' + age);
 };

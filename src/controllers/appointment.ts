@@ -1,18 +1,21 @@
 import { NextFunction, Request, Response } from 'express';
 import {
   BookAppointmentBodyInput,
-  ChangeAppointmentStatusBodyInput,
-  ChangeAppointmentStatusParamsInput,
+  UpdateAppointmentBodyInput,
+  UpdateAppointmentParamsInput,
   GetAppointmentBodyInput,
   GetAppointmentParamsInput,
-  SearchAppointmentBodyInput,
-  SearchAppointmentQueryInput,
+  SearchDoctorAppointmentBodyInput,
+  SearchDoctorAppointmentQueryInput,
+  SearchPatientAppointmentBodyInput,
+  SearchPatientAppointmentQueryInput,
+  IUpdateAppointmentInput,
 } from '../schema/appointment';
 import {
   bookAppointment,
-  changeAppointmentStatus,
+  updateAppointmentById,
   findAppointment,
-  findAppointmentAndDelete,
+  cancelPendingAppointment,
   searchAppointment,
 } from '../services/appointment';
 
@@ -38,12 +41,47 @@ export const bookPatientAppointment = async (
 };
 
 export const searchPatientAppointment = async (
-  req: Request<{}, {}, SearchAppointmentBodyInput, SearchAppointmentQueryInput>,
+  req: Request<
+    {},
+    {},
+    SearchPatientAppointmentBodyInput,
+    SearchPatientAppointmentQueryInput
+  >,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const data = await searchAppointment(req.query, req.body.auth.patientId);
+    console.log('Search patient appointment');
+    const data = await searchAppointment({
+      patient: req.body.auth.patientId,
+      ...req.query,
+    });
+    return res.status(200).json({
+      status: 'success',
+      data,
+    });
+  } catch (err: any) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export const searchDoctorAppointment = async (
+  req: Request<
+    {},
+    {},
+    SearchDoctorAppointmentBodyInput,
+    SearchDoctorAppointmentQueryInput
+  >,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    console.log('Search doctor appointment');
+    const data = await searchAppointment({
+      doctor: req.body.auth.doctorId,
+      ...req.query,
+    });
     return res.status(200).json({
       status: 'success',
       data,
@@ -79,7 +117,7 @@ export const cancelPatientAppointment = async (
   next: NextFunction,
 ) => {
   try {
-    await findAppointmentAndDelete(
+    await cancelPendingAppointment(
       req.body.auth.patientId,
       req.params.appointmentId,
     );
@@ -91,25 +129,22 @@ export const cancelPatientAppointment = async (
   }
 };
 
-export const changeDoctorAppointmentStatus = async (
-  req: Request<
-    ChangeAppointmentStatusParamsInput,
-    {},
-    ChangeAppointmentStatusBodyInput
-  >,
+export const updateDoctorAppointment = async (
+  req: Request<UpdateAppointmentParamsInput, {}, UpdateAppointmentBodyInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const data = await changeAppointmentStatus(
+    const payload = req.body as IUpdateAppointmentInput;
+    await updateAppointmentById(
       req.body.auth.doctorId,
-      req.body.status,
+      payload,
       req.params.appointmentId,
     );
     return res.status(200).json({
-      status:'success',
-      data
-    })
+      status: 'success',
+      data: { message: 'Appointment updated successfully' },
+    });
   } catch (err: any) {
     next(err);
   }

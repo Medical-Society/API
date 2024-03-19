@@ -14,7 +14,7 @@ export const bookAppointmentSchema = z.object({
     .strict(),
 });
 
-export const searchAppointmentSchema = z.object({
+export const searchPatientAppointmentSchema = z.object({
   body: z
     .object({
       auth: z.object({
@@ -25,7 +25,26 @@ export const searchAppointmentSchema = z.object({
   query: z
     .object({
       status: z.nativeEnum(AppointmentStatus).optional(),
-      doctor: zodObjectId.optional(),
+      doctorId: zodObjectId.optional(),
+      paid: z.coerce.boolean().optional(),
+      price: z.number().optional(),
+    })
+    .merge(paginationQuery)
+    .strict(),
+});
+
+export const searchDoctorAppointmentSchema = z.object({
+  body: z
+    .object({
+      auth: z.object({
+        doctorId: zodObjectId,
+      }),
+    })
+    .strict(),
+  query: z
+    .object({
+      status: z.nativeEnum(AppointmentStatus).optional(),
+      patientId: zodObjectId.optional(),
       paid: z.coerce.boolean().optional(),
       price: z.number().optional(),
     })
@@ -48,13 +67,16 @@ export const getAppointmentByIdSchema = z.object({
     .strict(),
 });
 
-export const changeAppointmentStatusSchema = z.object({
+export const updateAppointmentSchema = z.object({
   body: z
     .object({
       auth: z.object({
         doctorId: zodObjectId,
       }),
-      status: z.nativeEnum(AppointmentStatus),
+      status: z.nativeEnum(AppointmentStatus).optional(),
+      paid: z.coerce.boolean().optional(),
+      price: z.number().optional(),
+      date: z.coerce.date().optional(),
     })
     .strict(),
   params: z
@@ -64,11 +86,11 @@ export const changeAppointmentStatusSchema = z.object({
     .strict(),
 });
 
-export type ChangeAppointmentStatusBodyInput = z.infer<
-  typeof changeAppointmentStatusSchema
+export type UpdateAppointmentBodyInput = z.infer<
+  typeof updateAppointmentSchema
 >['body'];
-export type ChangeAppointmentStatusParamsInput = z.infer<
-  typeof changeAppointmentStatusSchema
+export type UpdateAppointmentParamsInput = z.infer<
+  typeof updateAppointmentSchema
 >['params'];
 
 export type GetAppointmentBodyInput = z.infer<
@@ -78,12 +100,36 @@ export type GetAppointmentParamsInput = z.infer<
   typeof getAppointmentByIdSchema
 >['params'];
 
-export type SearchAppointmentBodyInput = z.infer<
-  typeof searchAppointmentSchema
+export type SearchPatientAppointmentBodyInput = z.infer<
+  typeof searchPatientAppointmentSchema
 >['body'];
-export type SearchAppointmentQueryInput = z.infer<
-  typeof searchAppointmentSchema
+export type SearchPatientAppointmentQueryInput = z.infer<
+  typeof searchPatientAppointmentSchema
 >['query'];
 export type BookAppointmentBodyInput = z.infer<
   typeof bookAppointmentSchema
 >['body'];
+
+export type SearchDoctorAppointmentBodyInput = z.infer<
+  typeof searchDoctorAppointmentSchema
+>['body'];
+export type SearchDoctorAppointmentQueryInput = z.infer<
+  typeof searchDoctorAppointmentSchema
+>['query'];
+
+export interface ISearchAppointmentQuery {
+  doctor?: string;
+  patient?: string;
+  status?: AppointmentStatus;
+  paid?: boolean;
+  price?: number;
+  page?: number;
+  limit?: number;
+}
+
+export interface IUpdateAppointmentInput {
+  status?: AppointmentStatus;
+  paid?: boolean;
+  price?: number;
+  date?: Date;
+}

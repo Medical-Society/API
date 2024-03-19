@@ -14,6 +14,6 @@ export class AvailableTime {
   @prop({ required: true, default: {} })
   weekdays!: Record<WeekDay, TimeSlot>;
 
-  @prop({ required: true, default: 0 })
+  @prop({ required: true, default: 4 })
   limit!: number;
 }

@@ -27,14 +27,32 @@ import { upload } from '../middlewares/image';
 import reviewRouter from './review';
 import postRouter from './post';
 import availableTimeRouter from './availableTime';
-import appointmentRouter from './appointment';
+import * as appointmentController from '../controllers/appointment';
+import {
+  updateAppointmentSchema,
+  searchDoctorAppointmentSchema,
+} from '../schema/appointment';
 
 const router = express.Router();
 
 router.use('/available-times', availableTimeRouter);
 router.use('/:doctorId/reviews', reviewRouter);
 router.use('/:doctorId/posts', postRouter);
-router.use('/appointments', appointmentRouter);
+
+router.get(
+  '/appointments',
+  checkAuth,
+  checkDoctor,
+  validateResource(searchDoctorAppointmentSchema),
+  appointmentController.searchDoctorAppointment,
+);
+router.patch(
+  '/appointments/:appointmentId',
+  checkAuth,
+  checkDoctor,
+  validateResource(updateAppointmentSchema),
+  appointmentController.updateDoctorAppointment,
+);
 router.post(
   '/avatar',
   checkAuth,

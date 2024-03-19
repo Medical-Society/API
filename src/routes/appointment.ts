@@ -4,12 +4,10 @@ import { checkAuth } from '../middlewares/checkAuth';
 import { checkPatient } from '../middlewares/checkPatient';
 import {
   bookAppointmentSchema,
-  changeAppointmentStatusSchema,
   getAppointmentByIdSchema,
 } from '../schema/appointment';
-import { searchAppointmentSchema } from '../schema/appointment';
+import { searchPatientAppointmentSchema } from '../schema/appointment';
 import * as appointmentController from '../controllers/appointment';
-import { checkDoctor } from '../middlewares/checkDoctor';
 
 const router = express.Router({ mergeParams: true });
 
@@ -24,7 +22,7 @@ router
   .get(
     checkAuth,
     checkPatient,
-    validateResource(searchAppointmentSchema),
+    validateResource(searchPatientAppointmentSchema),
     appointmentController.searchPatientAppointment,
   );
 
@@ -41,12 +39,6 @@ router
     checkPatient,
     validateResource(getAppointmentByIdSchema),
     appointmentController.cancelPatientAppointment,
-  )
-  .patch(
-    checkAuth,
-    checkDoctor,
-    validateResource(changeAppointmentStatusSchema),
-    appointmentController.changeDoctorAppointmentStatus,
   );
 
 export default router;

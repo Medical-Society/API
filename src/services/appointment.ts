@@ -1,11 +1,14 @@
 import HttpException from '../models/errors';
-import AppointmentModel, { Appointment } from '../models/appointment';
+import AppointmentModel from '../models/appointment';
 import DoctorModel from '../models/doctor';
-import { FilterQuery, ObjectId, Types } from 'mongoose';
-import { SearchAppointmentQueryInput } from '../schema/appointment';
+import {
+  ISearchAppointmentQuery,
+  IUpdateAppointmentInput,
+} from '../schema/appointment';
 import { AvailableTime } from '../models/availableTime';
 import { weekdays } from '../utils/weekday';
-import { WeekDay } from '../models/enums';
+import { AppointmentStatus, WeekDay } from '../models/enums';
+
 export const isDoctorAvailable = async (
   doctor: string,
   date: Date,
@@ -21,6 +24,7 @@ export const isDoctorAvailable = async (
     const appointments = await AppointmentModel.find({
       doctor,
       date,
+      status: AppointmentStatus.PENDING,
     });
     return available.limit > appointments.length;
   }
@@ -52,22 +56,28 @@ export const bookAppointment = async (
   return appointment;
 };
 
-export const searchAppointment = async (
-  query: SearchAppointmentQueryInput,
-  patientId?: string,
-) => {
-  const { status, page = 1, limit = 10, price, doctor, paid } = query;
-  const filter = {
-    status,
-    doctor,
-    paid,
-    price,
-    patient: patientId,
-  };
+const autoCancelLateAppointments = async () => {
+  const now = new Date();
+  now.setHours(now.getHours() - 1);
+  const appointments = await AppointmentModel.find({
+    date: { $lte: now },
+    status: AppointmentStatus.PENDING,
+  });
+  appointments.forEach(async (appointment) => {
+    appointment.status = AppointmentStatus.CANCELED;
+    await appointment.save();
+  });
+};
+
+export const searchAppointment = async (query: ISearchAppointmentQuery) => {
+  autoCancelLateAppointments();
+  const { page = 1, limit = 10 } = query;
+  const filter = { ...query };
   const count = await AppointmentModel.countDocuments();
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
+  console.log('filter', filter, skip, limit, totalPages, currentPage);
   const appointments = await AppointmentModel.find(filter)
     .skip(skip)
     .limit(limit)
@@ -85,6 +95,7 @@ export const findAppointment = async (
   patientId: string,
   appointmentId: string,
 ) => {
+  autoCancelLateAppointments();
   const appointment = await AppointmentModel.findById(appointmentId);
   if (!appointment) {
     throw new HttpException(404, 'Appointment not found', []);
@@ -98,7 +109,7 @@ export const findAppointment = async (
   }
   return appointment;
 };
-export const findAppointmentAndDelete = async (
+export const cancelPendingAppointment = async (
   patientId: string,
   appointmentId: string,
 ) => {
@@ -106,19 +117,23 @@ export const findAppointmentAndDelete = async (
   if (!appointment) {
     throw new HttpException(404, 'Appointment not found', []);
   }
-  if (!appointment?.patient._id.equals(patientId)) {
+  if (
+    !appointment?.patient._id.equals(patientId) ||
+    appointment.status !== AppointmentStatus.PENDING
+  ) {
     throw new HttpException(
       403,
-      'You are not allowed to delete this appointment',
+      'You are not allowed to cancel this appointment',
       [],
     );
   }
-  await AppointmentModel.findByIdAndDelete(appointmentId);
+  appointment.status = AppointmentStatus.CANCELED;
+  await appointment.save();
 };
 
-export const changeAppointmentStatus = async (
+export const updateAppointmentById = async (
   doctorId: string,
-  status: any,
+  newAppointment: IUpdateAppointmentInput,
   appointmentId: string,
 ) => {
   const appointment = await AppointmentModel.findById(appointmentId);
@@ -132,7 +147,19 @@ export const changeAppointmentStatus = async (
       [],
     );
   }
-  appointment.status = status;
-  await appointment.save();
-  return appointment;
+  if (newAppointment.date) {
+    const doctor = await DoctorModel.findById(doctorId);
+    if (!doctor) {
+      throw new HttpException(404, 'Doctor not found', []);
+    }
+    const isAvailable = await isDoctorAvailable(
+      doctorId,
+      newAppointment.date,
+      doctor.availableTime,
+    );
+    if (!isAvailable) {
+      throw new HttpException(400, 'Doctor is not available at this time', []);
+    }
+  }
+  await AppointmentModel.findByIdAndUpdate(appointmentId, newAppointment);
 };
