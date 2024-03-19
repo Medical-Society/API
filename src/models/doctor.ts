@@ -62,7 +62,7 @@ export class Doctor {
   @prop({ match: /^(http:\/\/|https:\/\/).+/, default: DEFAULT_IMAGE })
   avatar: string;
 
-  @prop({ required: true, default: new AvailableTime() })
+  @prop({ required: true, default: {} })
   availableTime!: AvailableTime;
 
   async comparePassword(candidatePassword: string) {

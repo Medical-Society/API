@@ -1,6 +1,5 @@
 import express from 'express';
 import { checkAuth } from '../middlewares/checkAuth';
-import { checkPatient } from '../middlewares/checkPatient';
 import validateResource from '../middlewares/validateResource';
 import {
   getAvailableTimes,
@@ -16,12 +15,7 @@ const router = express.Router({ mergeParams: true });
 
 router
   .route('/')
-  .get(
-    checkAuth,
-    checkPatient,
-    validateResource(getAvailableTimesSchema),
-    getAvailableTimes,
-  )
+  .get(validateResource(getAvailableTimesSchema), getAvailableTimes)
   .patch(
     checkAuth,
     checkDoctor,

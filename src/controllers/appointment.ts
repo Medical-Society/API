@@ -22,7 +22,7 @@ export const bookPatientAppointment = async (
     const appointment = await bookAppointment(
       req.body.auth.patientId,
       req.body.doctorId,
-      req.body.date,
+      new Date(req.body.date),
     );
     return res.status(200).json({
       status: 'success',

@@ -1,14 +1,9 @@
 import { z } from 'zod';
 import { zodObjectId } from './customZod';
-import { AvailableTime, TimeSlot } from '../models/availableTime';
-import { WeekDay } from '../models/enums';
 
 export const getAvailableTimesSchema = z.object({
   body: z
     .object({
-      auth: z.object({
-        patientId: zodObjectId,
-      }),
       doctorId: zodObjectId,
     })
     .strict(),

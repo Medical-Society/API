@@ -6,7 +6,7 @@ import { getDateNextWeekDayHour } from '../utils/weekday';
 import { isDoctorAvailable } from './appointment';
 
 interface AvailableWeekDayTimeSlots {
-  [key: string]: { dateNextWeekDay: Date; isAvailable: boolean };
+  [key: string]: { dateNextWeekDay: Date; isAvailable: boolean }[];
 }
 
 export const findAvailableTimes = async (
@@ -22,14 +22,15 @@ export const findAvailableTimes = async (
 
   for (const weekday in availableWeekDays) {
     const { from, to } = availableWeekDays[weekday as WeekDay];
+    results[weekday] = [];
     for (let hour = from.hour; hour <= to.hour; hour++) {
       const dateNextWeekDay = getDateNextWeekDayHour(weekday, hour);
       const isAvailable = await isDoctorAvailable(
         doctorId,
-        dateNextWeekDay.toISOString(),
+        dateNextWeekDay,
         doctor.availableTime,
       );
-      results[weekday] = { dateNextWeekDay, isAvailable };
+      results[weekday].push({ dateNextWeekDay, isAvailable });
     }
   }
   return results;

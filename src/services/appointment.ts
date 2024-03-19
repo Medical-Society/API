@@ -8,24 +8,19 @@ import { weekdays } from '../utils/weekday';
 import { WeekDay } from '../models/enums';
 export const isDoctorAvailable = async (
   doctor: string,
-  date: string,
+  date: Date,
   available: AvailableTime,
 ) => {
-  const d = new Date(date);
-  console.log(d instanceof Date);
-  if (!available.weekdays) {
-    throw new HttpException(500, 'week days', []);
-  }
-  const availableDay = available.weekdays[weekdays[d.getDay()] as WeekDay];
+  const availableDay = available.weekdays[weekdays[date.getDay()] as WeekDay];
   console.log('availDay', availableDay);
   if (
     availableDay &&
-    availableDay.from.hour <= d.getHours() &&
-    d.getHours() <= availableDay.to.hour
+    availableDay.from.hour <= date.getHours() &&
+    date.getHours() <= availableDay.to.hour
   ) {
     const appointments = await AppointmentModel.find({
       doctor,
-      d,
+      date,
     });
     return available.limit > appointments.length;
   }
@@ -35,14 +30,13 @@ export const isDoctorAvailable = async (
 export const bookAppointment = async (
   patientId: string,
   doctorId: string,
-  d: string,
+  date: Date,
 ) => {
   const doctor = await DoctorModel.findById(doctorId);
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found', []);
   }
-  const date = new Date(d);
-  const canBook = await isDoctorAvailable(doctorId, d, doctor.availableTime);
+  const canBook = await isDoctorAvailable(doctorId, date, doctor.availableTime);
   if (!canBook) {
     throw new HttpException(400, 'Doctor is not available at this time', []);
   }
