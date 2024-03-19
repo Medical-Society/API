@@ -9,7 +9,7 @@ export const bookAppointmentSchema = z.object({
         patientId: zodObjectId,
       }),
       doctorId: zodObjectId,
-      date: z.string(),
+      date: z.coerce.date(),
     })
     .strict(),
 });

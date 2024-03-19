@@ -11,7 +11,6 @@ import {
   findAppointment,
   searchAppointment,
 } from '../services/appointment';
-import AppointmentModel from '../models/appointment';
 
 export const bookPatientAppointment = async (
   req: Request<{}, {}, BookAppointmentBodyInput>,
@@ -22,7 +21,7 @@ export const bookPatientAppointment = async (
     const appointment = await bookAppointment(
       req.body.auth.patientId,
       req.body.doctorId,
-      new Date(req.body.date),
+      req.body.date,
     );
     return res.status(200).json({
       status: 'success',
