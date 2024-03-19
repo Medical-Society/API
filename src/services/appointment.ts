@@ -1,7 +1,7 @@
 import HttpException from '../models/errors';
 import AppointmentModel, { Appointment } from '../models/appointment';
 import DoctorModel from '../models/doctor';
-import { FilterQuery, Types } from 'mongoose';
+import { FilterQuery, ObjectId, Types } from 'mongoose';
 import { SearchAppointmentQueryInput } from '../schema/appointment';
 import { AvailableTime } from '../models/availableTime';
 import { weekdays } from '../utils/weekday';
@@ -53,25 +53,18 @@ export const bookAppointment = async (
 };
 
 export const searchAppointment = async (
-  filter: FilterQuery<Appointment>,
-  patientId: string,
   query: SearchAppointmentQueryInput,
+  patientId?: string,
 ) => {
-  let { status, page = 1, limit = 20, price, doctor, paid } = query;
-  filter['patient'] = patientId;
-  if (status) {
-    filter['status'] = { $regex: new RegExp(status, 'i') };
-  }
-  if (price) {
-    filter['price'] = price;
-  }
-  if (doctor) {
-    filter['doctor'] = doctor;
-  }
-  if (paid) {
-    filter['paid'] = paid;
-  }
-  const count = await AppointmentModel.countDocuments(filter);
+  const { status, page = 1, limit = 10, price, doctor, paid } = query;
+  const filter = {
+    status,
+    doctor,
+    paid,
+    price,
+    patient: patientId,
+  };
+  const count = await AppointmentModel.countDocuments();
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);

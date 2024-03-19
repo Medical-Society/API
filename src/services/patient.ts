@@ -21,7 +21,7 @@ export const findPatientsPagination = async (
   filter: FilterQuery<Patient>,
   query: GetAllPatientInput,
 ) => {
-  let { page = 1, limit = 20 } = query;
+  const { page = 1, limit = 10 } = query;
   const count = await PatientModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
@@ -63,6 +63,3 @@ export const findPatientByIdAndDelete = async (patientId: any) => {
 
   await PatientModel.findByIdAndDelete(patientId);
 };
-
-
-

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Gender, Status } from '../models/enums';
-import { zodObjectId, validAgeDate } from './customZod';
+import { zodObjectId, validAgeDate, paginationQuery } from './customZod';
 
 // Schemas
 export const saveDoctorAvatarSchema = z.object({
@@ -167,9 +167,8 @@ export const searchDoctorSchema = z.object({
       englishFullName: z.string().optional(),
       specialization: z.string().optional(),
       clinicAddress: z.string().optional(),
-      page: z.coerce.number().min(1, 'Page must be at least 1').optional(),
-      limit: z.coerce.number().min(1, 'Limit must be at least 1').optional(),
     })
+    .merge(paginationQuery)
     .strict(),
 });
 
@@ -207,4 +206,4 @@ export type ChangeDoctorStatusInput = z.infer<typeof changeDoctorStatusSchema>;
 
 export type DeleteDoctorInput = z.infer<typeof deleteDoctorSchema>['params'];
 
-export type SearchDoctorInput = z.infer<typeof searchDoctorSchema>['query'];
+export type SearchDoctorInput = z.output<typeof searchDoctorSchema>['query'];

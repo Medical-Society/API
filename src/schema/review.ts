@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zodObjectId } from './customZod';
+import { paginationQuery, zodObjectId } from './customZod';
 
 export const addReviewSchema = z.object({
   body: z
@@ -27,12 +27,7 @@ export const getAllReviewsSchema = z.object({
       doctorId: zodObjectId,
     })
     .strict(),
-  query: z
-    .object({
-      page: z.coerce.number().min(1, 'Page must be at least 1').optional(),
-      limit: z.coerce.number().min(1, 'Limit must be at least 1').optional(),
-    })
-    .strict(),
+  query: paginationQuery,
 });
 
 export const getReviewSchema = z.object({

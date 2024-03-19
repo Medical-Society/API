@@ -39,11 +39,7 @@ export const searchPatientAppointment = async (
   next: NextFunction,
 ) => {
   try {
-    const data = await searchAppointment(
-      {},
-      req.body.auth.patientId,
-      req.query,
-    );
+    const data = await searchAppointment(req.query, req.body.auth.patientId);
     return res.status(200).json({
       status: 'success',
       data,

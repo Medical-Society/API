@@ -32,18 +32,6 @@ import {
   sendResetPasswordEmail,
 } from '../services/mail';
 import HttpException from '../models/errors';
-import {
-  CreateCommentBodyInput,
-  CreateCommentParamsInput,
-  DeleteCommentBodyInput,
-  DeleteCommentParamsInput,
-  EditCommentBodyInput,
-  EditCommentParamsInput,
-} from '../schema/comment';
-import {
-  LikePatientPostBodyInput,
-  LikePatientPostParamsInput,
-} from '../schema/like';
 
 // For Admin
 

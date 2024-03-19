@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validAgeDate, zodObjectId } from './customZod';
+import { paginationQuery, zodObjectId } from './customZod';
 import { AppointmentStatus } from '../models/enums';
 
 export const bookAppointmentSchema = z.object({
@@ -24,13 +24,12 @@ export const searchAppointmentSchema = z.object({
     .strict(),
   query: z
     .object({
-      page: z.coerce.number().min(1, 'Page must be at least 1').optional(),
-      limit: z.coerce.number().min(1, 'Limit must be at least 1').optional(),
       status: z.nativeEnum(AppointmentStatus).optional(),
       doctor: zodObjectId.optional(),
       paid: z.coerce.boolean().optional(),
       price: z.number().optional(),
     })
+    .merge(paginationQuery)
     .strict(),
 });
 

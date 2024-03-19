@@ -1,6 +1,6 @@
 import { object, string, TypeOf, nativeEnum, z } from 'zod';
 import { Gender } from '../models/enums';
-import { zodObjectId, validAgeDate } from './customZod';
+import { zodObjectId, validAgeDate, paginationQuery } from './customZod';
 
 export const savePatientAvatarSchema = z.object({
   body: z
@@ -14,10 +14,7 @@ export const savePatientAvatarSchema = z.object({
 });
 
 export const getAllPatientSchema = object({
-  query: object({
-    page: z.coerce.number().min(1, 'Page must be at least 1').optional(),
-    limit: z.coerce.number().min(1, 'Limit must be at least 1').optional(),
-  }),
+  query: paginationQuery,
 });
 
 export const getPatientSchema = object({

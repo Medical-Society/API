@@ -27,6 +27,7 @@ import { upload } from '../middlewares/image';
 import reviewRouter from './review';
 import postRouter from './post';
 import availableTimeRouter from './availableTime';
+import appointmentRouter from './appointment';
 
 const router = express.Router();
 

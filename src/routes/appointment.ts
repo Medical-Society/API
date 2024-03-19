@@ -5,8 +5,8 @@ import { checkPatient } from '../middlewares/checkPatient';
 import {
   bookAppointmentSchema,
   getAppointmentSchema,
-  searchAppointmentSchema,
 } from '../schema/appointment';
+import { searchAppointmentSchema } from '../schema/appointment';
 import * as appointmentController from '../controllers/appointment';
 
 const router = express.Router({ mergeParams: true });

@@ -10,14 +10,21 @@ const dateLike = z.union([z.number(), z.string(), z.date()], {
     return { message: 'birthdate is required' };
   },
 });
+
 export const validAgeDate = (age: number) => {
   return dateLike.pipe(z.coerce.date()).refine((date: Date) => {
-    console.log('date', date.getTime());
-    let ageDiff = Date.now() - date.getTime();
-    let ageDiffDate = new Date(ageDiff);
-    let startDate = new Date(0);
-    let candidateAge =
-      ageDiffDate.getUTCFullYear() - startDate.getUTCFullYear();
+    const candidateAge = date.getFullYear() - new Date().getFullYear();
     return candidateAge >= age;
   }, 'Age must be greater than ' + age);
 };
+
+export const paginationQuery = z.object({
+  page: z.coerce.number().min(1, 'Page must be at least 1').optional(),
+  // .default(1),
+  limit: z.coerce
+    .number()
+    .min(1, 'Limit must be at least 1')
+    .max(50)
+    .optional(),
+  // .default(10),
+});
