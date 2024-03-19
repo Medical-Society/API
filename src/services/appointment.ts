@@ -98,3 +98,41 @@ export const findAppointment = async (
   }
   return appointment;
 };
+export const findAppointmentAndDelete = async (
+  patientId: string,
+  appointmentId: string,
+) => {
+  const appointment = await AppointmentModel.findById(appointmentId);
+  if (!appointment) {
+    throw new HttpException(404, 'Appointment not found', []);
+  }
+  if (!appointment?.patient._id.equals(patientId)) {
+    throw new HttpException(
+      403,
+      'You are not allowed to delete this appointment',
+      [],
+    );
+  }
+  await AppointmentModel.findByIdAndDelete(appointmentId);
+};
+
+export const changeAppointmentStatus = async (
+  doctorId: string,
+  status: any,
+  appointmentId: string,
+) => {
+  const appointment = await AppointmentModel.findById(appointmentId);
+  if (!appointment) {
+    throw new HttpException(404, 'Appointment not found', []);
+  }
+  if (!appointment.doctor._id.equals(doctorId)) {
+    throw new HttpException(
+      403,
+      'You are not allowed to edit this appointment',
+      [],
+    );
+  }
+  appointment.status = status;
+  await appointment.save();
+  return appointment;
+};

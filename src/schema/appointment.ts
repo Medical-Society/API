@@ -33,7 +33,7 @@ export const searchAppointmentSchema = z.object({
     .strict(),
 });
 
-export const getAppointmentSchema = z.object({
+export const getAppointmentByIdSchema = z.object({
   body: z
     .object({
       auth: z.object({
@@ -48,11 +48,34 @@ export const getAppointmentSchema = z.object({
     .strict(),
 });
 
+export const changeAppointmentStatusSchema = z.object({
+  body: z
+    .object({
+      auth: z.object({
+        doctorId: zodObjectId,
+      }),
+      status: z.nativeEnum(AppointmentStatus),
+    })
+    .strict(),
+  params: z
+    .object({
+      appointmentId: zodObjectId,
+    })
+    .strict(),
+});
+
+export type ChangeAppointmentStatusBodyInput = z.infer<
+  typeof changeAppointmentStatusSchema
+>['body'];
+export type ChangeAppointmentStatusParamsInput = z.infer<
+  typeof changeAppointmentStatusSchema
+>['params'];
+
 export type GetAppointmentBodyInput = z.infer<
-  typeof getAppointmentSchema
+  typeof getAppointmentByIdSchema
 >['body'];
 export type GetAppointmentParamsInput = z.infer<
-  typeof getAppointmentSchema
+  typeof getAppointmentByIdSchema
 >['params'];
 
 export type SearchAppointmentBodyInput = z.infer<

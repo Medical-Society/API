@@ -34,7 +34,7 @@ const router = express.Router();
 router.use('/available-times', availableTimeRouter);
 router.use('/:doctorId/reviews', reviewRouter);
 router.use('/:doctorId/posts', postRouter);
-
+router.use('/appointments', appointmentRouter);
 router.post(
   '/avatar',
   checkAuth,
