@@ -17,7 +17,7 @@ export const findAvailableTimes = async (
     throw new HttpException(404, 'Doctor not found', []);
   }
 
-  const { weekdays: availableWeekDays, limit } = doctor.availableTime;
+  const { weekdays: availableWeekDays } = doctor.availableTime;
   const results: AvailableWeekDayTimeSlots = {};
 
   for (const weekday in availableWeekDays) {
@@ -26,8 +26,8 @@ export const findAvailableTimes = async (
       const dateNextWeekDay = getDateNextWeekDayHour(weekday, hour);
       const isAvailable = await isDoctorAvailable(
         doctorId,
-        dateNextWeekDay,
-        limit,
+        dateNextWeekDay.toISOString(),
+        doctor.availableTime,
       );
       results[weekday] = { dateNextWeekDay, isAvailable };
     }

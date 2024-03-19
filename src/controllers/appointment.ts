@@ -1,9 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
-import { bookAppointmentBodyInput } from '../schema/appointment';
-import { bookAppointment } from '../services/appointment';
+import {
+  BookAppointmentBodyInput,
+  GetAppointmentBodyInput,
+  GetAppointmentParamsInput,
+  SearchAppointmentBodyInput,
+  SearchAppointmentQueryInput,
+} from '../schema/appointment';
+import {
+  bookAppointment,
+  findAppointment,
+  searchAppointment,
+} from '../services/appointment';
+import AppointmentModel from '../models/appointment';
 
 export const bookPatientAppointment = async (
-  req: Request<{}, {}, bookAppointmentBodyInput>,
+  req: Request<{}, {}, BookAppointmentBodyInput>,
   res: Response,
   next: NextFunction,
 ) => {
@@ -16,6 +27,47 @@ export const bookPatientAppointment = async (
     return res.status(200).json({
       status: 'success',
       appointment,
+    });
+  } catch (err: any) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export const searchPatientAppointment = async (
+  req: Request<{}, {}, SearchAppointmentBodyInput, SearchAppointmentQueryInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const data = await searchAppointment(
+      {},
+      req.body.auth.patientId,
+      req.query,
+    );
+    return res.status(200).json({
+      status: 'success',
+      data,
+    });
+  } catch (err: any) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export const getPatientAppointment = async (
+  req: Request<GetAppointmentParamsInput, {}, GetAppointmentBodyInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const data = await findAppointment(
+      req.body.auth.patientId,
+      req.params.appointmentId,
+    );
+    return res.status(200).json({
+      status: 'success',
+      data,
     });
   } catch (err: any) {
     next(err);

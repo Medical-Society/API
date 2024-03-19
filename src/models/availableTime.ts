@@ -10,18 +10,18 @@ export class TimeSlot {
   options: { allowMixed: Severity.ALLOW },
 })
 export class AvailableTime {
-  @prop({})
-  weekdays: Record<WeekDay, TimeSlot>;
+  @prop({ required: true , default:{}})
+  weekdays!: Record<WeekDay, TimeSlot>;
 
-  @prop({ required: true, default: 1 })
+  @prop({ required: true, default: 0 })
   limit!: number;
 
-  constructor(obj?: { weekdays: Record<WeekDay, TimeSlot>; limit?: number }) {
-    if (obj) {
-      this.weekdays = obj.weekdays;
-      if (obj.limit) this.limit = obj.limit;
-    } else {
-      this.weekdays = {} as Record<WeekDay, TimeSlot>;
-    }
-  }
+  // constructor(obj?: { weekdays: Record<WeekDay, TimeSlot>; limit?: number }) {
+  //   if (obj) {
+  //     this.weekdays = obj.weekdays;
+  //     if (obj.limit) this.limit = obj.limit;
+  //   } else {
+  //     this.weekdays = {} as Record<WeekDay, TimeSlot>;
+  //   }
+  // }
 }
