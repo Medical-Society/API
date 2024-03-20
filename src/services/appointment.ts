@@ -78,11 +78,12 @@ export const searchAppointment = async (query: ISearchAppointmentQuery) => {
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
   console.log('filter', filter, skip, limit, totalPages, currentPage);
-  const appointments = await AppointmentModel.find(filter)
+  const appointments = await AppointmentModel.find(filter).populate('patient')
     .skip(skip)
     .limit(limit)
     .sort({ date: -1 })
     .exec();
+    
   return {
     length: appointments.length,
     appointments,
