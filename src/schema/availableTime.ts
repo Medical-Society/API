@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { zodObjectId } from './customZod';
 
 export const getAvailableTimesSchema = z.object({
-  body: z
+  params: z
     .object({
       doctorId: zodObjectId,
     })
@@ -42,11 +42,16 @@ export const updateAvailableTimeSchema = z.object({
       }),
     })
     .strict(),
+  params: z
+    .object({
+      doctorId: zodObjectId,
+    })
+    .strict(),
 });
 
-export type GetAvailableTimesBodyInput = z.infer<
+export type GetAvailableTimesParamsInput = z.infer<
   typeof getAvailableTimesSchema
->['body'];
+>['params'];
 
 export type UpdateAvailableTimeBodyInput = z.infer<
   typeof updateAvailableTimeSchema

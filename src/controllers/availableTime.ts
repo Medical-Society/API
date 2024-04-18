@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import {
-  GetAvailableTimesBodyInput,
+  GetAvailableTimesParamsInput,
   UpdateAvailableTimeBodyInput,
 } from '../schema/availableTime';
 import {
@@ -10,12 +10,12 @@ import {
 import { AvailableTime } from '../models/availableTime';
 
 export const getAvailableTimes = async (
-  req: Request<{}, {}, GetAvailableTimesBodyInput>,
+  req: Request<GetAvailableTimesParamsInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const data = await findAvailableTimes(req.body.doctorId);
+    const data = await findAvailableTimes(req.params.doctorId);
     res.status(200).json({ status: 'success', data });
   } catch (err: any) {
     next(err);

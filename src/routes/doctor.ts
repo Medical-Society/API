@@ -36,7 +36,7 @@ import prescriptionRouter from './prescription';
 
 const router = express.Router();
 
-router.use('/available-times', availableTimeRouter);
+router.use('/:doctorId/available-times', availableTimeRouter);
 router.use('/:doctorId/reviews', reviewRouter);
 router.use('/:doctorId/posts', postRouter);
 router.use('/prescriptions', prescriptionRouter);
