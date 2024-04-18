@@ -23,9 +23,11 @@ import {
   savePatientAvatarSchema,
 } from '../schema/patient';
 import appointmentRouter from './appointment';
+import prescriptionRouter from './prescription';
 
 const router = express.Router();
 router.use('/appointments', appointmentRouter);
+router.use('/prescriptions', prescriptionRouter);
 
 //route for Admin
 router.get(

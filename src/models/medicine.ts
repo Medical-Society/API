@@ -1,25 +1,19 @@
-import {
-    prop,
-    getModelForClass,
-    modelOptions,
-    Ref,
-  } from '@typegoose/typegoose';
-  
-  @modelOptions({
-    schemaOptions: {
-      timestamps: true,
-    },
-  })
-  export class Medicine {
-    @prop({required: true})
-    medicineName: string;
-  
-    @prop({required: true})
-    numberOfTimesPerDay: number;
-  
-    @prop({required: true})
-    prescriptionId: string;    
-  }
-  const MedicineModel = getModelForClass(Medicine);
-  export default MedicineModel;
-  
+import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
+
+@modelOptions({
+  schemaOptions: {
+    timestamps: true,
+  },
+})
+export class Medicine {
+  @prop({ required: true })
+  name: string;
+
+  @prop({ required: true })
+  time: string;
+
+  @prop()
+  note: string;
+}
+const MedicineModel = getModelForClass(Medicine);
+export default MedicineModel;

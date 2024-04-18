@@ -3,6 +3,7 @@ import { AnyZodObject } from 'zod';
 
 const validateResource =
   (schema: AnyZodObject) => (req: Request, _: Response, next: NextFunction) => {
+    console.log(req);
     try {
       Object.assign(
         req,

@@ -3,23 +3,24 @@ import {
   getModelForClass,
   modelOptions,
   Ref,
+  index,
 } from '@typegoose/typegoose';
 import { Patient } from './patient';
-import {Medicine} from './medicine'
+import { Medicine } from './medicine';
+import { Doctor } from './doctor';
+
+@index({ diseases: 'text', diagnose: 'text', medicines: 'text' })
 @modelOptions({
   schemaOptions: {
     timestamps: true,
   },
 })
 export class Prescription {
-  @prop()
-  patientName: string;
+  @prop({ required: true, ref: Patient })
+  patient: Ref<Patient>;
 
-  @prop()
-  doctorName: string;
-
-  @prop()
-  date: Date;
+  @prop({ required: true, ref: Doctor })
+  doctor: Ref<Doctor>;
 
   @prop()
   diseases: string;
@@ -28,13 +29,7 @@ export class Prescription {
   diagnose: string;
 
   @prop({ required: true })
-  medicines:Medicine[];
-
-  @prop()
-  notes: string;
-
-  @prop({ required: true, ref: Patient })
-  patient: Ref<Patient>;
+  medicines: Medicine[];
 }
 const PrescriptionModel = getModelForClass(Prescription);
 export default PrescriptionModel;

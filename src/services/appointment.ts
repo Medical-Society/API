@@ -78,12 +78,13 @@ export const searchAppointment = async (query: ISearchAppointmentQuery) => {
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
   console.log('filter', filter, skip, limit, totalPages, currentPage);
-  const appointments = await AppointmentModel.find(filter).populate('patient')
+  const appointments = await AppointmentModel.find(filter)
+    .populate('patient')
     .skip(skip)
     .limit(limit)
     .sort({ date: -1 })
     .exec();
-    
+
   return {
     length: appointments.length,
     appointments,
@@ -163,4 +164,17 @@ export const updateAppointmentById = async (
     }
   }
   await AppointmentModel.findByIdAndUpdate(appointmentId, newAppointment);
+};
+
+export const isPatientWithDoctorNow = async (
+  patientId: string,
+  doctorId: string,
+) => {
+  autoCancelLateAppointments();
+  const result = await AppointmentModel.findOne({
+    patient: patientId,
+    doctor: doctorId,
+    status: AppointmentStatus.IN_PROGRESS,
+  });
+  return result && result.status === AppointmentStatus.IN_PROGRESS;
 };

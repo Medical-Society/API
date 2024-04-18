@@ -32,12 +32,14 @@ import {
   updateAppointmentSchema,
   searchDoctorAppointmentSchema,
 } from '../schema/appointment';
+import prescriptionRouter from './prescription';
 
 const router = express.Router();
 
 router.use('/available-times', availableTimeRouter);
 router.use('/:doctorId/reviews', reviewRouter);
 router.use('/:doctorId/posts', postRouter);
+router.use('/prescriptions', prescriptionRouter);
 
 router.get(
   '/appointments',
