@@ -8,7 +8,6 @@ import {
 } from '@typegoose/typegoose';
 import { Patient } from './patient';
 import { Medicine } from './medicine';
-import { Doctor } from './doctor';
 
 @index({ diseases: 'text', diagnose: 'text', medicines: 'text' })
 @modelOptions({
@@ -16,21 +15,18 @@ import { Doctor } from './doctor';
     timestamps: true,
   },
 })
-export class Prescription {
+export class ScannedPrescription {
   @prop({ required: true, ref: Patient })
   patient: Ref<Patient>;
 
-  @prop({ required: true, ref: Doctor })
-  doctor: Ref<Doctor>;
+  @prop({ trim: true })
+  patientName: string;
 
-  @prop()
-  diseases: string;
-
-  @prop()
-  diagnose: string;
+  @prop({})
+  birthdate: Date;
 
   @prop({ allowMixed: Severity.ALLOW, required: true })
   medicines: Medicine[];
 }
-const PrescriptionModel = getModelForClass(Prescription);
-export default PrescriptionModel;
+const ScannedPrescriptionModel = getModelForClass(ScannedPrescription);
+export default ScannedPrescriptionModel;

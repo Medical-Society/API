@@ -6,13 +6,13 @@ import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
   },
 })
 export class Medicine {
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   name: string;
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   time: string;
 
-  @prop()
+  @prop({ trim: true })
   note: string;
 }
 const MedicineModel = getModelForClass(Medicine);

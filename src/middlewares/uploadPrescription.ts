@@ -1,9 +1,9 @@
 import { FormParser } from '../utils/formParser';
-import { ImageUploader } from '../services/imageUploader';
+import { OcrUploader } from '../services/OCR';
 import { NextFunction, Request, Response } from 'express';
 import HttpException from '../models/errors';
 
-export const upload = async (
+export const uploadPrescription = async (
   req: Request,
   _res: Response,
   next: NextFunction,
@@ -43,13 +43,12 @@ export const upload = async (
     if (imageFile && !isImage) {
       throw new HttpException(400, 'Invalid Image File Or Image');
     }
-    
 
-    const image = imageFile
-      ? await ImageUploader.upload(imageFile.filepath)
+    const medicine = imageFile
+      ? await OcrUploader.upload(imageFile.filepath)
       : undefined;
 
-    req.body.imageURL = image;
+    req.body.medicines = medicine;
     next();
   } catch (err: any) {
     next(err);

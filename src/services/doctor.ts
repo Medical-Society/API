@@ -51,6 +51,7 @@ export const findDoctor = async (
     specialization,
     englishFullName,
     clinicAddress,
+    status,
     page = 1,
     limit = 20,
   } = query;
@@ -59,6 +60,7 @@ export const findDoctor = async (
       { englishFullName: { $regex: new RegExp(searchTerm, 'i') } },
       { specialization: { $regex: new RegExp(searchTerm, 'i') } },
       { clinicAddress: { $regex: new RegExp(searchTerm, 'i') } },
+      { status: { $regex: new RegExp(searchTerm, 'i') } },
     ];
   }
 
@@ -73,12 +75,19 @@ export const findDoctor = async (
   if (clinicAddress) {
     filter['clinicAddress'] = { $regex: new RegExp(clinicAddress, 'i') };
   }
+  if (status) {
+    filter['status'] = { $regex: new RegExp(status, 'i') };
+  }
 
   const count = await DoctorModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
-  const doctors = await DoctorModel.find(filter).skip(skip).limit(limit).exec();
+  const doctors = await DoctorModel.find(filter)
+    .select('-password')
+    .skip(skip)
+    .limit(limit)
+    .exec();
   return {
     length: doctors.length,
     doctors,

@@ -167,6 +167,7 @@ export const searchDoctorSchema = z.object({
       englishFullName: z.string().optional(),
       specialization: z.string().optional(),
       clinicAddress: z.string().optional(),
+      status: z.string().optional(),
     })
     .merge(paginationQuery)
     .strict(),

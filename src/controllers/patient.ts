@@ -336,6 +336,7 @@ export const saveProfileImage = async (
   next: NextFunction,
 ) => {
   try {
+    console.log('req.file',req.file);
     const patient = await findPatientByIdAndUpdate(req.body.auth.patientId, {
       avatar: req.body.imageURL,
     }).select('-password');
