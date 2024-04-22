@@ -17,8 +17,9 @@ import {
   UpdateDoctorInput,
   UpdateDoctorPasswordInput,
   VerifyDoctorInput,
-  SearchDoctorInput,
+  SearchDoctorInputQuery,
   SaveDoctorAvatarBody,
+  SearchDoctorInputBody,
 } from '../schema/doctor';
 import {
   createDoctor,
@@ -26,13 +27,17 @@ import {
   findDoctorById,
   findDoctorByIdAndDelete,
   findDoctorByIdAndUpdate,
-  findDoctor,
+  findDoctorForPatient,
+  findDoctorForAdmin,
 } from '../services/doctor';
 import {
   sendResetPasswordEmail,
   sendVerificationEmail,
 } from '../services/mail';
 import HttpException from '../models/errors';
+import PatientModel from '../models/patient';
+import AdminModel from '../models/admin';
+import DoctorModel from '../models/doctor';
 
 const key: string = process.env.JWT_SECRET as string;
 
@@ -277,13 +282,23 @@ export const changePassword = async (
 };
 
 export const searchDoctor = async (
-  req: Request<{}, {}, {}, SearchDoctorInput>,
+  req: Request<{}, {}, SearchDoctorInputBody, SearchDoctorInputQuery>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const data = await findDoctor({}, req.query);
-    return res.status(200).json({ status: 'success', data });
+    const patient = await PatientModel.findById(req.body.auth.id);
+    const admin = await AdminModel.findById(req.body.auth.id);
+    const doctor = await DoctorModel.findById(req.body.auth.id);
+    if (patient || doctor) {
+      const data = await findDoctorForPatient({}, req.query);
+      return res.status(200).json({ status: 'success', data });
+    } else if (admin) {
+      const data = await findDoctorForAdmin({}, req.query);
+      return res.status(200).json({ status: 'success', data });
+    } else {
+      throw new HttpException(400, 'You are not allowed to do this task');
+    }
   } catch (err: any) {
     next(err);
   }

@@ -2,7 +2,7 @@ import { FilterQuery, ProjectionType } from 'mongoose';
 import DoctorModel, { Doctor } from '../models/doctor';
 import PostModel from '../models/post';
 import HttpException from '../models/errors';
-import { SearchDoctorInput } from '../schema/doctor';
+import { SearchDoctorInputQuery } from '../schema/doctor';
 import CommentModel from '../models/comment';
 
 export const findDoctorByEmail = async (email: string) => {
@@ -42,19 +42,42 @@ export const findDoctorByIdAndDelete = async (doctorId: string) => {
   await DoctorModel.findByIdAndDelete(doctorId);
 };
 
-export const findDoctor = async (
+export const findDoctorForPatient = async (
   filter: FilterQuery<Doctor>,
-  query: SearchDoctorInput,
+  query: SearchDoctorInputQuery,
 ) => {
-  let {
-    searchTerm,
-    specialization,
-    englishFullName,
-    clinicAddress,
-    status,
-    page = 1,
-    limit = 20,
-  } = query;
+  let { searchTerm, page = 1, limit = 20 } = query;
+  filter.status = 'ACCEPTED';
+  filter.isVerified = true;
+  if (searchTerm) {
+    filter['$or'] = [
+      { englishFullName: { $regex: new RegExp(searchTerm, 'i') } },
+      { specialization: { $regex: new RegExp(searchTerm, 'i') } },
+      { clinicAddress: { $regex: new RegExp(searchTerm, 'i') } },
+    ];
+  }
+  const count = await DoctorModel.countDocuments(filter);
+  const totalPages = Math.ceil(count / limit);
+  const currentPage = Math.min(totalPages, page);
+  const skip = Math.max(0, (currentPage - 1) * limit);
+  const doctors = await DoctorModel.find(filter)
+    .select('-password')
+    .skip(skip)
+    .limit(limit)
+    .exec();
+  return {
+    length: doctors.length,
+    doctors,
+    totalPages,
+    currentPage,
+  };
+};
+export const findDoctorForAdmin = async (
+  filter: FilterQuery<Doctor>,
+  query: SearchDoctorInputQuery,
+) => {
+  let { searchTerm, page = 1, limit = 20 } = query;
+  filter.isVerified = true;
   if (searchTerm) {
     filter['$or'] = [
       { englishFullName: { $regex: new RegExp(searchTerm, 'i') } },
@@ -62,21 +85,6 @@ export const findDoctor = async (
       { clinicAddress: { $regex: new RegExp(searchTerm, 'i') } },
       { status: { $regex: new RegExp(searchTerm, 'i') } },
     ];
-  }
-
-  if (englishFullName) {
-    filter['englishFullName'] = { $regex: new RegExp(englishFullName, 'i') };
-  }
-
-  if (specialization) {
-    filter['specialization'] = { $regex: new RegExp(specialization, 'i') };
-  }
-
-  if (clinicAddress) {
-    filter['clinicAddress'] = { $regex: new RegExp(clinicAddress, 'i') };
-  }
-  if (status) {
-    filter['status'] = { $regex: new RegExp(status, 'i') };
   }
 
   const count = await DoctorModel.countDocuments(filter);

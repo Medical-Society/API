@@ -161,13 +161,14 @@ export const deleteDoctorSchema = z.object({
 });
 
 export const searchDoctorSchema = z.object({
+  body: z.object({
+    auth: z.object({
+      id: zodObjectId,
+    }),
+  }),
   query: z
     .object({
       searchTerm: z.string().optional(),
-      englishFullName: z.string().optional(),
-      specialization: z.string().optional(),
-      clinicAddress: z.string().optional(),
-      status: z.string().optional(),
     })
     .merge(paginationQuery)
     .strict(),
@@ -207,4 +208,9 @@ export type ChangeDoctorStatusInput = z.infer<typeof changeDoctorStatusSchema>;
 
 export type DeleteDoctorInput = z.infer<typeof deleteDoctorSchema>['params'];
 
-export type SearchDoctorInput = z.output<typeof searchDoctorSchema>['query'];
+export type SearchDoctorInputQuery = z.output<
+  typeof searchDoctorSchema
+>['query'];
+export type SearchDoctorInputBody = z.output<
+  typeof searchDoctorSchema
+>['body'];

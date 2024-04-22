@@ -80,6 +80,7 @@ router.post(
 );
 router.get(
   '/',
+  checkAuth,
   validateResource(searchDoctorSchema),
   doctorController.searchDoctor,
 );
