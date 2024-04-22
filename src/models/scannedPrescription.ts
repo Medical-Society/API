@@ -22,6 +22,9 @@ export class ScannedPrescription {
   @prop({ trim: true })
   patientName: string;
 
+  @prop({ trim: true })
+  doctorName: string;
+
   @prop({})
   birthdate: Date;
 
