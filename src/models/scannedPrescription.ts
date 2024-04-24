@@ -9,7 +9,6 @@ import {
 import { Patient } from './patient';
 import { Medicine } from './medicine';
 
-@index({ diseases: 'text', diagnose: 'text', medicines: 'text' })
 @modelOptions({
   schemaOptions: {
     timestamps: true,

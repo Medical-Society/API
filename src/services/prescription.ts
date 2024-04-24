@@ -1,11 +1,11 @@
 import { FilterQuery } from 'mongoose';
-import PrescriptionModel from '../models/prescription';
+import PrescriptionModel, { Prescription } from '../models/prescription';
 import {
   AddPrescriptionBodyInput,
   SearchPatientPrescriptionsBodyInput,
   SearchPatientPrescriptionsQueryInput,
 } from '../schema/prescription';
-import DoctorModel, { Doctor } from '../models/doctor';
+import DoctorModel from '../models/doctor';
 import HttpException from '../models/errors';
 
 export const findPrescriptionById = async (
@@ -28,12 +28,26 @@ export const findPrescriptionsBySearchTerm = async (
 ) => {
   const { searchTerm, page = 1, limit = 50 } = query;
 
-  const filter: FilterQuery<Doctor> = { patient: body.auth.patientId };
+  const filter: FilterQuery<Prescription> = { patient: body.auth.patientId };
   if (searchTerm) {
-    filter.$text = { $search: searchTerm };
-    const doctors = await DoctorModel.find(filter);
-    const doctorIds = doctors.map((doctor) => doctor._id);
-    filter.doctor = { $in: doctorIds };
+    const doctor = await DoctorModel.find({
+      $or: [
+        { englishFullName: { $regex: new RegExp(searchTerm, 'i') } },
+        { specialization: { $regex: new RegExp(searchTerm, 'i') } },
+        { clinicAddress: { $regex: new RegExp(searchTerm, 'i') } },
+      ],
+    });
+    // diseases, diagnose, medicines
+    filter['$or'] = [
+      { diseases: { $regex: new RegExp(searchTerm, 'i') } },
+      { diagnose: { $regex: new RegExp(searchTerm, 'i') } },
+      {
+        medicines: {
+          $elemMatch: { name: { $regex: new RegExp(searchTerm, 'i') } },
+        },
+      },
+      { doctor: { $in: doctor.map((d) => d._id) } },
+    ];
   }
 
   const count = await PrescriptionModel.countDocuments(filter);

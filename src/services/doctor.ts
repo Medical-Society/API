@@ -87,8 +87,8 @@ export const findDoctorForAdmin = async (
     ];
   }
 
-  const count = await DoctorModel.countDocuments(filter);
-  const totalPages = Math.ceil(count / limit);
+  const totalCount = await DoctorModel.countDocuments(filter);
+  const totalPages = Math.ceil(totalCount / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
   const doctors = await DoctorModel.find(filter)
@@ -97,7 +97,7 @@ export const findDoctorForAdmin = async (
     .limit(limit)
     .exec();
   return {
-    length: doctors.length,
+    totalCount,
     doctors,
     totalPages,
     currentPage,

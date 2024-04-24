@@ -18,12 +18,6 @@ const DEFAULT_IMAGE =
   this.password = await bcrypt.hash(this.password, 10);
 })
 @index({ email: 1 })
-@index({
-  englishFullName: 'text',
-  specialization: 'text',
-  phoneNumber: 'text',
-  clinicAddress: 'text',
-})
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Doctor {
   @prop({ required: true })
