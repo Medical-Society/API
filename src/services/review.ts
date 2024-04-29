@@ -31,7 +31,10 @@ export const findDoctorReviewsById = async (
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found', ['doctor not found']);
   }
-  const reviews = await ReviewModel.find({ doctor: doctorId });
+  const reviews = await ReviewModel.find({ doctor: doctorId }).populate(
+    'patient',
+    '-password',
+  );
   const count = reviews.length;
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
@@ -50,7 +53,10 @@ export const findReviewById = async (doctorId: string, reviewId: string) => {
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found', ['doctor not found']);
   }
-  const review = await ReviewModel.findById(reviewId);
+  const review = await ReviewModel.findById(reviewId).populate(
+    'patient',
+    '-password',
+  );
   if (!review || !review.doctor._id.equals(doctorId)) {
     throw new HttpException(404, 'Review not found', ['review not found']);
   }
