@@ -4,9 +4,6 @@
 
 ## Documentations
 -   [Medical System](https://documenter.getpostman.com/view/28552965/2sA35HXgLz)
--   [Doctors](https://documenter.getpostman.com/view/28552965/2s9YyzbxDc)
--   [Patients](https://documenter.getpostman.com/view/28552965/2sA2r3Ykpo)
--   [Admins](https://documenter.getpostman.com/view/28552965/2sA2r535SD)
 
 ## TypeScript Declarations
 #### Has package built-in support for types?
