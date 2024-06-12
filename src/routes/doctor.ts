@@ -33,6 +33,7 @@ import {
   searchDoctorAppointmentSchema,
 } from '../schema/appointment';
 import prescriptionRouter from './prescription';
+import feedbackRouter from './feedback';
 
 const router = express.Router();
 
@@ -40,6 +41,7 @@ router.use('/:doctorId/available-times', availableTimeRouter);
 router.use('/:doctorId/reviews', reviewRouter);
 router.use('/:doctorId/posts', postRouter);
 router.use('/prescriptions', prescriptionRouter);
+router.use('/feedbacks', feedbackRouter);
 
 router.get(
   '/appointments',

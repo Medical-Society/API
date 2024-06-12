@@ -3,9 +3,12 @@ export default class HttpException extends Error {
   constructor(
     public statusCode: number = 500,
     message: string = 'Internal server error',
-    public errors: string[] = ['Something went wrong'],
+    public errors: string[] = [],
   ) {
     super(message);
+    if (errors.length === 0) {
+      this.errors.push(message);
+    }
   }
 
   toJSON() {
