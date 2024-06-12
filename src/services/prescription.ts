@@ -2,11 +2,15 @@ import { FilterQuery } from 'mongoose';
 import PrescriptionModel, { Prescription } from '../models/prescription';
 import {
   AddPrescriptionBodyInput,
+  AddPrescriptionParamsInput,
   SearchPatientPrescriptionsBodyInput,
+  SearchPatientPrescriptionsParamsInput,
   SearchPatientPrescriptionsQueryInput,
 } from '../schema/prescription';
 import DoctorModel from '../models/doctor';
 import HttpException from '../models/errors';
+import PatientModel from '../models/patient';
+import { isPatientWithDoctorNow } from './appointment';
 
 export const findPrescriptionById = async (
   patientId: string,
@@ -25,10 +29,25 @@ export const findPrescriptionById = async (
 export const findPrescriptionsBySearchTerm = async (
   body: SearchPatientPrescriptionsBodyInput,
   query: SearchPatientPrescriptionsQueryInput,
+  params: SearchPatientPrescriptionsParamsInput,
 ) => {
   const { searchTerm, page = 1, limit = 50 } = query;
+  const doctor = await DoctorModel.findById(body.auth.id);
+  const patient = await PatientModel.findById(body.auth.id);
+  
+  if (!doctor && !patient) {
+    throw new HttpException(403, 'Forbidden', ['Forbidden']);
+  }
+  if (doctor && !await isPatientWithDoctorNow(params.patientId, body.auth.id)) {
+    throw new HttpException(403, 'doctor can not see prescription', [
+      'Forbidden',
+    ]);
+  }
+  if (patient) {
+    params.patientId = body.auth.id;
+  }
+  const filter: FilterQuery<Prescription> = { patient: params.patientId };
 
-  const filter: FilterQuery<Prescription> = { patient: body.auth.patientId };
   if (searchTerm) {
     const doctor = await DoctorModel.find({
       $or: [
@@ -69,10 +88,13 @@ export const findPrescriptionsBySearchTerm = async (
   };
 };
 
-export const createPrescription = async (body: AddPrescriptionBodyInput) => {
+export const createPrescription = async (
+  body: AddPrescriptionBodyInput,
+  params: AddPrescriptionParamsInput,
+) => {
   await PrescriptionModel.create({
     ...body,
     doctor: body.auth.doctorId,
-    patient: body.patientId,
+    patient: params.patientId,
   });
 };

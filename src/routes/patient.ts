@@ -27,8 +27,9 @@ import prescriptionRouter from './prescription';
 import scannedPrescriptionRouter from './scannedPrescription';
 const router = express.Router();
 router.use('/appointments', appointmentRouter);
-router.use('/prescriptions', prescriptionRouter);
+router.use('/:patientId/prescriptions', prescriptionRouter);
 router.use('/scanned-prescriptions', scannedPrescriptionRouter);
+
 
 //route for Admin
 router.get(

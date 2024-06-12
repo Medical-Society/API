@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import {
   AddPrescriptionBodyInput,
+  AddPrescriptionParamsInput,
   GetPrescriptionBodyInput,
   GetPrescriptionParamsInput,
   SearchPatientPrescriptionsBodyInput,
+  SearchPatientPrescriptionsParamsInput,
   SearchPatientPrescriptionsQueryInput,
 } from '../schema/prescription';
 import {
@@ -16,7 +18,7 @@ import HttpException from '../models/errors';
 
 export const getAllPrescriptions = async (
   req: Request<
-    {},
+    SearchPatientPrescriptionsParamsInput,
     {},
     SearchPatientPrescriptionsBodyInput,
     SearchPatientPrescriptionsQueryInput
@@ -25,7 +27,11 @@ export const getAllPrescriptions = async (
   next: NextFunction,
 ) => {
   try {
-    const results = await findPrescriptionsBySearchTerm(req.body, req.query);
+    const results = await findPrescriptionsBySearchTerm(
+      req.body,
+      req.query,
+      req.params,
+    );
     return res.status(200).json({
       status: 'success',
       data: results,
@@ -36,13 +42,13 @@ export const getAllPrescriptions = async (
 };
 
 export const addPrescription = async (
-  req: Request<{}, {}, AddPrescriptionBodyInput>,
+  req: Request<AddPrescriptionParamsInput, {}, AddPrescriptionBodyInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const canAdd = await isPatientWithDoctorNow(
-      req.body.patientId,
+      req.params.patientId,
       req.body.auth.doctorId,
     );
     if (!canAdd) {
@@ -52,7 +58,7 @@ export const addPrescription = async (
         ['the patient is not with you now'],
       );
     }
-    await createPrescription(req.body);
+    await createPrescription(req.body, req.params);
     return res.status(201).json({
       status: 'success',
       data: { message: 'Prescription created successfully' },
@@ -68,8 +74,9 @@ export const getPrescription = async (
   next: NextFunction,
 ) => {
   try {
+    req.params.patientId = req.body.auth.patientId;
     const prescription = await findPrescriptionById(
-      req.body.auth.patientId,
+      req.params.patientId,
       req.params.prescriptionId,
     );
     return res.status(200).json({

@@ -32,3 +32,6 @@ app.use('/api/v1/admins', adminRouter);
 app.use(errorHandler);
 
 export default http.createServer(app);
+// admin -> sign up , login , change doctor status
+// doctor -> sign up , login , search for doctor , get doctor by id , verify doctor email 
+//

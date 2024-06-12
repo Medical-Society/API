@@ -149,6 +149,18 @@ export const updateAppointmentById = async (
       [],
     );
   }
+  if (newAppointment.status) {
+    if (
+      !(
+        (newAppointment.status === AppointmentStatus.FINISHED &&
+          appointment.status === AppointmentStatus.IN_PROGRESS) ||
+        (newAppointment.status === AppointmentStatus.IN_PROGRESS &&
+          appointment.status === AppointmentStatus.PENDING)
+      )
+    ) {
+      throw new HttpException(400, 'Invalid change status', []);
+    }
+  }
   if (newAppointment.date) {
     const doctor = await DoctorModel.findById(doctorId);
     if (!doctor) {

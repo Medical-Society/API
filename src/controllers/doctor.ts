@@ -27,8 +27,7 @@ import {
   findDoctorById,
   findDoctorByIdAndDelete,
   findDoctorByIdAndUpdate,
-  findDoctorForPatient,
-  findDoctorForAdmin,
+  findDoctors,
 } from '../services/doctor';
 import {
   sendResetPasswordEmail,
@@ -290,15 +289,14 @@ export const searchDoctor = async (
     const patient = await PatientModel.findById(req.body.auth.id);
     const admin = await AdminModel.findById(req.body.auth.id);
     const doctor = await DoctorModel.findById(req.body.auth.id);
-    if (patient || doctor) {
-      const data = await findDoctorForPatient({}, req.query);
-      return res.status(200).json({ status: 'success', data });
-    } else if (admin) {
-      const data = await findDoctorForAdmin({}, req.query);
-      return res.status(200).json({ status: 'success', data });
-    } else {
-      throw new HttpException(400, 'You are not allowed to do this task');
-    }
+    if (!(patient || doctor || admin))
+      throw new HttpException(400, 'You are not allowed to do this task', [
+        'You are not allowed to do this task',
+      ]);
+
+    const data = await findDoctors({}, req.query, !!admin);
+
+    return res.status(200).json({ status: 'success', data });
   } catch (err: any) {
     next(err);
   }

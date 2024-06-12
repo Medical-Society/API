@@ -42,19 +42,24 @@ export const findDoctorByIdAndDelete = async (doctorId: string) => {
   await DoctorModel.findByIdAndDelete(doctorId);
 };
 
-export const findDoctorForPatient = async (
+export const findDoctors = async (
   filter: FilterQuery<Doctor>,
   query: SearchDoctorInputQuery,
+  isAdmin: boolean,
 ) => {
   let { searchTerm, page = 1, limit = 20 } = query;
-  filter.status = 'ACCEPTED';
+  if (!isAdmin) filter.status = 'ACCEPTED';
+
   filter.isVerified = true;
+
   if (searchTerm) {
     filter['$or'] = [
       { englishFullName: { $regex: new RegExp(searchTerm, 'i') } },
       { specialization: { $regex: new RegExp(searchTerm, 'i') } },
       { clinicAddress: { $regex: new RegExp(searchTerm, 'i') } },
     ];
+    if (isAdmin)
+      filter['$or'].push({ status: { $regex: new RegExp(searchTerm, 'i') } });
   }
   const count = await DoctorModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
@@ -67,37 +72,6 @@ export const findDoctorForPatient = async (
     .exec();
   return {
     length: doctors.length,
-    doctors,
-    totalPages,
-    currentPage,
-  };
-};
-export const findDoctorForAdmin = async (
-  filter: FilterQuery<Doctor>,
-  query: SearchDoctorInputQuery,
-) => {
-  let { searchTerm, page = 1, limit = 20 } = query;
-  filter.isVerified = true;
-  if (searchTerm) {
-    filter['$or'] = [
-      { englishFullName: { $regex: new RegExp(searchTerm, 'i') } },
-      { specialization: { $regex: new RegExp(searchTerm, 'i') } },
-      { clinicAddress: { $regex: new RegExp(searchTerm, 'i') } },
-      { status: { $regex: new RegExp(searchTerm, 'i') } },
-    ];
-  }
-
-  const totalCount = await DoctorModel.countDocuments(filter);
-  const totalPages = Math.ceil(totalCount / limit);
-  const currentPage = Math.min(totalPages, page);
-  const skip = Math.max(0, (currentPage - 1) * limit);
-  const doctors = await DoctorModel.find(filter)
-    .select('-password')
-    .skip(skip)
-    .limit(limit)
-    .exec();
-  return {
-    totalCount,
     doctors,
     totalPages,
     currentPage,

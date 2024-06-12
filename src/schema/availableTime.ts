@@ -20,7 +20,11 @@ const timeSlotOptionalSchema = z
       minute: z.number(),
     }),
   })
-  .optional();
+  .refine(
+    (val) =>
+      val.from.hour * 60 + val.from.minute < val.to.hour * 60 + val.to.minute,
+    { message: 'Invalid time' },
+  ).optional();
 
 export const updateAvailableTimeSchema = z.object({
   body: z

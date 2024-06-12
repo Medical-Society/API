@@ -39,12 +39,12 @@ export const upload = async (
     // check `image` field is a file and is an image
 
     const imageFile = Array.isArray(files.image) ? files.image[0] : files.image;
-    const isImage = imageFile?.mimetype?.startsWith('image/');
-    if (imageFile && !isImage) {
-      throw new HttpException(400, 'Invalid Image File Or Image');
-    }
+    // const isImage = imageFile?.mimetype?.startsWith('image/');
+    // if (imageFile && !isImage) {
+    //   throw new HttpException(400, 'Invalid Image File Or Image');
+    // }
     
-
+    console.log(imageFile?.filepath);
     const image = imageFile
       ? await ImageUploader.upload(imageFile.filepath)
       : undefined;

@@ -16,7 +16,6 @@ router
   .route('/')
   .get(
     checkAuth,
-    checkPatient,
     validateResource(searchPatientPrescriptionsSchema),
     prescriptionController.getAllPrescriptions,
   )
