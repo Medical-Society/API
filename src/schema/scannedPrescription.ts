@@ -27,6 +27,8 @@ export const updateScannedPrescriptionSchema = z.object({
           note: z.string().optional(),
         }),
       ),
+      diseases: z.string().optional(),
+      diagnose: z.string().optional(),
       patientName: z.string().optional(),
       doctorName: z.string().optional(),
       birthdate: validAgeDate(0).optional(),

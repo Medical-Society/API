@@ -62,6 +62,8 @@ export const getScannedPrescription = async (
     filter['$or'] = [
       { doctorName: { $regex: new RegExp(searchTerm, 'i') } },
       { patientName: { $regex: new RegExp(searchTerm, 'i') } },
+      { diseases: { $regex: new RegExp(searchTerm, 'i') } },
+      { diagnose: { $regex: new RegExp(searchTerm, 'i') } },
       { 'medicines.name': { $regex: new RegExp(searchTerm, 'i') } },
       { 'medicines.time': { $regex: new RegExp(searchTerm, 'i') } },
       { 'medicines.note': { $regex: new RegExp(searchTerm, 'i') } },
