@@ -12,6 +12,11 @@ export const createScannedPrescriptionSchema = z.object({
       medicines: z.array(z.string(), { required_error: 'Image is required' }),
     })
     .strict(),
+  params: z
+    .object({
+      patientId: zodObjectId,
+    })
+    .strict(),
 });
 
 export const updateScannedPrescriptionSchema = z.object({
@@ -43,8 +48,13 @@ export const getScannedPrescriptionSchema = z.object({
   body: z
     .object({
       auth: z.object({
-        patientId: zodObjectId,
+        id: zodObjectId,
       }),
+    })
+    .strict(),
+  params: z
+    .object({
+      patientId: zodObjectId,
     })
     .strict(),
   query: z
@@ -65,6 +75,7 @@ export const getScannedPrescriptionByIdSchema = z.object({
     .strict(),
   params: z.object({
     scannedPrescriptionId: zodObjectId,
+    patientId: zodObjectId,
   }),
 });
 
@@ -85,6 +96,10 @@ export type GetScannedPrescriptionBody = z.infer<
 export type GetScannedPrescriptionQuery = z.infer<
   typeof getScannedPrescriptionSchema
 >['query'];
+
+export type GetScannedPrescriptionParams = z.infer<
+  typeof getScannedPrescriptionSchema
+>['params'];
 
 export type GetScannedPrescriptionByIdBody = z.infer<
   typeof getScannedPrescriptionByIdSchema

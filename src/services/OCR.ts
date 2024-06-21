@@ -11,10 +11,8 @@ export class OcrUploader {
     const form = new formData();
     form.append('image', fs.createReadStream(imagePath));
 
-    const res = await axios.post(
-      'https://ocr-3nz8.onrender.com/OCR',
-      form,
-    );
+    const res = await axios.post(process.env.API_OCR as string, form);
+
     return res.data.response;
   }
 }

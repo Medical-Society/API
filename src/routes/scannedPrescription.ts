@@ -24,7 +24,6 @@ router
   )
   .get(
     checkAuth,
-    checkPatient,
     validateResource(getScannedPrescriptionSchema),
     scannedPrescriptionController.getScannedPrescriptionPatient,
   );

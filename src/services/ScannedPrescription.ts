@@ -7,9 +7,12 @@ import ScannedPrescriptionModel, {
 import {
   CreateScannedPrescriptionBody,
   GetScannedPrescriptionBody,
+  GetScannedPrescriptionParams,
   GetScannedPrescriptionQuery,
   UpdateScannedPrescriptionBody,
 } from '../schema/scannedPrescription';
+import DoctorModel from '../models/doctor';
+import { isPatientWithDoctorNow } from './appointment';
 
 export const createScannedPrescription = async (
   patientId: any,
@@ -53,11 +56,31 @@ export const updateScannedPrescription = async (
 export const getScannedPrescription = async (
   body: GetScannedPrescriptionBody,
   query: GetScannedPrescriptionQuery,
+  params: GetScannedPrescriptionParams,
 ) => {
   const { searchTerm, page = 1, limit = 20 } = query;
+
+  const doctor = await DoctorModel.findById(body.auth.id);
+  const patient = await PatientModel.findById(body.auth.id);
+
+  if (!doctor && !patient) {
+    throw new HttpException(403, 'Forbidden', ['Forbidden']);
+  }
+  if (
+    doctor &&
+    !(await isPatientWithDoctorNow(params.patientId, body.auth.id))
+  ) {
+    throw new HttpException(403, 'doctor can not see prescription', [
+      'Forbidden',
+    ]);
+  }
+  if (patient) {
+    params.patientId = body.auth.id;
+  }
   const filter: FilterQuery<ScannedPrescription> = {
-    patient: body.auth.patientId,
+    patient: params.patientId,
   };
+
   if (searchTerm) {
     filter['$or'] = [
       { doctorName: { $regex: new RegExp(searchTerm, 'i') } },
@@ -69,7 +92,7 @@ export const getScannedPrescription = async (
       { 'medicines.note': { $regex: new RegExp(searchTerm, 'i') } },
     ];
   }
-  console.log(filter);
+  // console.log(filter);
   const count = await ScannedPrescriptionModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);

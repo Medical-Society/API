@@ -5,6 +5,7 @@ import {
   GetScannedPrescriptionBody,
   GetScannedPrescriptionByIdBody,
   GetScannedPrescriptionByIdParams,
+  GetScannedPrescriptionParams,
   GetScannedPrescriptionQuery,
   UpdateScannedPrescriptionBody,
   UpdateScannedPrescriptionParams,
@@ -63,12 +64,12 @@ export const updateScannedPrescriptionPatient = async (
 };
 
 export const getScannedPrescriptionPatient = async (
-  req: Request<{}, {}, GetScannedPrescriptionBody, GetScannedPrescriptionQuery>,
+  req: Request<GetScannedPrescriptionParams, {}, GetScannedPrescriptionBody, GetScannedPrescriptionQuery>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const data = await getScannedPrescription(req.body, req.query);
+    const data = await getScannedPrescription(req.body, req.query, req.params);
     return res.status(200).json({
       status: 'success',
       data,

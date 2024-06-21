@@ -13,7 +13,6 @@ export const uploadPrescription = async (
 
     // check 'content-type' header stars with multipart/form-data
     // because 'content-type' header look like "multipart/form-data; boundary=..."
-
     const isAcceptedContentType =
       req.headers['content-type']?.startsWith(acceptedContentType);
     if (!isAcceptedContentType) {
