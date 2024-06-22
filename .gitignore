@@ -2,3 +2,5 @@ node_modules/
 .env
 dist/
 .vscode/
+tsconfig.tsbuildinfo
+src/tests/myGenerator.ts

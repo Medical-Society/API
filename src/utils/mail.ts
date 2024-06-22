@@ -1,6 +1,6 @@
-import nodemailer, { SendMailOptions } from 'nodemailer';
+import { createTransport, SendMailOptions } from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
+const transporter = createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USERNAME,
