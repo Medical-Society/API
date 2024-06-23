@@ -1,5 +1,5 @@
 import {
-  Ref,
+  type Ref,
   getModelForClass,
   modelOptions,
   prop,

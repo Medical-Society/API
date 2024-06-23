@@ -2,7 +2,7 @@ import {
   prop,
   getModelForClass,
   modelOptions,
-  Ref,
+  type Ref,
 } from '@typegoose/typegoose';
 import { Doctor } from './doctor';
 @modelOptions({

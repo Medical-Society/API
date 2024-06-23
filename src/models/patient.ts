@@ -53,5 +53,3 @@ export class Patient {
 }
 const PatientModel = getModelForClass(Patient);
 export default PatientModel;
-
-//🍩

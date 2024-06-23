@@ -2,7 +2,7 @@ import {
   prop,
   getModelForClass,
   modelOptions,
-  Ref,
+  type Ref,
   index,
   Severity,
 } from '@typegoose/typegoose';

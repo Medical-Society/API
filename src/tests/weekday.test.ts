@@ -9,6 +9,12 @@ describe('getDateNextWeekDayHour', () => {
     expectedDate.setDate(
       expectedDate.getDate() + ((1 + 7 - expectedDate.getDay()) % 7),
     );
+    if (
+      expectedDate.getDate() === new Date().getDate() &&
+      new Date().getHours() >= 20
+    ) {
+      expectedDate.setDate(expectedDate.getDate() + 7);
+    }
     expectedDate.setHours(20, 0, 0, 0);
     expect(result).toEqual(expectedDate);
   });
@@ -19,6 +25,12 @@ describe('getDateNextWeekDayHour', () => {
     expectedDate.setDate(
       expectedDate.getDate() + ((0 + 7 - expectedDate.getDay()) % 7),
     );
+    if (
+      expectedDate.getDate() === new Date().getDate() &&
+      new Date().getHours() >= 12
+    ) {
+      expectedDate.setDate(expectedDate.getDate() + 7);
+    }
     expectedDate.setHours(12, 0, 0, 0);
     expect(result).toEqual(expectedDate);
   });
