@@ -75,9 +75,8 @@ const autoCancelLateAppointments = async () => {
 
 export const searchAppointment = async (query: ISearchAppointmentQuery) => {
   await autoCancelLateAppointments();
-  const { page = 1, limit = 10 } = query;
-  const filter = { ...query };
-  const count = await AppointmentModel.countDocuments();
+  const { page = 1, limit = 10, ...filter } = query;
+  const count = await AppointmentModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
