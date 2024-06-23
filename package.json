@@ -11,7 +11,8 @@
     "build": "tsc",
     "dev": "nodemon src/server.ts",
     "start": "node dist/server.js",
-    "test": "vitest"
+    "test": "vitest",
+    "start:dev": "tsc -w & nodemon dist/server.js"
   },
   "repository": {
     "type": "git",
