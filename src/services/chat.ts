@@ -9,7 +9,6 @@ import {
   GetChatByIdSchemaBody,
   GetChatByIdSchemaParams,
   GetChatSchemaBody,
-  GetChatSchemaQuery,
 } from '../schema/chat';
 const key = process.env.JWT_SECRET as string;
 
@@ -20,7 +19,6 @@ export const createChats = async (appointment: any) => {
       doctor: appointment.doctor,
     };
     const existChat = await ChatModel.find(filterChat);
-    console.log('existchat', existChat);
     if (existChat.length === 0) {
       const room = jwt.sign(
         { patient: appointment.patient._id, doctor: appointment.doctor._id },
@@ -35,14 +33,9 @@ export const createChats = async (appointment: any) => {
   }
 };
 
-export const getChats = async (
-  body: GetChatSchemaBody,
-  query: GetChatSchemaQuery,
-) => {
+export const getChats = async (body: GetChatSchemaBody) => {
   const doctor = await DoctorModel.findById(body.auth.id);
   const patient = await PatientModel.findById(body.auth.id);
-
-  const { page = 1, limit = 50 } = query;
 
   if (!doctor && !patient) {
     throw new HttpException(403, 'Forbidden', ['Forbidden']);
@@ -55,22 +48,15 @@ export const getChats = async (
     filter = { patient: body.auth.id };
   }
 
-  const count = await ChatModel.countDocuments(filter);
-  const totalPages = Math.ceil(count / limit);
-  const currentPage = Math.min(totalPages, page);
-  const skip = Math.max(0, (currentPage - 1) * limit);
-
   const chats = await ChatModel.find(filter)
-    // .select('-roomId')
-    .skip(skip)
-    .limit(limit)
+    .populate('patient', '-password')
+    .populate('doctor', '-password')
+    .select('-roomId')
     .exec();
 
   return {
     length: chats.length,
     chats,
-    totalPages,
-    currentPage,
   };
 };
 
@@ -103,7 +89,11 @@ export const getChatById = async (
     { arrayFilters },
   );
 
-  const updatedChat = await ChatModel.findById(params.chatId);
+  const updatedChat = await ChatModel.findById(params.chatId)
+    .populate('patient', '-password')
+    .populate('doctor', '-password')
+    .select('-roomId')
+    .exec();
 
   return updatedChat;
 };
