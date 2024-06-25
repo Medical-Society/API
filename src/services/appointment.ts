@@ -8,6 +8,7 @@ import {
 import { AvailableTime } from '../models/availableTime';
 import { weekdays } from '../utils/weekday';
 import { AppointmentStatus, WeekDay } from '../models/enums';
+import { createChats } from './chat';
 
 export const isDoctorAvailable = async (
   doctor: string,
@@ -114,6 +115,7 @@ export const findAppointment = async (
   }
   return appointment;
 };
+
 export const cancelPendingAppointment = async (
   patientId: string,
   appointmentId: string,
@@ -181,6 +183,9 @@ export const updateAppointmentById = async (
     }
   }
   await AppointmentModel.findByIdAndUpdate(appointmentId, newAppointment);
+  const result = await AppointmentModel.findById(appointmentId);
+
+  createChats(result);
 };
 
 export const isPatientWithDoctorNow = async (
