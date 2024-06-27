@@ -81,13 +81,17 @@ export const searchAppointment = async (query: ISearchAppointmentQuery) => {
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
-  console.log('filter', filter, skip, limit, totalPages, currentPage);
   const appointments = await AppointmentModel.find(filter)
     .populate('patient', '-password')
     .skip(skip)
     .limit(limit)
-    .sort({ date: -1 })
     .exec();
+
+  appointments.sort((a, b) => {
+    const sortOrder = Object.keys(AppointmentStatus);
+    const diff = sortOrder.indexOf(a.status) - sortOrder.indexOf(b.status);
+    return diff || a.date.getTime() - b.date.getTime();
+  });
 
   return {
     length: appointments.length,

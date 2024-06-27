@@ -1,4 +1,5 @@
 import server from './app';
+import './socket';
 import mongoose from 'mongoose';
 
 const port = process.env.PORT as string;
