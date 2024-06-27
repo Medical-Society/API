@@ -15,7 +15,7 @@ export class Message {
   @prop({ default: false, required: true })
   seen: boolean;
 
-  @prop({ default: new Date() })
+  @prop({ default: Date.now })
   createdAt?: Date;
 }
 const MessageModel = getModelForClass(Message);
