@@ -83,6 +83,7 @@ export const searchAppointment = async (query: ISearchAppointmentQuery) => {
   const skip = Math.max(0, (currentPage - 1) * limit);
   const appointments = await AppointmentModel.find(filter)
     .populate('patient', '-password')
+    .populate('doctor', '-password')
     .skip(skip)
     .limit(limit)
     .exec();
