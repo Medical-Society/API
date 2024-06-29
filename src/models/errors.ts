@@ -4,6 +4,7 @@ export default class HttpException extends Error {
     public statusCode: number = 500,
     message: string = 'Internal server error',
     public errors: string[] = [],
+    public path: string[] = [],
   ) {
     super(message);
     if (errors.length === 0) {
@@ -17,6 +18,7 @@ export default class HttpException extends Error {
       statusCode: this.statusCode,
       message: this.message,
       errors: this.errors,
+      path: this.path,
     };
   }
 }

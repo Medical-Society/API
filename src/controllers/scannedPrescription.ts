@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import HttpException from '../models/errors';
 import {
   CreateScannedPrescriptionBody,
   GetScannedPrescriptionBody,
@@ -64,7 +63,12 @@ export const updateScannedPrescriptionPatient = async (
 };
 
 export const getScannedPrescriptionPatient = async (
-  req: Request<GetScannedPrescriptionParams, {}, GetScannedPrescriptionBody, GetScannedPrescriptionQuery>,
+  req: Request<
+    GetScannedPrescriptionParams,
+    {},
+    GetScannedPrescriptionBody,
+    GetScannedPrescriptionQuery
+  >,
   res: Response,
   next: NextFunction,
 ) => {

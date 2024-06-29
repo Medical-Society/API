@@ -4,3 +4,4 @@ dist/
 .vscode/
 tsconfig.tsbuildinfo
 src/tests/myGenerator.ts
+public/

@@ -15,6 +15,7 @@ export default function errorHandler(
     errObj.statusCode = 400;
     errObj.message = 'Invalid data';
     errObj.errors = err.errors.map((err) => err.message);
+    errObj.path = err.errors.map((err) => err.path.join('/'));
   } else if (err instanceof JsonWebTokenError) {
     errObj.statusCode = 401;
     errObj.message = 'Unauthorized';
