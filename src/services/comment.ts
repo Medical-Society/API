@@ -1,6 +1,7 @@
 import CommentModel from '../models/comment';
 import HttpException from '../models/errors';
 import PostModel from '../models/post';
+import { GetCommentQueryInput } from '../schema/comment';
 
 export const createPatientComment = async (
   patientId: any,
@@ -22,8 +23,12 @@ export const createPatientComment = async (
   await comment.save();
   return comment;
 };
-export const getCommentsByPostId = async (postId: string) => {
+export const getCommentsByPostId = async (
+  postId: string,
+  query: GetCommentQueryInput,
+) => {
   const post = await PostModel.findById(postId);
+  let { page = 1, limit = 20 } = query;
   if (!post) {
     throw new HttpException(404, 'Post Not found ', ['post not found ']);
   }
@@ -31,7 +36,18 @@ export const getCommentsByPostId = async (postId: string) => {
   if (!comments) {
     return [];
   }
-  return comments;
+  const count = comments.length;
+  const totalPages = Math.ceil(count / limit);
+  const currentPage = Math.min(totalPages, page);
+  const skip = Math.max(0, (currentPage - 1) * limit);
+  const result = comments.slice(skip, skip + limit);
+
+  return {
+    length: result.length,
+    posts: result,
+    totalPages,
+    currentPage,
+  };
 };
 
 export const findCommentByIdAndDelete = async (
@@ -50,7 +66,7 @@ export const findCommentByIdAndDelete = async (
     throw new HttpException(404, 'Comment not found', ['comment not found']);
   }
   if (!comment.patient._id.equals(patientId)) {
-    throw new HttpException(404, 'You are not allowed to delete this comment', [
+    throw new HttpException(403, 'You are not allowed to delete this comment', [
       'You are not allowed to delete this comment',
     ]);
   }
@@ -75,7 +91,7 @@ export const editPatientComment = async (
     throw new HttpException(404, 'Comment not found', ['comment not found']);
   }
   if (!comment.patient._id.equals(patientId)) {
-    throw new HttpException(404, 'You are not allowed to edit this comment', [
+    throw new HttpException(403, 'You are not allowed to edit this comment', [
       'You are not allowed to edit this comment',
     ]);
   }

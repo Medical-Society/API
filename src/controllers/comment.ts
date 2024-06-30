@@ -43,7 +43,8 @@ export const getComments = async(
 )=>{
   try{
     const comments = await getCommentsByPostId(
-      req.params.postId
+      req.params.postId,
+      req.query
     );
     return res.status(200).json({
       status:'success',

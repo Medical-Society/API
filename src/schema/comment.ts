@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { zodObjectId } from './customZod';
+import { paginationQuery, zodObjectId } from './customZod';
+import { query } from 'express';
 
 export const createCommentSchema = z.object({
   body: z
@@ -7,7 +8,7 @@ export const createCommentSchema = z.object({
       auth: z.object({
         patientId: zodObjectId,
       }),
-      
+
       text: z.string(),
     })
     .strict(),
@@ -25,6 +26,7 @@ export const getCommentSchema = z.object({
       postId: zodObjectId,
     })
     .strict(),
+  query: paginationQuery,
 });
 export const deleteCommentSchema = z.object({
   body: z
@@ -60,10 +62,8 @@ export const editCommentSchema = z.object({
     })
     .strict(),
 });
-export type GetCommentParamsInput = z.infer<
-  typeof getCommentSchema
->['params'];
-
+export type GetCommentParamsInput = z.infer<typeof getCommentSchema>['params'];
+export type GetCommentQueryInput = z.infer<typeof getCommentSchema>['query'];
 
 export type CreateCommentBodyInput = z.infer<
   typeof createCommentSchema
