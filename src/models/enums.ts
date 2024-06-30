@@ -11,8 +11,8 @@ export enum Status {
 }
 
 export enum AppointmentStatus {
-  PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
+  PENDING = 'PENDING',
   FINISHED = 'FINISHED',
   CANCELED = 'CANCELED',
 }

@@ -28,6 +28,8 @@ export const searchPatientAppointmentSchema = z.object({
       doctorId: zodObjectId.optional(),
       paid: z.coerce.boolean().optional(),
       price: z.number().optional(),
+      startDate: z.coerce.date().optional(),
+      endDate: z.coerce.date().optional(),
     })
     .merge(paginationQuery)
     .strict(),
@@ -47,6 +49,8 @@ export const searchDoctorAppointmentSchema = z.object({
       patientId: zodObjectId.optional(),
       paid: z.coerce.boolean().optional(),
       price: z.number().optional(),
+      startDate: z.coerce.date().optional(),
+      endDate: z.coerce.date().optional(),
     })
     .merge(paginationQuery)
     .strict(),
@@ -125,6 +129,8 @@ export interface ISearchAppointmentQuery {
   price?: number;
   page?: number;
   limit?: number;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export interface IUpdateAppointmentInput {

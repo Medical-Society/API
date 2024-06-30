@@ -76,17 +76,30 @@ const autoCancelLateAppointments = async () => {
 
 export const searchAppointment = async (query: ISearchAppointmentQuery) => {
   await autoCancelLateAppointments();
-  const { page = 1, limit = 10, ...filter } = query;
+  const {
+    page = 1,
+    limit = 100,
+    startDate,
+    endDate = new Date(),
+    ...filter
+  } = query;
   const count = await AppointmentModel.countDocuments(filter);
   const totalPages = Math.ceil(count / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
-  const appointments = await AppointmentModel.find(filter)
+
+  let appointmentQuery = AppointmentModel.find(filter)
     .populate('patient', '-password')
-    .populate('doctor', '-password')
-    .skip(skip)
-    .limit(limit)
-    .exec();
+    .populate('doctor', '-password');
+
+  if (startDate && endDate) {
+    appointmentQuery = appointmentQuery
+      .where('date')
+      .gte(startDate.getTime())
+      .lte(endDate.getTime());
+  }
+
+  const appointments = await appointmentQuery.skip(skip).limit(limit).exec();
 
   appointments.sort((a, b) => {
     const sortOrder = Object.keys(AppointmentStatus);
