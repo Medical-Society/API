@@ -186,6 +186,16 @@ export const updateAppointmentById = async (
       throw new HttpException(400, 'Invalid change status', []);
     }
   }
+  if (newAppointment.status === AppointmentStatus.IN_PROGRESS) {
+    const inProgressAppointment = await AppointmentModel.findOne({
+      doctor: doctorId,
+      status: AppointmentStatus.IN_PROGRESS,
+    });
+    if (inProgressAppointment) {
+      throw new HttpException(400, 'Doctor is busy with another patient');
+    }
+  }
+
   if (newAppointment.date) {
     const doctor = await DoctorModel.findById(doctorId);
     if (!doctor) {
@@ -200,8 +210,11 @@ export const updateAppointmentById = async (
       throw new HttpException(400, 'Doctor is not available at this time', []);
     }
   }
-  await AppointmentModel.findByIdAndUpdate(appointmentId, newAppointment);
-  const result = await AppointmentModel.findById(appointmentId);
+  const result = await AppointmentModel.findByIdAndUpdate(
+    appointmentId,
+    newAppointment,
+    { new: true },
+  );
 
   createChats(result);
 };
