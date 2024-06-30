@@ -24,7 +24,12 @@ export const searchPatientAppointmentSchema = z.object({
     .strict(),
   query: z
     .object({
-      status: z.nativeEnum(AppointmentStatus).optional(),
+      status: z
+        .union([
+          z.nativeEnum(AppointmentStatus),
+          z.array(z.nativeEnum(AppointmentStatus)),
+        ])
+        .optional(),
       doctorId: zodObjectId.optional(),
       paid: z.coerce.boolean().optional(),
       price: z.number().optional(),
@@ -45,7 +50,12 @@ export const searchDoctorAppointmentSchema = z.object({
     .strict(),
   query: z
     .object({
-      status: z.nativeEnum(AppointmentStatus).optional(),
+      status: z
+        .union([
+          z.nativeEnum(AppointmentStatus),
+          z.array(z.nativeEnum(AppointmentStatus)),
+        ])
+        .optional(),
       patientId: zodObjectId.optional(),
       paid: z.coerce.boolean().optional(),
       price: z.number().optional(),
@@ -124,7 +134,7 @@ export type SearchDoctorAppointmentQueryInput = z.infer<
 export interface ISearchAppointmentQuery {
   doctor?: string;
   patient?: string;
-  status?: AppointmentStatus;
+  status?: AppointmentStatus | AppointmentStatus[];
   paid?: boolean;
   price?: number;
   page?: number;
