@@ -17,6 +17,13 @@ export const addReviewForDoctorById = async (
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found');
   }
+  const existingReview = await ReviewModel.findOne({
+    patient: patientId,
+    doctor: doctorId,
+  });
+  if (existingReview) {
+    throw new HttpException(400, 'You already reviewed this doctor');
+  }
 
   const review = new ReviewModel({ ...reviewObj, patient, doctor });
   await review.save();
@@ -40,6 +47,15 @@ export const findDoctorReviewsById = async (
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
   const result = reviews.slice(skip, skip + limit);
+  if (query.patientId) {
+    const patientReview = result.find((review) =>
+      review.patient._id.equals(query.patientId),
+    );
+    if (patientReview) {
+      result.splice(result.indexOf(patientReview), 1);
+      result.unshift(patientReview);
+    }
+  }
   return {
     length: result.length,
     reviews: result,

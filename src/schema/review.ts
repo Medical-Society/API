@@ -27,7 +27,11 @@ export const getAllReviewsSchema = z.object({
       doctorId: zodObjectId,
     })
     .strict(),
-  query: paginationQuery,
+  query: z
+    .object({
+      patientId: zodObjectId.optional(),
+    })
+    .merge(paginationQuery),
 });
 
 export const getReviewSchema = z.object({

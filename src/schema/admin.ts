@@ -8,7 +8,8 @@ export const signupAdminSchema = z.object({
     }),
     email: z
       .string({ required_error: 'Email is required' })
-      .email('Invalid Email'),
+      .email('Invalid Email')
+      .transform((value) => value.toLowerCase()),
     password: z
       .string({ required_error: 'Password is required' })
       .min(8, 'Invalid Password , must be at least 8 characters'),
@@ -17,7 +18,10 @@ export const signupAdminSchema = z.object({
 
 export const loginAdminSchema = z.object({
   body: z.object({
-    email: z.string({ required_error: 'Email is required' }).email(),
+    email: z
+      .string({ required_error: 'Email is required' })
+      .email()
+      .transform((value) => value.toLowerCase()),
     password: z.string({ required_error: 'Password is required' }),
   }),
 });

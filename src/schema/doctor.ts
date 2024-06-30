@@ -25,7 +25,8 @@ export const signupDoctorSchema = z.object({
       }),
       email: z
         .string({ required_error: 'Email is required' })
-        .email('Invalid email'),
+        .email('Invalid email')
+        .transform((value) => value.toLowerCase()),
       password: z
         .string({ required_error: 'Password is required' })
         .min(8, 'Password must be at least 8 characters long'),
@@ -50,7 +51,8 @@ export const loginDoctorSchema = z.object({
     .object({
       email: z
         .string({ required_error: 'Email is required' })
-        .email('Invalid email'),
+        .email('Invalid email')
+        .transform((value) => value.toLowerCase()),
       password: z.string({ required_error: 'Password is required' }),
     })
     .strict(),
@@ -77,7 +79,8 @@ export const forgotPasswordDoctorSchema = z.object({
     .object({
       email: z
         .string({ required_error: 'Email is required' })
-        .email('Invalid email'),
+        .email('Invalid email')
+        .transform((value) => value.toLowerCase()),
     })
     .strict(),
 });
@@ -211,6 +214,4 @@ export type DeleteDoctorInput = z.infer<typeof deleteDoctorSchema>['params'];
 export type SearchDoctorInputQuery = z.output<
   typeof searchDoctorSchema
 >['query'];
-export type SearchDoctorInputBody = z.output<
-  typeof searchDoctorSchema
->['body'];
+export type SearchDoctorInputBody = z.output<typeof searchDoctorSchema>['body'];

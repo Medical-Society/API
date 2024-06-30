@@ -36,7 +36,9 @@ export const signupPatientSchema = object({
     }),
     email: string({
       required_error: 'Email is required',
-    }).email('Invalid Email'),
+    })
+      .email('Invalid Email')
+      .transform((value) => value.toLowerCase()),
 
     password: string({
       required_error: 'Password is required',
@@ -57,9 +59,9 @@ export const signupPatientSchema = object({
 
 export const loginPatientSchema = object({
   body: object({
-    email: string({ required_error: 'Email is required' }).email(
-      'Invalid Email',
-    ),
+    email: string({ required_error: 'Email is required' })
+      .email('Invalid Email')
+      .transform((value) => value.toLowerCase()),
     password: string({ required_error: 'Password is required' }),
   }).strict(),
 });
@@ -95,9 +97,9 @@ export const resetPasswordPatientSchema = object({
 
 export const forgotPasswordPatientSchema = object({
   body: object({
-    email: string({ required_error: 'Email is required' }).email(
-      'Invalid Email',
-    ),
+    email: string({ required_error: 'Email is required' })
+      .email('Invalid Email')
+      .transform((value) => value.toLowerCase()),
   }).strict(),
 });
 

@@ -99,13 +99,15 @@ export const searchAppointment = async (query: ISearchAppointmentQuery) => {
       .lte(endDate.getTime());
   }
 
-  const appointments = await appointmentQuery.skip(skip).limit(limit).exec();
+  let appointments = await appointmentQuery.exec();
 
   appointments.sort((a, b) => {
     const sortOrder = Object.keys(AppointmentStatus);
     const diff = sortOrder.indexOf(a.status) - sortOrder.indexOf(b.status);
     return diff || a.date.getTime() - b.date.getTime();
   });
+
+  appointments = appointments.slice(skip, skip + limit);
 
   return {
     length: appointments.length,
