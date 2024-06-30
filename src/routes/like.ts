@@ -8,11 +8,14 @@ import * as likeController from '../controllers/like';
 
 const router = express.Router({ mergeParams: true });
 
-router.route('/').post(
-  checkAuth,
-  checkPatient,
-  validateResource(LikePatientPostSchema),
-  likeController.LikeOrUnlike,
-).get(validateResource(GetLikesPostSchema),likeController.GetLikesOfPost);
+router
+  .route('/')
+  .post(
+    checkAuth,
+    checkPatient,
+    validateResource(LikePatientPostSchema),
+    likeController.LikeOrUnlike,
+  )
+  .get(validateResource(GetLikesPostSchema), likeController.GetLikesOfPost);
 
 export default router;

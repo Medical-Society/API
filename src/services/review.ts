@@ -41,7 +41,7 @@ export const findDoctorReviewsById = async (
   const skip = Math.max(0, (currentPage - 1) * limit);
   const result = reviews.slice(skip, skip + limit);
   return {
-    length: reviews.length,
+    length: result.length,
     reviews: result,
     totalPages,
     currentPage,

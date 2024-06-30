@@ -8,8 +8,8 @@ export const patientLikeOrUnlikePost = async (patientId: any, postId: any) => {
     throw new HttpException(404, 'Post not found', ['post not found']);
   }
 
-  const like = await LikeModel.find({ patient: patientId });
-  console.log(like);
+  const like = await LikeModel.find({ post: postId, patient: patientId });
+  // console.log(like);
   if (like.length == 1) {
     await LikeModel.deleteOne({ patient: patientId });
     return 'you unlike this post';

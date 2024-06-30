@@ -49,7 +49,7 @@ export const createPost = async (
       req.body.images,
     );
 
-    return res.status(200).json({
+    return res.status(201).json({
       status: 'success',
       data: { post },
     });

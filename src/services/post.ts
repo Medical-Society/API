@@ -43,8 +43,8 @@ export const findPostByIdAndDelete = async (
     throw new HttpException(404, 'post not found');
   }
   if (!post.doctor._id.equals(doctorId)) {
-    throw new HttpException(403, 'You are not allowed to Update this post', [
-      'You are not allowed to Update this post',
+    throw new HttpException(403, 'You are not allowed to Delete this post', [
+      'You are not allowed to Delete this post',
     ]);
   }
   await post.save();
