@@ -5,6 +5,9 @@ import HttpException from '../models/errors';
 import { SearchDoctorInputQuery } from '../schema/doctor';
 import CommentModel from '../models/comment';
 import { addAverageReviewForDoctor } from './review';
+import LikeModel from '../models/like';
+import AppointmentModel from '../models/appointment';
+import FeedbackModel from '../models/feedback';
 
 export const findDoctorByEmail = async (email: string) => {
   return await DoctorModel.findOne({ email });
@@ -34,13 +37,17 @@ export const findDoctorByIdAndDelete = async (doctorId: string) => {
   if (!doctor) {
     throw new HttpException(400, 'Doctor not Found', ['doctor does not exist']);
   }
-  const posts = await PostModel.find({ doctorId });
 
+  const posts = await PostModel.find({ doctor: doctorId});
   for (const post of posts) {
-    await CommentModel.deleteMany({ postId: post._id });
+    CommentModel.deleteMany({ post: post._id });
+    LikeModel.deleteMany({ post: post._id });
   }
-  await PostModel.deleteMany({ doctorId });
-  await DoctorModel.findByIdAndDelete(doctorId);
+  AppointmentModel.deleteMany({ doctor: doctorId });
+  FeedbackModel.deleteMany({ doctor: doctorId });
+  PostModel.deleteMany({ doctor: doctorId });
+
+  await DoctorModel.findByIdAndDelete({ doctor: doctorId });
 };
 
 export const findDoctors = async (

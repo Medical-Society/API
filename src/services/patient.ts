@@ -1,9 +1,14 @@
 import { FilterQuery, ProjectionType } from 'mongoose';
 import PatientModel, { Patient } from '../models/patient';
 import CommentModel from '../models/comment';
-import PostModel from '../models/post';
 import HttpException from '../models/errors';
 import { GetAllPatientInput } from '../schema/patient';
+import LikeModel from '../models/like';
+import AppointmentModel from '../models/appointment';
+import ReviewModel from '../models/review';
+import PrescriptionModel from '../models/prescription';
+import ScannedPrescriptionModel from '../models/scannedPrescription';
+
 export const findPatientByEmail = (email: string) => {
   return PatientModel.findOne({ email });
 };
@@ -11,12 +16,14 @@ export const findPatientByEmail = (email: string) => {
 export const createPatient = (patient: any) => {
   return PatientModel.create(patient);
 };
+
 export const findPatientById = (
   id: string,
   projection: ProjectionType<Patient> = {},
 ) => {
   return PatientModel.findById(id, projection);
 };
+
 export const findPatientsPagination = async (
   filter: FilterQuery<Patient>,
   query: GetAllPatientInput,
@@ -55,11 +62,11 @@ export const findPatientByIdAndDelete = async (patientId: any) => {
       'patient does not exist',
     ]);
   }
-
-  await CommentModel.deleteMany({ patientId });
-
-  await PostModel.updateMany({}, { $pull: { likes: patientId } });
-  await PostModel.updateMany({}, { $pull: { comments: { patientId } } });
-
+  CommentModel.deleteMany({ patient: patientId });
+  LikeModel.deleteMany({ patient: patientId });
+  ReviewModel.deleteMany({ patient: patientId });
+  AppointmentModel.deleteMany({ patient: patientId });
+  PrescriptionModel.deleteMany({ patient: patientId });
+  ScannedPrescriptionModel.deleteMany({ patient: patientId });
   await PatientModel.findByIdAndDelete(patientId);
 };
