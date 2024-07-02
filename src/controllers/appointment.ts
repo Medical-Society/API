@@ -10,6 +10,7 @@ import {
   SearchPatientAppointmentBodyInput,
   SearchPatientAppointmentQueryInput,
   IUpdateAppointmentInput,
+  GetAppointmentsBeforeYouParams,
 } from '../schema/appointment';
 import {
   bookAppointment,
@@ -17,6 +18,7 @@ import {
   findAppointment,
   cancelPendingAppointment,
   searchAppointment,
+  getAppointmentsBeforeYou,
 } from '../services/appointment';
 
 export const bookPatientAppointment = async (
@@ -145,6 +147,22 @@ export const updateDoctorAppointment = async (
       status: 'success',
       data: { message: 'Appointment updated successfully' },
     });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export const getAppointmentsBeforeYouPatient = async (
+  req: Request<GetAppointmentsBeforeYouParams>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const appointmentsBeforeYou = await getAppointmentsBeforeYou(req.params.appointmentId);
+    return res.status(200).json({
+      status: 'success',
+      data : appointmentsBeforeYou,
+    })
   } catch (err: any) {
     next(err);
   }

@@ -80,6 +80,13 @@ export const getAppointmentByIdSchema = z.object({
     })
     .strict(),
 });
+export const getAppointmentsBeforeYouSchema = z.object({
+  params: z
+    .object({
+      appointmentId: zodObjectId,
+    })
+    .strict(),
+});
 
 export const updateAppointmentSchema = z.object({
   body: z
@@ -99,6 +106,10 @@ export const updateAppointmentSchema = z.object({
     })
     .strict(),
 });
+
+export type GetAppointmentsBeforeYouParams = z.infer<
+  typeof getAppointmentsBeforeYouSchema
+>['params'];
 
 export type UpdateAppointmentBodyInput = z.infer<
   typeof updateAppointmentSchema

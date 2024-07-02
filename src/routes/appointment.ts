@@ -5,6 +5,7 @@ import { checkPatient } from '../middlewares/checkPatient';
 import {
   bookAppointmentSchema,
   getAppointmentByIdSchema,
+  getAppointmentsBeforeYouSchema,
 } from '../schema/appointment';
 import { searchPatientAppointmentSchema } from '../schema/appointment';
 import * as appointmentController from '../controllers/appointment';
@@ -40,5 +41,10 @@ router
     validateResource(getAppointmentByIdSchema),
     appointmentController.cancelPatientAppointment,
   );
-
+router
+  .route('/:appointmentId/beforeYou')
+  .get(
+    validateResource(getAppointmentsBeforeYouSchema),
+    appointmentController.getAppointmentsBeforeYouPatient,
+  );
 export default router;

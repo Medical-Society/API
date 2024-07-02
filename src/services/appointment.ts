@@ -233,3 +233,23 @@ export const isPatientWithDoctorNow = async (
   });
   return result && result.status === AppointmentStatus.IN_PROGRESS;
 };
+
+export const getAppointmentsBeforeYou = async (appointmentId: string) => {
+  const appointments = await AppointmentModel.findById(appointmentId);
+  if (!appointments) {
+    throw new HttpException(404, 'Appointment not found', []);
+  }
+  const equalAppointments = await AppointmentModel.find({
+    doctor: appointments.doctor,
+    date: appointments.date,
+    status: AppointmentStatus.PENDING,
+  });
+  const lessThanAppointments = await AppointmentModel.find({
+    doctor: appointments.doctor,
+    date: { $lt: appointments.date },
+    status: AppointmentStatus.PENDING,
+  });
+  // console.log('equalAppointments',equalAppointments);
+  // console.log('lessThanAppointments',lessThanAppointments);
+  return lessThanAppointments.length + (equalAppointments.length - 1);
+};
