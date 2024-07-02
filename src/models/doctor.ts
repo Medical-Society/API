@@ -62,6 +62,9 @@ export class Doctor {
   @prop({ match: /^(http:\/\/|https:\/\/).+/, default: DEFAULT_IMAGE })
   avatar: string;
 
+  @prop({ default: 0 })
+  averageReview: number;
+
   @prop({ required: true, default: {} })
   availableTime!: AvailableTime;
 

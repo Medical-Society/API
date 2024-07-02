@@ -26,7 +26,17 @@ router
 router
   .route('/:reviewId')
   .get(validateResource(getReviewSchema), reviewController.getReview)
-  .delete(checkAuth,checkPatient,validateResource(deleteReviewSchema), reviewController.deleteReview)
-  .patch(checkAuth,checkPatient,validateResource(updateReviewSchema), reviewController.updateReview);
+  .delete(
+    checkAuth,
+    checkPatient,
+    validateResource(deleteReviewSchema),
+    reviewController.deleteReview,
+  )
+  .patch(
+    checkAuth,
+    checkPatient,
+    validateResource(updateReviewSchema),
+    reviewController.updateReview,
+  );
 
 export default router;

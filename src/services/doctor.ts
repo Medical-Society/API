@@ -4,6 +4,7 @@ import PostModel from '../models/post';
 import HttpException from '../models/errors';
 import { SearchDoctorInputQuery } from '../schema/doctor';
 import CommentModel from '../models/comment';
+import { addAverageReviewForDoctor } from './review';
 
 export const findDoctorByEmail = async (email: string) => {
   return await DoctorModel.findOne({ email });
@@ -47,6 +48,8 @@ export const findDoctors = async (
   query: SearchDoctorInputQuery,
   isAdmin: boolean,
 ) => {
+  await addAverageReviewForDoctor();
+
   let { searchTerm, page = 1, limit = 20 } = query;
   if (!isAdmin) filter.status = 'ACCEPTED';
 
@@ -69,7 +72,9 @@ export const findDoctors = async (
     .select('-password')
     .skip(skip)
     .limit(limit)
+    .sort({ averageReview: -1 })
     .exec();
+
   return {
     length: doctors.length,
     doctors,

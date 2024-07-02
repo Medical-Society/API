@@ -1,4 +1,4 @@
-import DoctorModel from '../models/doctor';
+import DoctorModel, { Doctor } from '../models/doctor';
 import HttpException from '../models/errors';
 import PatientModel from '../models/patient';
 import ReviewModel from '../models/review';
@@ -113,4 +113,23 @@ export const updateReviewById = async (
     review.comment = updateBody.comment;
   }
   return await review.save();
+};
+
+export const addAverageReviewForDoctor = async () => {
+  const doctors = await DoctorModel.find();
+  doctors.map(async (doctor) => {
+    const reviews = await ReviewModel.find({ doctor: doctor });
+    const totalReviews = reviews.length;
+
+    let averageReview = 0;
+    if (totalReviews > 0) {
+      const totalRating = reviews.reduce(
+        (acc, review) => acc + (review.rating || 0),
+        0,
+      );
+      averageReview = totalRating / totalReviews;
+    }
+
+    await DoctorModel.updateOne({ _id: doctor }, { averageReview });
+  });
 };
