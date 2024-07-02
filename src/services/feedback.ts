@@ -1,6 +1,9 @@
 import HttpException from '../models/errors';
 import FeedbackModel from '../models/feedback';
-import { AddFeedbackBodyInput } from '../schema/feedback';
+import {
+  AddFeedbackBodyInput,
+  GetFeedbackQueryInput,
+} from '../schema/feedback';
 
 export const createFeedback = async (body: AddFeedbackBodyInput) => {
   const found = await FeedbackModel.findOne({ doctor: body.auth.doctorId });
@@ -15,8 +18,23 @@ export const createFeedback = async (body: AddFeedbackBodyInput) => {
   await FeedbackModel.create(feedback);
 };
 
-export const readAllFeedbacks = async () => {
-  return await FeedbackModel.find()
+export const readAllFeedbacks = async (query: GetFeedbackQueryInput) => {
+  let { limit = 20, page = 1 } = query;
+  const count = await FeedbackModel.countDocuments();
+  const totalPages = Math.ceil(count / limit);
+  const currentPage = Math.min(totalPages, page);
+  const skip = Math.max(0, (currentPage - 1) * limit);
+  const feedbacks = await FeedbackModel.find()
+    .skip(skip)
+    .limit(limit)
     .populate('doctor', '-password')
-    .sort({ rating: -1 });
+    .sort({ rating: -1 })
+    .exec();
+
+  return {
+    length: feedbacks.length,
+    feedbacks,
+    totalPages,
+    currentPage,
+  };
 };

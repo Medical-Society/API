@@ -16,6 +16,12 @@ export const addFeedbackSchema = z.object({
     .strict(),
 });
 
-export const getAllFeedbacksSchema = z.object({});
+export const getAllFeedbacksSchema = z.object({
+  query: paginationQuery.strict(),
+});
+
+export type GetFeedbackQueryInput = z.infer<
+  typeof getAllFeedbacksSchema
+>['query'];
 
 export type AddFeedbackBodyInput = z.infer<typeof addFeedbackSchema>['body'];

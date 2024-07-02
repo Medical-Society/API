@@ -158,11 +158,13 @@ export const getAppointmentsBeforeYouPatient = async (
   next: NextFunction,
 ) => {
   try {
-    const appointmentsBeforeYou = await getAppointmentsBeforeYou(req.params.appointmentId);
+    const appointmentsBeforeYou = await getAppointmentsBeforeYou(
+      req.params.appointmentId,
+    );
     return res.status(200).json({
       status: 'success',
-      data : appointmentsBeforeYou,
-    })
+      data: { appointmentsBeforeYou },
+    });
   } catch (err: any) {
     next(err);
   }

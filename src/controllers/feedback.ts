@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { createFeedback, readAllFeedbacks } from '../services/feedback';
-import { AddFeedbackBodyInput } from '../schema/feedback';
+import {
+  AddFeedbackBodyInput,
+  GetFeedbackQueryInput,
+} from '../schema/feedback';
 
 export const addFeedback = async (
   req: Request<{}, {}, AddFeedbackBodyInput>,
@@ -16,12 +19,12 @@ export const addFeedback = async (
 };
 
 export const getAllFeedbacks = async (
-  _req: Request,
+  req: Request<{}, {}, {}, GetFeedbackQueryInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const feedbacks = await readAllFeedbacks();
+    const feedbacks = await readAllFeedbacks(req.query);
     res.status(200).json({
       status: 'success',
       data: { feedbacks },
