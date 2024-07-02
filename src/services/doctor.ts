@@ -48,7 +48,7 @@ export const findDoctors = async (
   query: SearchDoctorInputQuery,
   isAdmin: boolean,
 ) => {
-  await addAverageReviewForDoctor();
+  addAverageReviewForDoctor();
 
   let { searchTerm, page = 1, limit = 20 } = query;
   if (!isAdmin) filter.status = 'ACCEPTED';

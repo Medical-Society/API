@@ -235,21 +235,29 @@ export const isPatientWithDoctorNow = async (
 };
 
 export const getAppointmentsBeforeYou = async (appointmentId: string) => {
-  const appointments = await AppointmentModel.findById(appointmentId);
-  if (!appointments) {
+  const appointment = await AppointmentModel.findById(appointmentId);
+  if (!appointment) {
     throw new HttpException(404, 'Appointment not found', []);
   }
+  if (appointment.status !== AppointmentStatus.PENDING) {
+    throw new HttpException(400, 'Appointment is not pending', []);
+  }
   const equalAppointments = await AppointmentModel.find({
-    doctor: appointments.doctor,
-    date: appointments.date,
+    doctor: appointment.doctor,
+    date: appointment.date,
     status: AppointmentStatus.PENDING,
-  });
+  }).sort({ createdAt: 1 });
   const lessThanAppointments = await AppointmentModel.find({
-    doctor: appointments.doctor,
-    date: { $lt: appointments.date },
+    doctor: appointment.doctor,
+    date: { $lt: appointment.date },
     status: AppointmentStatus.PENDING,
   });
-  // console.log('equalAppointments',equalAppointments);
-  // console.log('lessThanAppointments',lessThanAppointments);
-  return lessThanAppointments.length + (equalAppointments.length - 1);
+
+  const index = equalAppointments.findIndex(
+    (equalAppointment) =>
+      equalAppointment._id.toString() === appointment._id.toString(),
+  );
+  console.log('equalAppointments.indexOf(appointment)', index);
+
+  return lessThanAppointments.length + index;
 };

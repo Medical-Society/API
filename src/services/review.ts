@@ -132,4 +132,5 @@ export const addAverageReviewForDoctor = async () => {
 
     await DoctorModel.updateOne({ _id: doctor }, { averageReview });
   });
+  
 };
