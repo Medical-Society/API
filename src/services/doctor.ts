@@ -8,6 +8,7 @@ import { addAverageReviewForDoctor } from './review';
 import LikeModel from '../models/like';
 import AppointmentModel from '../models/appointment';
 import FeedbackModel from '../models/feedback';
+import ReviewModel from '../models/review';
 
 export const findDoctorByEmail = async (email: string) => {
   return await DoctorModel.findOne({ email });
@@ -37,17 +38,17 @@ export const findDoctorByIdAndDelete = async (doctorId: string) => {
   if (!doctor) {
     throw new HttpException(400, 'Doctor not Found', ['doctor does not exist']);
   }
-
-  const posts = await PostModel.find({ doctor: doctorId});
+  const posts = await PostModel.find({ doctor: doctorId });
   for (const post of posts) {
-    CommentModel.deleteMany({ post: post._id });
-    LikeModel.deleteMany({ post: post._id });
+    await CommentModel.deleteMany({ post: post._id });
+    await LikeModel.deleteMany({ post: post._id });
   }
-  AppointmentModel.deleteMany({ doctor: doctorId });
-  FeedbackModel.deleteMany({ doctor: doctorId });
-  PostModel.deleteMany({ doctor: doctorId });
+  await AppointmentModel.deleteMany({ doctor: doctorId });
+  await FeedbackModel.deleteMany({ doctor: doctorId });
+  await PostModel.deleteMany({ doctor: doctorId });
+  await ReviewModel.deleteMany({ doctor: doctorId });
 
-  await DoctorModel.findByIdAndDelete({ doctor: doctorId });
+  await DoctorModel.findByIdAndDelete(doctorId);
 };
 
 export const findDoctors = async (

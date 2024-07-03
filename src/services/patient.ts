@@ -62,11 +62,11 @@ export const findPatientByIdAndDelete = async (patientId: any) => {
       'patient does not exist',
     ]);
   }
-  CommentModel.deleteMany({ patient: patientId });
-  LikeModel.deleteMany({ patient: patientId });
-  ReviewModel.deleteMany({ patient: patientId });
-  AppointmentModel.deleteMany({ patient: patientId });
-  PrescriptionModel.deleteMany({ patient: patientId });
-  ScannedPrescriptionModel.deleteMany({ patient: patientId });
+  await CommentModel.deleteMany({ patient: patientId });
+  await LikeModel.deleteMany({ patient: patientId });
+  await ReviewModel.deleteMany({ patient: patientId });
+  await AppointmentModel.deleteMany({ patient: patientId });
+  await PrescriptionModel.deleteMany({ patient: patientId });
+  await ScannedPrescriptionModel.deleteMany({ patient: patientId });
   await PatientModel.findByIdAndDelete(patientId);
 };

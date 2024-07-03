@@ -30,7 +30,6 @@ router.use('/appointments', appointmentRouter);
 router.use('/:patientId/prescriptions', prescriptionRouter);
 router.use('/:patientId/scanned-prescriptions', scannedPrescriptionRouter);
 
-
 //route for Admin
 router.get(
   '/',
@@ -54,6 +53,13 @@ router.get(
   checkAdmin,
   validateResource(getPatientSchema),
   patientController.getPatient,
+);
+router.delete(
+  '/delete-my-account',
+  checkAuth,
+  checkPatient,
+  validateResource(deleteMyAccountPatientSchema),
+  patientController.deleteMyAccount,
 );
 
 router.delete(
@@ -104,13 +110,6 @@ router.patch(
   checkPatient,
   validateResource(changePasswordPatientSchema),
   patientController.changePassword,
-);
-router.delete(
-  '/delete-my-account',
-  checkAuth,
-  checkPatient,
-  validateResource(deleteMyAccountPatientSchema),
-  patientController.deleteMyAccount,
 );
 
 router.post(
