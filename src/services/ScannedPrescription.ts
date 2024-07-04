@@ -49,6 +49,7 @@ export const updateScannedPrescription = async (
   const newPrescription = await ScannedPrescriptionModel.findByIdAndUpdate(
     scannedPrescriptionId,
     body,
+    { new: true },
   );
   return newPrescription;
 };
@@ -102,6 +103,7 @@ export const getScannedPrescription = async (
     .populate('patient', '-password')
     .skip(skip)
     .limit(limit)
+    .sort({ createdAt: -1 })
     .exec();
 
   return {

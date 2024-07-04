@@ -49,6 +49,18 @@ export const bookAppointment = async (
   if (!canBook) {
     throw new HttpException(400, 'Doctor is not available at this time', []);
   }
+  const alreadyBooked = await AppointmentModel.findOne({
+    doctor: doctorId,
+    patient: patientId,
+    status: AppointmentStatus.PENDING,
+  });
+  if (alreadyBooked) {
+    throw new HttpException(
+      400,
+      'You already have an appointment with this doctor',
+      [],
+    );
+  }
   date.setMinutes(0);
   date.setSeconds(0);
   date.setMilliseconds(0);
@@ -104,7 +116,7 @@ export const searchAppointment = async (query: ISearchAppointmentQuery) => {
   appointments.sort((a, b) => {
     const sortOrder = Object.keys(AppointmentStatus);
     const diff = sortOrder.indexOf(a.status) - sortOrder.indexOf(b.status);
-    return diff || a.date.getTime() - b.date.getTime();
+    return diff || b.date.getTime() - a.date.getTime();
   });
 
   appointments = appointments.slice(skip, skip + limit);

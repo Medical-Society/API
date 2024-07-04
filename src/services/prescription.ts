@@ -34,11 +34,14 @@ export const findPrescriptionsBySearchTerm = async (
   const { searchTerm, page = 1, limit = 50 } = query;
   const doctor = await DoctorModel.findById(body.auth.id);
   const patient = await PatientModel.findById(body.auth.id);
-  
+
   if (!doctor && !patient) {
     throw new HttpException(403, 'Forbidden', ['Forbidden']);
   }
-  if (doctor && !await isPatientWithDoctorNow(params.patientId, body.auth.id)) {
+  if (
+    doctor &&
+    !(await isPatientWithDoctorNow(params.patientId, body.auth.id))
+  ) {
     throw new HttpException(403, 'doctor can not see prescription', [
       'Forbidden',
     ]);
@@ -78,6 +81,7 @@ export const findPrescriptionsBySearchTerm = async (
     .populate('doctor', '-password')
     .skip(skip)
     .limit(limit)
+    .sort({ createdAt: -1 })
     .exec();
 
   return {

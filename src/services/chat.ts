@@ -10,6 +10,7 @@ import {
   GetChatByIdSchemaParams,
   GetChatSchemaBody,
 } from '../schema/chat';
+import MessageModel, { Message } from '../models/message';
 const key = process.env.JWT_SECRET as string;
 
 export const createChats = async (appointment: any) => {
@@ -24,10 +25,16 @@ export const createChats = async (appointment: any) => {
         { patient: appointment.patient._id, doctor: appointment.doctor._id },
         key,
       );
+      const entryMessage = MessageModel.create({
+        userId: appointment.doctor,
+        text: `You can start chatting with Dr. ${appointment.doctor.englishFullName} now.`,
+        seen: false,
+      });
       await ChatModel.create({
         patient: appointment.patient,
         doctor: appointment.doctor,
         roomId: room,
+        messages: [entryMessage],
       });
     }
   }
