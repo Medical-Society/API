@@ -26,7 +26,9 @@ export const createChats = async (appointment: any) => {
         key,
       );
       const doctor = await DoctorModel.findById(appointment.doctor);
-
+      if (!doctor) {
+        throw new HttpException(404, 'Doctor not found', []);
+      }
       const entryMessage = await MessageModel.create({
         userId: appointment.doctor,
         text: `You can start chatting with Dr. ${doctor.englishFullName} now.`,
