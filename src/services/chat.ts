@@ -25,7 +25,7 @@ export const createChats = async (appointment: any) => {
         { patient: appointment.patient._id, doctor: appointment.doctor._id },
         key,
       );
-      const entryMessage = MessageModel.create({
+      const entryMessage = await MessageModel.create({
         userId: appointment.doctor,
         text: `You can start chatting with Dr. ${appointment.doctor.englishFullName} now.`,
         seen: false,
