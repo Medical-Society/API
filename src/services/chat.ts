@@ -25,9 +25,11 @@ export const createChats = async (appointment: any) => {
         { patient: appointment.patient._id, doctor: appointment.doctor._id },
         key,
       );
+      const doctor = await DoctorModel.findById(appointment.doctor);
+
       const entryMessage = await MessageModel.create({
         userId: appointment.doctor,
-        text: `You can start chatting with Dr. ${appointment.doctor.englishFullName} now.`,
+        text: `You can start chatting with Dr. ${doctor.englishFullName} now.`,
         seen: false,
       });
       await ChatModel.create({
