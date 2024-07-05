@@ -61,7 +61,10 @@ export const loginDoctorSchema = z.object({
 export const verifyDoctorSchema = z.object({
   body: z
     .object({
-      token: z.string({ required_error: 'Token is required' }),
+      auth: z.object({
+        id: zodObjectId,
+      }),
+      images: z.array(z.string()),
     })
     .strict(),
 });

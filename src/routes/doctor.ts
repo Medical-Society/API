@@ -34,6 +34,7 @@ import {
 } from '../schema/appointment';
 import prescriptionRouter from './prescription';
 import feedbackRouter from './feedback';
+import { uploadAlbum } from '../middlewares/album';
 
 const router = express.Router();
 
@@ -77,8 +78,10 @@ router.post(
 );
 router.post(
   '/verify',
+  checkAuth,
+  uploadAlbum,
   validateResource(verifyDoctorSchema),
-  doctorController.verifyEmail,
+  doctorController.verifyDoctorInfo,
 );
 router.get(
   '/',

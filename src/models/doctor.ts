@@ -68,6 +68,9 @@ export class Doctor {
   @prop({ required: true, default: {} })
   availableTime!: AvailableTime;
 
+  @prop({ type: () => [String] })
+  completeImages: string[];
+
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);
   }

@@ -100,27 +100,28 @@ export const login = async (
   }
 };
 
-export const verifyEmail = async (
+export const verifyDoctorInfo = async (
   req: Request<{}, {}, VerifyDoctorInput>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const decoded = jwt.verify(req.body.token, key) as JwtPayload;
-    const doctor = await findDoctorById(decoded._id);
+    const doctor = await findDoctorById(req.body.auth.id);
     if (!doctor) {
       throw new HttpException(400, 'Invalid token', ['Invalid token']);
     }
-    if (doctor.isVerified) {
-      throw new HttpException(400, 'Email already verified', [
-        'Email already verified',
-      ]);
-    }
+
+    doctor.completeImages = req.body.images || [];
+
     doctor.isVerified = true;
+
     await doctor.save();
+    console.log(req.body.images);
     res.status(200).json({
       status: 'success',
-      data: { message: 'Email verified successfully' },
+      data: {
+        message: 'Email verified successfully. Please wait for admin approval.',
+      },
     });
   } catch (err: any) {
     next(err);

@@ -38,11 +38,11 @@ export const uploadAlbum = async (
     // check `image` field is a file and is an image
     const imageFiles = Array.isArray(files.image) ? files.image : [files.image];
     // if(files.image)
-    if (imageFiles.length > 10) {
+    if (imageFiles.length > 3) {
       throw new HttpException(
         400,
-        'You can upload at most 10 images only in the post',
-        ['You can upload at most 10 images only in the post'],
+        'You can upload at most 3 images only in the post',
+        ['You can upload at most 3 images only in the post'],
       );
     }
     if (imageFiles.length > 0 && files.image !== undefined) {

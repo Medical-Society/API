@@ -15,7 +15,16 @@ export const sendVerificationEmail = async (
 ) => {
   const subject = 'Account Verification';
   const link = `${process.env.FRONT_URL}/verify-email/${resources}?token=${token}`;
-  const html = generateHTML('verify your email', link);
+  let html = '';
+  if (resources === 'doctors') {
+    html = generateHTML(
+      'complete your information and verifiy your email',
+      link,
+    );
+  } else {
+    html = generateHTML('verify your email', link);
+  }
+  console.log(html);
   await sendEmail({ to, subject, html });
 };
 
