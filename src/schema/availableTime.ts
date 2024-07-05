@@ -34,6 +34,7 @@ export const updateAvailableTimeSchema = z.object({
       }),
       availableTime: z.object({
         limit: z.number().optional(),
+        price: z.number().optional(),
         weekdays: z.object({
           SUNDAY: timeSlotOptionalSchema,
           MONDAY: timeSlotOptionalSchema,

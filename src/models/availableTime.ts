@@ -16,4 +16,7 @@ export class AvailableTime {
 
   @prop({ required: true, default: 4 })
   limit!: number;
+
+  @prop({ default: 250 })
+  price: number;
 }

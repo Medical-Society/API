@@ -8,21 +8,25 @@ import { isDoctorAvailable } from './appointment';
 interface AvailableWeekDayTimeSlots {
   [key: string]: { dateNextWeekDay: Date; isAvailable: boolean }[];
 }
-
+interface AvailableTimesResult {
+  price: number;
+  availableTimeSlots: AvailableWeekDayTimeSlots;
+}
 export const findAvailableTimes = async (
   doctorId: string,
-): Promise<AvailableWeekDayTimeSlots> => {
+): Promise<AvailableTimesResult> => {
   const doctor = await DoctorModel.findById(doctorId);
   if (!doctor) {
     throw new HttpException(404, 'Doctor not found', []);
   }
-
+  const price = doctor.availableTime.price;
+  console.log(price);
   const { weekdays: availableWeekDays } = doctor.availableTime;
-  const results: AvailableWeekDayTimeSlots = {};
+  const availableTimeSlots: AvailableWeekDayTimeSlots = {};
 
   for (const weekday in availableWeekDays) {
     const { from, to } = availableWeekDays[weekday as WeekDay];
-    results[weekday] = [];
+    availableTimeSlots[weekday] = [];
     for (let hour = from.hour; hour <= to.hour; hour++) {
       const dateNextWeekDay = getDateNextWeekDayHour(weekday, hour);
       const isAvailable = await isDoctorAvailable(
@@ -30,10 +34,10 @@ export const findAvailableTimes = async (
         dateNextWeekDay,
         doctor.availableTime,
       );
-      results[weekday].push({ dateNextWeekDay, isAvailable });
+      availableTimeSlots[weekday].push({ dateNextWeekDay, isAvailable });
     }
   }
-  return results;
+  return { price, availableTimeSlots };
 };
 
 export const editAvailableTime = async (
