@@ -110,10 +110,18 @@ export const verifyDoctorInfo = async (
     if (!doctor) {
       throw new HttpException(400, 'Invalid token', ['Invalid token']);
     }
+    if (doctor.isVerified) {
+      throw new HttpException(400, 'You are already verified');
+    }
 
     doctor.completeImages = req.body.images || [];
 
     doctor.isVerified = true;
+
+    doctor.location = {
+      type: 'Point',
+      coordinates: req.body.location,
+    };
 
     await doctor.save();
     console.log(req.body.images);

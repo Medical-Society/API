@@ -4,6 +4,7 @@ import {
   modelOptions,
   pre,
   prop,
+  Severity,
 } from '@typegoose/typegoose';
 
 import bcrypt from 'bcryptjs';
@@ -17,8 +18,12 @@ const DEFAULT_IMAGE =
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
 })
+@index({ location: '2dsphere' })
 @index({ email: 1 })
-@modelOptions({ schemaOptions: { timestamps: true } })
+@modelOptions({
+  schemaOptions: { timestamps: true },
+  options: { allowMixed: Severity.ALLOW },
+})
 export class Doctor {
   @prop({ required: true })
   englishFullName!: string;
@@ -70,6 +75,12 @@ export class Doctor {
 
   @prop({ type: () => [String] })
   completeImages: string[];
+
+  @prop({ default: () => ({ type: 'Point', coordinates: [0, 0] }) })
+  location: {
+    type: string;
+    coordinates: number[];
+  };
 
   async comparePassword(candidatePassword: string) {
     return await bcrypt.compare(candidatePassword, this.password);

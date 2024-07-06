@@ -44,7 +44,7 @@ export const getCommentsByPostId = async (
 
   return {
     length: result.length,
-    posts: result,
+    comments: result,
     totalPages,
     currentPage,
   };

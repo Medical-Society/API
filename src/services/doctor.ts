@@ -1,4 +1,4 @@
-import { FilterQuery, ProjectionType } from 'mongoose';
+import { FilterQuery, PipelineStage, ProjectionType } from 'mongoose';
 import DoctorModel, { Doctor } from '../models/doctor';
 import PostModel from '../models/post';
 import HttpException from '../models/errors';
@@ -58,7 +58,13 @@ export const findDoctors = async (
 ) => {
   addAverageReviewForDoctor();
 
-  let { searchTerm, page = 1, limit = 20 } = query;
+  let {
+    searchTerm,
+    page = 1,
+    limit = 20,
+    location,
+    maxDistanceMeter = 400000,
+  } = query;
   if (!isAdmin) filter.status = 'ACCEPTED';
 
   filter.isVerified = true;
@@ -72,20 +78,46 @@ export const findDoctors = async (
     if (isAdmin)
       filter['$or'].push({ status: { $regex: new RegExp(searchTerm, 'i') } });
   }
-  const count = await DoctorModel.countDocuments(filter);
-  const totalPages = Math.ceil(count / limit);
+  const pipeline: PipelineStage[] = [];
+  if (location) {
+    console.log('Max distance: ', maxDistanceMeter);
+    pipeline.push({
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [location[0], location[1]],
+        },
+        distanceField: 'distance',
+        spherical: true,
+        maxDistance: maxDistanceMeter,
+      },
+    });
+  }
+  pipeline.push({
+    $match: filter,
+  });
+  pipeline.push({
+    $sort: {
+      averageReview: -1,
+    },
+  });
+  pipeline.push({
+    $project: {
+      password: 0,
+    },
+  });
+
+  const doctors = await DoctorModel.aggregate(pipeline);
+
+  const length = doctors.length;
+  const totalPages = Math.ceil(length / limit);
   const currentPage = Math.min(totalPages, page);
   const skip = Math.max(0, (currentPage - 1) * limit);
-  const doctors = await DoctorModel.find(filter)
-    .select('-password')
-    .skip(skip)
-    .limit(limit)
-    .sort({ averageReview: -1 })
-    .exec();
+  const results = doctors.slice(skip, skip + limit);
 
   return {
-    length: doctors.length,
-    doctors,
+    length,
+    doctors: results,
     totalPages,
     currentPage,
   };

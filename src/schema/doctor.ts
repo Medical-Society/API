@@ -65,6 +65,7 @@ export const verifyDoctorSchema = z.object({
         id: zodObjectId,
       }),
       images: z.array(z.string()),
+      location: z.array(z.coerce.number()),
     })
     .strict(),
 });
@@ -175,6 +176,8 @@ export const searchDoctorSchema = z.object({
   query: z
     .object({
       searchTerm: z.string().optional(),
+      location: z.array(z.coerce.number()).optional(),
+      maxDistanceMeter: z.coerce.number().optional(),
     })
     .merge(paginationQuery)
     .strict(),
