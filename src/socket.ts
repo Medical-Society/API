@@ -96,7 +96,9 @@ io.on('connection', async (socket) => {
         });
         chat.messages.push(newMsg);
         await chat.save();
-
+        if (!socket.rooms.has(chat.roomId)) {
+          await socket.join(chat.roomId);
+        }
         io.to(chat.roomId).emit('listen message', newMsg);
       } catch (err) {
         console.error(err);
