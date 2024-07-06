@@ -105,6 +105,7 @@ export const findDoctors = async (
   });
   pipeline.push({
     $sort: {
+      distance: 1,
       averageReview: -1,
     },
   });
