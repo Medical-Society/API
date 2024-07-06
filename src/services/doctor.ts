@@ -58,13 +58,7 @@ export const findDoctors = async (
 ) => {
   addAverageReviewForDoctor();
 
-  let {
-    searchTerm,
-    page = 1,
-    limit = 20,
-    location,
-    maxDistanceMeter = 400000,
-  } = query;
+  let { searchTerm, page = 1, limit = 20, location, maxDistanceMeter } = query;
   if (!isAdmin) filter.status = 'ACCEPTED';
 
   filter.isVerified = true;
@@ -81,17 +75,30 @@ export const findDoctors = async (
   const pipeline: PipelineStage[] = [];
   if (location) {
     console.log('location', location);
-    pipeline.push({
-      $geoNear: {
-        near: {
-          type: 'Point',
-          coordinates: [location[0], location[1]],
+    if (maxDistanceMeter) {
+      pipeline.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [location[0], location[1]],
+          },
+          distanceField: 'distance',
+          spherical: true,
+          maxDistance: maxDistanceMeter,
         },
-        distanceField: 'distance',
-        spherical: true,
-        maxDistance: maxDistanceMeter,
-      },
-    });
+      });
+    } else {
+      pipeline.push({
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [location[0], location[1]],
+          },
+          distanceField: 'distance',
+          spherical: true,
+        },
+      });
+    }
   }
   pipeline.push({
     $match: filter,
