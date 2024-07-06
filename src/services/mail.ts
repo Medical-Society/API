@@ -38,7 +38,7 @@ export const sendResetPasswordEmail = async (
   resources: 'doctors' | 'patients',
 ) => {
   const subject = 'Reset Password';
-  const link = `${process.env.FRONT_URL}/reset-password/${resources}?token=${token}`;
+  const link = `${process.env.ADMIN_URL}/reset-password/${resources}?token=${token}`;
   const html = generateHTML('reset your password', link);
   await sendEmail({ to, subject, html });
 };
