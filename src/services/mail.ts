@@ -14,10 +14,13 @@ export const sendVerificationEmail = async (
   resources: 'doctors' | 'patients',
 ) => {
   const subject = 'Account Verification';
-  const link = `${process.env.ADMIN_URL}/verify-email/${resources}?token=${token}`;
+  let link = `${process.env.ADMIN_URL}/verify-email/${resources}?token=${token}`;
   let html = '';
   if (resources === 'doctors') {
-    link.replace(`${process.env.ADMIN_URL}`, `${process.env.DOCTOR_URL}`);
+    link = link.replace(
+      `${process.env.ADMIN_URL}`,
+      `${process.env.DOCTOR_URL}`,
+    );
     html = generateHTML(
       'complete your information and verifiy your email',
       link,

@@ -80,7 +80,7 @@ export const findDoctors = async (
   }
   const pipeline: PipelineStage[] = [];
   if (location) {
-    console.log('Max distance: ', maxDistanceMeter);
+    console.log('location', location);
     pipeline.push({
       $geoNear: {
         near: {
